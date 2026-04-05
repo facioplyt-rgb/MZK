@@ -30,7 +30,7 @@
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
 
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
 
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
@@ -138,14 +138,13 @@
 </div>
 
 <script>
-    // Dodano pole stopDetails do bazy
     let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {} };
     let curIdx = -1;
     let editingStopName = "";
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_v15_db');
+        const local = localStorage.getItem('mzk_v16_db');
         if(local) db = JSON.parse(local);
         if(!db.stopDetails) db.stopDetails = {};
         if(!db.news) db.news = [];
@@ -153,7 +152,7 @@
         render();
     }
 
-    function save() { localStorage.setItem('mzk_v15_db', JSON.stringify(db)); extractStops(); render(); }
+    function save() { localStorage.setItem('mzk_v16_db', JSON.stringify(db)); extractStops(); render(); }
 
     function extractStops() {
         let stopsSet = new Set();
@@ -167,7 +166,6 @@
     }
 
     function render() {
-        // LINIE
         const busC = document.getElementById('lines-bus'); const tramC = document.getElementById('lines-tram');
         busC.innerHTML = ''; tramC.innerHTML = '';
         const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
@@ -181,7 +179,6 @@
 
         filterStops();
 
-        // ADMIN LISTY
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>${n.title}</span><button onclick="openNewsForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         
@@ -203,7 +200,7 @@
             return `
                 <div class="app-card" style="display:block;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <b>${s} ${det.nz ? '<span class="nz-badge">NA ŻĄDANIE</span>' : ''}</b>
+                        <b>${s} ${det.nz ? '<span class="nz-badge">NŻ</span>' : ''}</b>
                     </div>
                     ${det.near ? `<p style="font-size:0.8rem; color:var(--accent); margin-top:5px;"><i class="fa-solid fa-location-dot"></i> W pobliżu: ${det.near}</p>` : ''}
                 </div>
@@ -211,7 +208,6 @@
         }).join('');
     }
 
-    // FORMULARZ STATUSU PRZYSTANKU
     function openStopStatusForm(name) {
         editingStopName = name;
         const det = db.stopDetails[name] || { nz: false, near: "" };
@@ -229,7 +225,6 @@
         save(); closeForms();
     }
 
-    /* RESZTA FUNKCJI BEZ ZMIAN */
     function openVariants(num) {
         const variants = db.lines.filter(l => String(l.num) === String(num));
         show('vars');
@@ -254,7 +249,10 @@
             cumulative += offset;
             const det = db.stopDetails[name] || { nz: false };
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
-            card.innerHTML = `<div style="display:flex;justify-content:space-between;"><b>${name} ${det.nz?'(NŻ)':''}</b><span style="color:var(--accent)">+${cumulative} min</span></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            
+            // Naprawiono: Usunięto +min obok nazwy, dodano nż jeśli ustawiony status
+            card.innerHTML = `<div><b>${name} ${det.nz?'(NŻ)':''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            
             card.onclick = () => {
                 const g = document.getElementById(`g-${sIdx}`);
                 const isV = g.style.display === 'grid'; g.style.display = isV ? 'none' : 'grid';
@@ -262,7 +260,11 @@
                     g.innerHTML = line.hours.split(',').map(h => {
                         let [hh, mm] = h.trim().split(':').map(Number);
                         if(isNaN(hh)) return "";
-                        let d = new Date(); d.setHours(hh, mm + cumulative);
+                        
+                        // Obliczanie realnej godziny odjazdu na danym przystanku
+                        let d = new Date(); 
+                        d.setHours(hh, mm + cumulative);
+                        
                         return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
                     }).join('');
                 }

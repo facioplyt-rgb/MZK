@@ -195,7 +195,8 @@
         uniqueNums.forEach(num => {
             const l = db.lines.find(x => x.num === num);
             const div = document.createElement('div'); div.className = 'app-card';
-            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Kierunek: ${l.dir}</b></span><i class="fa-solid fa-chevron-right"></i>`;
+            // Zmiana tutaj: Usunięto kierunek linii z wyświetlania na kafelku głównym
+            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span></span><i class="fa-solid fa-chevron-right"></i>`;
             div.onclick = () => openVariants(num);
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });

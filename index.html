@@ -24,6 +24,13 @@
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
+        
+        /* Nowe style dla linii przy przystankach */
+        .stop-lines-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .mini-line-tag { font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1); }
+        .mini-line-tag i { font-size: 0.65rem; color: var(--accent); }
+        .mini-line-tag.is-tram i { color: var(--danger); }
+
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
@@ -47,7 +54,7 @@
         <div class="group-label">Autobusy</div><div id="lines-bus"></div>
     </div>
     <div id="s-stops" class="section">
-        <div class="group-label">Wyszukiwarka Przystanków</div>
+        <div class="group-label">Lista Przystanków</div>
         <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
@@ -96,13 +103,12 @@
 <div id="form-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
     <h2>Zarządzaj Linią</h2>
     <input type="text" id="fl-num" placeholder="Numer linii">
-    <input type="text" id="fl-dir" placeholder="Kierunek docelowy">
+    <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="fl-hours" placeholder="Godziny odjazdu z pętli (oddziel przecinkiem)"></textarea>
-    <div class="group-label">Trasa i Czas Przejazdu:</div>
+    <textarea id="fl-hours" placeholder="Godziny odjazdu..."></textarea>
     <div id="fl-stops-list"></div>
-    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj przystanek do trasy</button>
-    <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
+    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj przystanek</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -112,7 +118,7 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_db_final_v3');
+        const local = localStorage.getItem('mzk_db_final_v5');
         if(local) {
             db = JSON.parse(local);
             repairAllLines();
@@ -121,21 +127,19 @@
         render();
     }
 
-    // KONWERTER: Naprawia linie z formatu tekstowego na obiektowy
     function repairAllLines() {
         db.lines.forEach(l => {
             if (typeof l.stops === 'string') {
                 l.stops = l.stops.split('\n').filter(s => s.trim() !== "").map((s, i) => {
                     let name = s.trim();
-                    let isNz = name.toLowerCase().includes('nż.');
-                    return { name: name, time: (i === 0 ? 0 : 2), nz: isNz };
+                    return { name: name, time: (i === 0 ? 0 : 2), nz: name.toLowerCase().includes('nż.') };
                 });
             }
         });
     }
 
     function save() { 
-        localStorage.setItem('mzk_db_final_v3', JSON.stringify(db)); 
+        localStorage.setItem('mzk_db_final_v5', JSON.stringify(db)); 
         extractStops(); 
         render(); 
     }
@@ -150,6 +154,20 @@
         allAutoStops = [...stopsSet].sort();
     }
 
+    function getLinesForStop(stopName) {
+        let lines = [];
+        db.lines.forEach(l => {
+            if(Array.isArray(l.stops)) {
+                if(l.stops.some(s => s.name.trim() === stopName.trim())) {
+                    if(!lines.some(existing => existing.num === l.num)) {
+                        lines.push({num: l.num, type: l.type});
+                    }
+                }
+            }
+        });
+        return lines.sort((a,b) => a.num - b.num);
+    }
+
     function render() {
         const busC = document.getElementById('lines-bus'); 
         const tramC = document.getElementById('lines-tram');
@@ -159,13 +177,12 @@
         uniqueNums.forEach(num => {
             const l = db.lines.find(x => x.num === num);
             const div = document.createElement('div'); div.className = 'app-card';
-            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Kierunki...</b></span><i class="fa-solid fa-chevron-right"></i>`;
+            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Kierunki</b></span><i class="fa-solid fa-chevron-right"></i>`;
             div.onclick = () => openVariants(num);
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
 
         filterStops();
-
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact;
     }
@@ -201,25 +218,40 @@
             
             card.onclick = () => {
                 const g = document.getElementById(`g-${sIdx}`);
-                const isV = g.style.display === 'grid'; 
-                g.style.display = isV ? 'none' : 'grid';
+                const isV = g.style.display === 'grid'; g.style.display = isV ? 'none' : 'grid';
                 if(!isV) {
-                    if(!line.hours || line.hours.trim() === "") {
-                        g.innerHTML = `<span style="grid-column: 1/-1; color:var(--text-sec); font-size:0.8rem; padding:10px;">Brak wpisanych godzin odjazdów.</span>`;
-                    } else {
-                        g.innerHTML = line.hours.split(',').map(h => {
-                            let parts = h.trim().split(':');
-                            if(parts.length < 2) return "";
-                            let hh = parseInt(parts[0]);
-                            let mm = parseInt(parts[1]);
-                            let d = new Date(); d.setHours(hh, mm + currentOffset);
-                            return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-                        }).join('');
-                    }
+                    if(!line.hours) { g.innerHTML = '<small>Brak godzin</small>'; return; }
+                    g.innerHTML = line.hours.split(',').map(h => {
+                        let p = h.trim().split(':'); if(p.length<2) return "";
+                        let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset);
+                        return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
+                    }).join('');
                 }
             };
             body.appendChild(card);
         });
+    }
+
+    function filterStops() {
+        const query = document.getElementById('stop-search').value.toLowerCase();
+        const list = document.getElementById('public-stops-list');
+        const filtered = allAutoStops.filter(s => s.toLowerCase().includes(query));
+        
+        list.innerHTML = filtered.map(s => {
+            const lines = getLinesForStop(s);
+            const lineTags = lines.map(ln => `
+                <div class="mini-line-tag ${ln.type==='tram'?'is-tram':''}">
+                    <i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}
+                </div>
+            `).join('');
+
+            return `
+                <div class="app-card" style="display:block;">
+                    <b>${s}</b>
+                    <div class="stop-lines-list">${lineTags}</div>
+                </div>
+            `;
+        }).join('');
     }
 
     function openLineForm(idx) {
@@ -229,7 +261,6 @@
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
         document.getElementById('fl-hours').value = l.hours;
-        
         const container = document.getElementById('fl-stops-list');
         container.innerHTML = '';
         (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
@@ -237,16 +268,10 @@
     }
 
     function addStopRow(name = "", time = 2, nz = false) {
-        const container = document.getElementById('fl-stops-list');
         const div = document.createElement('div');
         div.className = 'stop-edit-item';
-        div.innerHTML = `
-            <input type="text" value="${name}" placeholder="Przystanek" class="edit-stop-name">
-            <input type="number" value="${time}" placeholder="+min" class="edit-stop-time">
-            <label style="font-size:0.6rem; text-align:center;">NŻ<br><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label>
-            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); font-weight:800;">X</button>
-        `;
-        container.appendChild(div);
+        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time"><label><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label><button onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('fl-stops-list').appendChild(div);
     }
 
     function addLineStop() { addStopRow("", 2, false); }
@@ -258,24 +283,9 @@
             time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
             nz: el.querySelector('.edit-stop-nz').checked
         })).filter(s => s.name !== "");
-
-        const data = {
-            num: document.getElementById('fl-num').value.trim(),
-            dir: document.getElementById('fl-dir').value.trim(),
-            type: document.getElementById('fl-type').value,
-            hours: document.getElementById('fl-hours').value.trim(),
-            stops: stopsData
-        };
-
+        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, hours: document.getElementById('fl-hours').value, stops: stopsData };
         if(curIdx === -1) db.lines.push(data); else db.lines[curIdx] = data;
         save(); closeForms();
-    }
-
-    function filterStops() {
-        const query = document.getElementById('stop-search').value.toLowerCase();
-        const list = document.getElementById('public-stops-list');
-        const filtered = allAutoStops.filter(s => s.toLowerCase().includes(query));
-        list.innerHTML = filtered.map(s => `<div class="app-card" style="display:block;"><b>${s}</b></div>`).join('');
     }
 
     function show(id) {
@@ -295,17 +305,7 @@
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('[id^="form-"]').forEach(f => f.style.display='none'); }
     function exportData() { const blob = new Blob([JSON.stringify(db)], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mzk_baza.txt'; a.click(); }
-    
-    function importData(e) { 
-        const r = new FileReader(); 
-        r.onload = (ev) => { 
-            db = JSON.parse(ev.target.result); 
-            repairAllLines(); // Napraw dane zaraz po wczytaniu!
-            save(); 
-            location.reload(); 
-        }; 
-        r.readAsText(e.target.files[0]); 
-    }
+    function importData(e) { const r = new FileReader(); r.onload = (ev) => { db = JSON.parse(ev.target.result); repairAllLines(); save(); location.reload(); }; r.readAsText(e.target.files[0]); }
 
     init();
 </script>

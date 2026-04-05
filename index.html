@@ -120,7 +120,7 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_db_final_v8');
+        const local = localStorage.getItem('mzk_db_final_v9');
         if(local) {
             db = JSON.parse(local);
             repairAllLines();
@@ -129,10 +129,11 @@
         render();
     }
 
-    // Funkcja czyszcząca nazwę z "nż." i zwracająca czy był to przystanek na żądanie
+    // Funkcja czyszcząca nazwę i flagująca NŻ
     function cleanStopName(name) {
         let isNz = false;
-        const nzPatterns = [/ nż\./gi, / nż/gi, / \(nż\)/gi, / nż\./gi];
+        // Szerszy zakres wzorców, aby nic nie zostało
+        const nzPatterns = [/ nż\./gi, / nż/gi, / \(nż\)/gi, / nż\./gi, /nż\./gi];
         let cleaned = name;
         nzPatterns.forEach(p => {
             if(p.test(cleaned)) {
@@ -151,10 +152,9 @@
                     return { name: info.name, time: (i === 0 ? 0 : 2), nz: info.isNz };
                 });
             } else if (Array.isArray(l.stops)) {
-                // Dodatkowe czyszczenie nazw w obiektach jeśli prześlizgnął się tekst nż.
                 l.stops.forEach(s => {
                     const info = cleanStopName(s.name);
-                    if(info.isNz) {
+                    if(info.isNz || s.nz) {
                         s.name = info.name;
                         s.nz = true;
                     }
@@ -164,7 +164,7 @@
     }
 
     function save() { 
-        localStorage.setItem('mzk_db_final_v8', JSON.stringify(db)); 
+        localStorage.setItem('mzk_db_final_v9', JSON.stringify(db)); 
         extractStops(); 
         render(); 
     }
@@ -173,7 +173,10 @@
         let stopsSet = new Set();
         db.lines.forEach(l => {
             if(Array.isArray(l.stops)) {
-                l.stops.forEach(s => { if(s.name) stopsSet.add(s.name.trim()); });
+                l.stops.forEach(s => { 
+                    const info = cleanStopName(s.name);
+                    if(info.name) stopsSet.add(info.name); 
+                });
             }
         });
         allAutoStops = [...stopsSet].sort();
@@ -182,7 +185,7 @@
     function getLinesForStop(stopName) {
         let lines = [];
         db.lines.forEach(l => {
-            if(Array.isArray(l.stops) && l.stops.some(s => s.name.trim() === stopName.trim())) {
+            if(Array.isArray(l.stops) && l.stops.some(s => cleanStopName(s.name).name === stopName)) {
                 if(!lines.some(e => e.num === l.num)) lines.push({num: l.num, type: l.type});
             }
         });
@@ -229,9 +232,9 @@
         line.stops.forEach((stop, sIdx) => {
             totalMinutes += parseInt(stop.time) || 0;
             const currentOffset = totalMinutes;
+            const info = cleanStopName(stop.name); // Finalne czyszczenie przy renderowaniu
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
-            // Czerwony badge NŻ wyświetlany tylko jeśli flaga nz jest true
-            card.innerHTML = `<div><b>${stop.name} ${stop.nz ? '<span class="nz-badge">NŻ</span>' : ''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            card.innerHTML = `<div><b>${info.name} ${(stop.nz || info.isNz) ? '<span class="nz-badge">NŻ</span>' : ''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
             card.onclick = () => {
                 const g = document.getElementById(`g-${sIdx}`);
                 const isV = g.style.display === 'grid'; g.style.display = isV ? 'none' : 'grid';
@@ -278,19 +281,20 @@
         if(!text.trim()) return;
         const lines = text.split('\n').filter(s => s.trim() !== "");
         lines.forEach((rawName, i) => {
-            const info = cleanStopName(rawName); // Automatyczne wykrycie NŻ przy wklejaniu
+            const info = cleanStopName(rawName);
             addStopRow(info.name, (i === 0 ? 0 : 2), info.isNz);
         });
         document.getElementById('fl-bulk').value = "";
     }
 
     function addStopRow(name = "", time = 2, nz = false) {
+        const info = cleanStopName(name); // Czyścimy też przy dodawaniu ręcznym
         const div = document.createElement('div');
         div.className = 'stop-edit-item';
         div.innerHTML = `
-            <input type="text" value="${name}" class="edit-stop-name" placeholder="Nazwa">
+            <input type="text" value="${info.name}" class="edit-stop-name" placeholder="Nazwa">
             <input type="number" value="${time}" class="edit-stop-time" placeholder="+min">
-            <label style="text-align:center; font-size:0.6rem;">NŻ<br><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label>
+            <label style="text-align:center; font-size:0.6rem;">NŻ<br><input type="checkbox" ${(nz || info.isNz)?'checked':''} class="edit-stop-nz"></label>
             <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); font-weight:800;">X</button>
         `;
         document.getElementById('fl-stops-list').appendChild(div);
@@ -300,11 +304,15 @@
 
     function saveLine() {
         const stopElems = document.querySelectorAll('.stop-edit-item');
-        const stopsData = Array.from(stopElems).map(el => ({
-            name: el.querySelector('.edit-stop-name').value.trim(),
-            time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
-            nz: el.querySelector('.edit-stop-nz').checked
-        })).filter(s => s.name !== "");
+        const stopsData = Array.from(stopElems).map(el => {
+            const rawName = el.querySelector('.edit-stop-name').value.trim();
+            const info = cleanStopName(rawName);
+            return {
+                name: info.name,
+                time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
+                nz: el.querySelector('.edit-stop-nz').checked || info.isNz
+            };
+        }).filter(s => s.name !== "");
         const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, hours: document.getElementById('fl-hours').value, stops: stopsData };
         if(curIdx === -1) db.lines.push(data); else db.lines[curIdx] = data;
         save(); closeForms();

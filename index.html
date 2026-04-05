@@ -25,24 +25,23 @@
         
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         
-        /* PRZYSTANKI W ROZKŁADZIE */
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; gap: 8px; }
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; }
         .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
         .stop-line-item.is-tram i { color: var(--danger); }
         .trans-time { color: var(--warn); font-size: 0.7rem; margin-left: 2px; }
 
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: 5px; font-weight: 800; }
+        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: 5px; font-weight: 800; vertical-align: middle; }
         .live-badge { color: var(--warn); font-weight: 800; font-size: 0.85rem; white-space: nowrap; }
         .arrows-anim { display: inline-block; animation: moveArrows 1s infinite linear; color: var(--warn); font-weight: 900; margin-right: 4px; }
         @keyframes moveArrows { 0% { opacity: 0.2; transform: translateX(-2px); } 50% { opacity: 1; } 100% { opacity: 0.2; transform: translateX(2px); } }
 
         .day-indicator { font-size: 0.7rem; background: rgba(24, 144, 255, 0.2); color: var(--info); padding: 4px 10px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-weight: 700; }
-
-        /* EDYCJA - PRZESUWANIE */
+        
+        /* EDYCJA LISTY PRZYSTANKÓW */
         .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 35px 1fr 60px 45px 35px; gap: 5px; align-items: center; }
         .move-btns { display: flex; flex-direction: column; gap: 2px; }
-        .move-btns button { padding: 2px; font-size: 0.6rem; background: #333; border: none; color: white; border-radius: 4px; }
+        .move-btns button { padding: 2px; font-size: 0.6rem; background: #333; border: none; color: white; border-radius: 4px; cursor: pointer; }
 
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
@@ -52,7 +51,7 @@
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-
+        
         .adm-nav-main { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.55rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
@@ -91,10 +90,20 @@
                 <button onclick="setTab('z')" id="mt-z">ZAAW</button>
             </div>
             <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
-            <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
-            <div id="tab-n" class="adm-tab" style="display:none;"><div id="adm-news-list"></div></div>
-            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj</button></div>
+            <div id="tab-p" class="adm-tab" style="display:none;">
+                <button onclick="openStopForm('')" class="main-btn">Dodaj nowy przystanek</button>
+                <div id="adm-stops-list"></div>
+            </div>
+            <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
+            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" rows="8"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
+            <div id="tab-s" class="adm-tab" style="display:none;">
+                <button onclick="exportFullBackup()" class="main-btn">Eksportuj Dane</button>
+                <div class="app-card" style="display:block; text-align:center;">
+                    <p style="margin-bottom:10px; font-size:0.8rem; color:var(--text-sec);">Importuj plik backupu:</p>
+                    <input type="file" id="import-file" style="padding:10px; font-size:0.7rem;">
+                    <button onclick="importFullBackup()" class="main-btn" style="background:var(--info);">Importuj</button>
+                </div>
+            </div>
             <div id="tab-z" class="adm-tab" style="display:none;"><div id="adm-cats-list"></div></div>
         </div>
     </div>
@@ -115,12 +124,20 @@
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
     <div class="group-label">Rozkład (godziny po przecinku)</div>
-    <textarea id="fl-hours" placeholder="Dni Robocze"></textarea>
+    <textarea id="fl-hours" placeholder="Dni Robocze (np. 08:10, 08:35)"></textarea>
     <textarea id="fl-hours-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-hours-sun" placeholder="Niedziele i Święta"></textarea>
     <div id="fl-stops-list"></div>
-    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj</button>
-    <button onclick="saveLine()" class="main-btn">Zapisz</button>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj Przystanek</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
+<div id="form-stop" class="overlay-form">
+    <h2>Edytuj Przystanek</h2>
+    <input type="text" id="fs-name" placeholder="Nazwa przystanku">
+    <label><input type="checkbox" id="fs-nz"> Zawsze NŻ</label>
+    <button onclick="saveStop()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -130,13 +147,13 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_v15_stable');
+        const local = localStorage.getItem('mzk_v16_full');
         if(local) db = JSON.parse(local);
         extractStops(); render();
         setInterval(() => { if(document.getElementById('s-tt').classList.contains('active-sec')) renderTimetable(curLineIdx); }, 15000);
     }
 
-    function save() { localStorage.setItem('mzk_v15_stable', JSON.stringify(db)); extractStops(); render(); }
+    function save() { localStorage.setItem('mzk_v16_full', JSON.stringify(db)); extractStops(); render(); }
     function extractStops() { let sSet = new Set(); db.lines.forEach(l => l.stops.forEach(s => { if(s.name) sSet.add(s.name); })); allAutoStops = [...sSet].sort(); }
 
     function getDayType() {
@@ -153,6 +170,7 @@
     }
 
     function render() {
+        // Główna lista linii
         const sHome = document.getElementById('s-home'); sHome.innerHTML = '';
         db.lineCategories.forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
@@ -166,7 +184,10 @@
                 sHome.appendChild(grid);
             }
         });
+        // Panele Admina
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-stops-list').innerHTML = allAutoStops.map(s => `<div class="app-card"><span>${s}</span><button onclick="openStopForm('${s}')">EDYTUJ</button></div>`).join('');
+        document.getElementById('edit-contact-text').value = db.contact;
         document.getElementById('contact-display').innerText = db.contact;
         filterStops();
     }
@@ -182,17 +203,16 @@
         curLineIdx = idx; const line = db.lines[idx]; show('tt');
         const now = new Date();
         const dType = getDayType();
-        const dLabel = dType === 'work' ? 'Dzień roboczy' : (dType === 'sat' ? 'Sobota' : 'Niedziela i Święta');
         const todayHours = dType === 'sun' ? (line.hoursSun || "") : (dType === 'sat' ? (line.hoursSat || "") : (line.hours || ""));
 
-        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2><div class="day-indicator">${dLabel}</div>`;
+        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2><div class="day-indicator">${dType==='work'?'Dzień roboczy':(dType==='sat'?'Sobota':'Niedziela/Święta')}</div>`;
         const body = document.getElementById('tt-body'); body.innerHTML = '';
         
         let cumulativeMinutes = 0;
-
         line.stops.forEach((stop, sIdx) => {
             cumulativeMinutes += parseInt(stop.time) || 0; 
             const currentOffset = cumulativeMinutes; 
+            const det = db.stopDetails[stop.name] || {isNz: stop.nz};
 
             let mainLive = "";
             if(todayHours) {
@@ -205,32 +225,12 @@
                 if(next) mainLive = getLiveLabel(Math.floor((next - now)/60000), next);
             }
 
-            let transfers = [];
-            db.lines.forEach((l, lIdx) => {
-                if(l.num === line.num && l.dir === line.dir) return;
-                let sPos = l.stops.findIndex(st => st.name === stop.name);
-                if(sPos !== -1) {
-                    let tOffset = 0; for(let i=0; i<=sPos; i++) tOffset += parseInt(l.stops[i].time || 0);
-                    let tH = getDayType()==='sun'?(l.hoursSun||""):(getDayType()==='sat'?(l.hoursSat||""):(l.hours||""));
-                    if(tH) {
-                        let tTimes = tH.split(',').map(h => {
-                            let p = h.trim().split(':'); if(p.length<2) return null;
-                            let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + tOffset, 0, 0);
-                            return d;
-                        }).filter(t => t);
-                        let tNext = tTimes.find(d => d > now);
-                        if(tNext) transfers.push(`<span class="stop-line-item ${l.type==='tram'?'is-tram':''}" onclick="event.stopPropagation(); renderTimetable(${lIdx}, '${stop.name}')"><i class="fa-solid fa-${l.type==='tram'?'tram':'bus'}"></i>${l.num}<span class="trans-time">${Math.floor((tNext-now)/60000)}m</span></span>`);
-                    }
-                }
-            });
-
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
-            card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><b>${stop.name}</b>${stop.nz?'<span class="nz-badge">NŻ</span>':''}<div class="stop-lines-row">${transfers.join('')}</div></div><div style="text-align:right">${mainLive}</div></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}<div class="stop-lines-row"></div></div><div style="text-align:right">${mainLive}</div></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
             
-            card.onclick = (e) => { 
-                if(e.target.closest('.stop-line-item')) return;
-                const g = document.getElementById(`g-${sIdx}`); 
-                g.style.display = g.style.display==='grid'?'none':'grid'; 
+            card.onclick = (e) => {
+                const g = document.getElementById(`g-${sIdx}`);
+                g.style.display = g.style.display==='grid'?'none':'grid';
                 if(g.style.display==='grid' && todayHours) {
                     g.innerHTML = todayHours.split(',').map(h => {
                         let p = h.trim().split(':'); let d = new Date(); 
@@ -240,7 +240,18 @@
                 }
             };
             body.appendChild(card);
-            if (scrollStop && stop.name === scrollStop) { setTimeout(() => { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); card.click(); }, 300); }
+            if(scrollStop && stop.name === scrollStop) { setTimeout(() => { card.scrollIntoView({behavior:'smooth'}); card.click(); }, 300); }
+        });
+    }
+
+    function filterStops() {
+        const q = document.getElementById('stop-search').value.toLowerCase();
+        const list = document.getElementById('public-stops-list'); list.innerHTML = '';
+        allAutoStops.filter(s => s.toLowerCase().includes(q)).forEach(s => {
+            const lines = [];
+            db.lines.forEach((l, idx) => { if(l.stops.some(st => st.name === s)) lines.push({l, idx}); });
+            const lStr = lines.map(item => `<span class="stop-line-item ${item.l.type==='tram'?'is-tram':''}" onclick="renderTimetable(${item.idx}, '${s}')"><i class="fa-solid fa-${item.l.type==='tram'?'tram':'bus'}"></i>${item.l.num}</span>`).join('');
+            list.innerHTML += `<div class="app-card" style="display:block;"><b>${s}</b><div class="stop-lines-row">${lStr}</div></div>`;
         });
     }
 
@@ -254,17 +265,6 @@
         const div = document.createElement('div'); div.className = 'stop-edit-item';
         div.innerHTML = `<div class="move-btns"><button onclick="moveRow(this,-1)">▲</button><button onclick="moveRow(this,1)">▼</button></div><input type="text" value="${name}" class="st-n"><input type="number" value="${time}" class="st-t"><label><input type="checkbox" ${nz?'checked':''} class="st-nz">NŻ</label><button onclick="this.parentElement.remove()">X</button>`;
         document.getElementById('fl-stops-list').appendChild(div);
-    }
-
-    function filterStops() {
-        const q = document.getElementById('stop-search').value.toLowerCase();
-        const list = document.getElementById('public-stops-list'); list.innerHTML = '';
-        allAutoStops.filter(s => s.toLowerCase().includes(q)).forEach(s => {
-            const lines = [];
-            db.lines.forEach((l, idx) => { if(l.stops.some(st => st.name === s)) lines.push({line: l, idx: idx}); });
-            const lStr = lines.map(item => `<span class="stop-line-item ${item.line.type==='tram'?'is-tram':''}" onclick="renderTimetable(${item.idx}, '${s}')"><i class="fa-solid fa-${item.line.type==='tram'?'tram':'bus'}"></i>${item.line.num}</span>`).join('');
-            list.innerHTML += `<div class="app-card" style="display:block;"><b>${s}</b><div class="stop-lines-row">${lStr}</div></div>`;
-        });
     }
 
     function openLineForm(idx) {
@@ -284,6 +284,25 @@
         const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hours: document.getElementById('fl-hours').value, hoursSat: document.getElementById('fl-hours-sat').value, hoursSun: document.getElementById('fl-hours-sun').value, stops };
         if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
         save(); closeForms();
+    }
+
+    function openStopForm(name) {
+        document.getElementById('fs-name').value = name;
+        document.getElementById('fs-nz').checked = db.stopDetails[name]?.isNz || false;
+        document.getElementById('form-stop').style.display = 'block';
+    }
+    function saveStop() {
+        const name = document.getElementById('fs-name').value;
+        db.stopDetails[name] = { isNz: document.getElementById('fs-nz').checked };
+        save(); closeForms();
+    }
+
+    function importFullBackup() {
+        const file = document.getElementById('import-file').files[0];
+        if(!file) return alert("Wybierz plik!");
+        const reader = new FileReader();
+        reader.onload = (e) => { try { db = JSON.parse(e.target.result); save(); location.reload(); } catch(err) { alert("Błąd pliku!"); } };
+        reader.readAsText(file);
     }
 
     function show(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); document.getElementById('s-'+id).classList.add('active-sec'); document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active'); }

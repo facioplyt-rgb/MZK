@@ -2,308 +2,119 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK GORZÓW - SYSTEM FACIO V17</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>MZK TESTER V19</title>
     <style>
-        :root { --mzk-green: #008744; --mzk-yellow: #feca05; --bg: #f4f7f6; --dark: #1a1a1a; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
-        
-        header { background: var(--mzk-green); color: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--mzk-yellow); }
-        nav { display: flex; justify-content: center; gap: 8px; background: white; padding: 10px; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 1000; }
-        nav button { background: #eee; border: 1px solid #ccc; padding: 10px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-        nav button.active { background: var(--mzk-green); color: white; border-color: var(--mzk-green); }
-
-        .container { max-width: 800px; margin: auto; padding: 20px; }
-        .section { display: none; }
-        .section.active { display: block; }
-
-        .type-header { background: #333; color: white; padding: 10px 20px; border-radius: 8px; margin: 20px 0 10px 0; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* SIATKA LINII */
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-bottom: 30px; }
-        .line-box { background: white; border: 3px solid #333; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90px; box-shadow: 0 4px 0 #333; transition: 0.1s; }
-        .line-box:active { transform: translateY(3px); box-shadow: 0 1px 0 #333; }
-        .line-box.tram { border-color: #d93025; }
-        .line-num { font-weight: 900; font-size: 2rem; color: var(--mzk-green); line-height: 1; }
-        .tram .line-num { color: #d93025; }
-        .line-dir { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #555; margin-top: 5px; text-align: center; }
-
-        /* TRASA PIONOWA */
-        .stop-row { display: grid; grid-template-columns: 60px 1fr auto; padding: 15px; background: white; border: 1px solid #ddd; margin-bottom: 5px; border-radius: 8px; align-items: center; cursor: pointer; }
-        .stop-time { font-weight: 900; color: var(--mzk-green); }
-        .pill { background: #333; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; margin-left: 3px; }
-
-        /* TABLICZKA */
-        .tt-card { background: white; border: 4px solid var(--dark); border-radius: 15px; overflow: hidden; }
-        .tt-header { background: var(--dark); color: white; padding: 20px; text-align: center; }
-        .tt-row { display: grid; grid-template-columns: 70px 1fr 1fr 1fr; border-bottom: 1px solid #ccc; }
-        .tt-h-col { background: #eee; font-weight: 900; font-size: 0.8rem; text-align: center; padding: 10px; border-right: 1px solid #999; border-bottom: 4px solid var(--dark); }
-        .tt-hour { background: #f0f0f0; font-weight: 900; text-align: center; font-size: 1.6rem; padding: 15px 0; border-right: 4px solid var(--dark); }
-        .tt-mins { padding: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-content: center; font-weight: 700; font-size: 1.1rem; }
-        .marker { color: red; font-size: 0.8rem; vertical-align: super; }
-
-        /* ADMIN */
-        .login-box { max-width: 350px; margin: 50px auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-family: inherit; }
-        .btn-green { background: var(--mzk-green); color: white; border: none; padding: 15px; width: 100%; font-weight: 900; cursor: pointer; border-radius: 8px; text-transform: uppercase; }
-        .btn-red { background: #d93025; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 900; cursor: pointer; }
+        body { font-family: sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
+        .debug-panel { background: #fff; border: 2px solid #000; padding: 15px; margin-bottom: 20px; }
+        .error-msg { color: red; font-weight: bold; border: 1px solid red; padding: 10px; background: #fff0f0; }
+        .btn { padding: 10px 20px; cursor: pointer; background: #008744; color: white; border: none; border-radius: 5px; }
+        .section { display: none; background: white; padding: 20px; border-radius: 10px; margin-top: 10px; }
+        .active { display: block; }
+        .stop-item { padding: 10px; border-bottom: 1px solid #ccc; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<header><h1>MZK GORZÓW • SYSTEM ROZKŁADÓW</h1></header>
-
-<nav>
-    <button onclick="showSec('pax-sec')" id="nav-pax" class="active">PASAŻER</button>
-    <button onclick="showSec('map-sec')" id="nav-map">MAPA SIECI</button>
-    <button onclick="showSec('adm-sec')" id="nav-adm">PANEL FACIO</button>
-</nav>
-
-<div class="container">
-    
-    <div id="pax-sec" class="section active">
-        <div class="type-header">🚋 TRAMWAJE</div>
-        <div id="grid-tram" class="line-grid"></div>
-        <div class="type-header">🚌 AUTOBUSY</div>
-        <div id="grid-bus" class="line-grid"></div>
-    </div>
-
-    <div id="map-sec" class="section">
-        <div style="background:white; padding:30px; border-radius:15px; text-align:center; border:1px solid #ddd;">
-            <h2>Interaktywna Mapa Google Earth</h2>
-            <p>Kliknij przycisk poniżej, aby załadować mapę sieci MZK.</p>
-            <a href="https://earth.google.com/web/@52.74805291,15.29304931,65.62703096a,25222.94434692d,30y,0h,0t,0r/data=CgRCAggBMikKJwolCiExSXRNQk03NXcyaEIySGZVdVFrZnBqMzlpdE1iYkJSZUggAToDCgEwQgIIAEoICLaBvcEHEAE?authuser=0" target="_blank" style="display:inline-block; background:#4285F4; color:white; padding:20px 40px; border-radius:10px; text-decoration:none; font-weight:900;">🌍 OTWÓRZ MAPĘ</a>
-        </div>
-    </div>
-
-    <div id="route-sec" class="section">
-        <button class="btn-red" onclick="showSec('pax-sec')">← POWRÓT DO LINII</button>
-        <h2 id="route-title" style="margin:20px 0; font-weight:900; color:var(--mzk-green);"></h2>
-        <div id="route-list"></div>
-    </div>
-
-    <div id="tt-sec" class="section">
-        <button class="btn-red" id="tt-back">← POWRÓT DO TRASY</button>
-        <div class="tt-card" style="margin-top:20px;">
-            <div class="tt-header"><h1 id="tt-num" style="margin:0; font-size:4.5rem; letter-spacing:-5px;">--</h1></div>
-            <div style="background:var(--mzk-yellow); padding:15px; text-align:center; font-weight:900; border-bottom:4px solid var(--dark);">
-                <span id="tt-stop" style="font-size:1.5rem;">---</span><br>
-                Kierunek: <span id="tt-dir">---</span>
-            </div>
-            <div class="tt-row">
-                <div class="tt-h-col">Godz.</div><div class="tt-h-col">Robocze</div><div class="tt-h-col">Soboty</div><div class="tt-h-col">Niedziele</div>
-            </div>
-            <div id="tt-body"></div>
-        </div>
-    </div>
-
-    <div id="adm-sec" class="section">
-        <div id="login-box" class="login-box">
-            <h2 style="margin-top:0;">Autoryzacja Facio</h2>
-            <input type="text" id="user" placeholder="Login">
-            <input type="password" id="pass" placeholder="Hasło">
-            <button class="btn-green" onclick="doLogin()">ZALOGUJ SIĘ</button>
-        </div>
-        <div id="adm-dash" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 style="margin:0;">Zarządzaj liniami:</h3>
-                <button class="btn-green" style="width:auto; padding:10px 20px;" onclick="openEdit('new')">+ DODAJ LINIĘ</button>
-            </div>
-            <div id="adm-grid" class="line-grid"></div>
-        </div>
-    </div>
-
+<div class="debug-panel">
+    <h3>Panel Diagnostyczny MZK</h3>
+    <p>Status bazy danych: <span id="db-status">Sprawdzanie...</span></p>
+    <button class="btn" onclick="clearData()">USUŃ WSZYSTKO I RESTART</button>
 </div>
 
-<div id="editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:2000; display:none; overflow-y:auto; padding:20px; box-sizing:border-box;">
-    <div style="max-width:600px; margin:auto; background:white; padding:25px; border-radius:15px; border:3px solid var(--dark);">
-        <h2 id="ed-label">Konfiguracja Linii</h2>
-        <select id="inp-type">
-            <option value="bus">🚌 Autobus</option>
-            <option value="tram">🚋 Tramwaj</option>
-        </select>
-        <input type="text" id="inp-num" placeholder="Numer (np. 124 lub 1)">
-        <input type="text" id="inp-dir" placeholder="Kierunek docelowy">
-        <label>Robocze:</label><textarea id="inp-rob" placeholder="05:10, 06:20..."></textarea>
-        <label>Soboty:</label><textarea id="inp-sob"></textarea>
-        <label>Niedziele:</label><textarea id="inp-nie"></textarea>
-        
-        <div style="background:#f0f0f0; padding:15px; border-radius:10px; margin:15px 0; border:2px dashed #999;">
-            <label>Wklej przystanki (jeden pod drugim):</label>
-            <textarea id="bulk"></textarea>
-            <button onclick="doBulk()" class="btn-green" style="background:#4285F4;">GENERUJ LISTĘ</button>
-        </div>
-        <div id="ed-stops"></div>
-        <button onclick="saveData()" class="btn-green" style="margin-top:20px;">ZAPISZ WSZYSTKO</button>
-        <button onclick="delData()" id="del-btn" class="btn-red" style="width:100%; margin-top:10px;">USUŃ LINIĘ</button>
-        <button onclick="closeEdit()" class="btn-red" style="width:100%; margin-top:10px; background:#666;">ANULUJ</button>
-    </div>
+<div id="main-view" class="section active">
+    <h2>Lista Linii</h2>
+    <div id="line-list-container"></div>
+</div>
+
+<div id="route-view" class="section">
+    <button onclick="showMain()">← POWRÓT</button>
+    <h2 id="current-line-title"></h2>
+    <div id="stops-container"></div>
 </div>
 
 <script>
-    const STORAGE_KEY = 'MZK_V17_STABLE';
-    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-    function doLogin() {
-        if(document.getElementById('user').value === 'Facio' && document.getElementById('pass').value === 'Admin123') {
-            document.getElementById('login-box').style.display='none';
-            document.getElementById('adm-dash').style.display='block';
-            render();
-        } else alert("Błąd!");
+    // System raportowania błędów
+    function reportError(where, msg) {
+        const container = document.getElementById(where);
+        container.innerHTML = `<div class="error-msg">BŁĄD w ${where}: ${msg}</div>`;
+        console.error(`Błąd w ${where}:`, msg);
     }
 
-    function showSec(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        if(document.getElementById('nav-'+id.split('-')[0])) document.getElementById('nav-'+id.split('-')[0]).classList.add('active');
-    }
-
-    function render() {
-        const gTram = document.getElementById('grid-tram');
-        const gBus = document.getElementById('grid-bus');
-        const ag = document.getElementById('adm-grid');
-        gTram.innerHTML = ''; gBus.innerHTML = ''; ag.innerHTML = '';
-
-        db.forEach((l, i) => {
-            const h = `<div class="line-box ${l.type === 'tram' ? 'tram' : ''}" onclick="showRoute(${i})">
-                        <span class="line-num">${l.num}</span>
-                        <span class="line-dir">${l.dir}</span>
-                       </div>`;
-            if(l.type === 'tram') gTram.innerHTML += h; else gBus.innerHTML += h;
-            ag.innerHTML += `<div class="line-box ${l.type === 'tram' ? 'tram' : ''}" onclick="openEdit(${i})">
-                                <span class="line-num">${l.num}</span>
-                                <span class="line-dir">${l.dir}</span>
-                             </div>`;
-        });
-    }
-
-    let editIdx = null;
-    function openEdit(idx) {
-        editIdx = idx; document.getElementById('editor').style.display='block';
-        document.getElementById('ed-stops').innerHTML = '';
-        if(idx === 'new') {
-            ['inp-num','inp-dir','inp-rob','inp-sob','inp-nie','bulk'].forEach(i => document.getElementById(i).value = '');
-            document.getElementById('inp-type').value = 'bus';
-            document.getElementById('del-btn').style.display = 'none';
+    // Inicjalizacja bazy
+    let db = [];
+    try {
+        const data = localStorage.getItem('MZK_V19_DATA');
+        if (data) {
+            db = JSON.parse(data);
+            document.getElementById('db-status').innerText = `Załadowano ${db.length} linii.`;
         } else {
-            const l = db[idx];
-            document.getElementById('inp-num').value = l.num;
-            document.getElementById('inp-dir').value = l.dir;
-            document.getElementById('inp-type').value = l.type || 'bus';
-            document.getElementById('inp-rob').value = l.rob.join(', ');
-            document.getElementById('inp-sob').value = l.sob.join(', ');
-            document.getElementById('inp-nie').value = l.nie.join(', ');
-            l.stops.forEach(s => addStopRow(s));
-            document.getElementById('del-btn').style.display = 'block';
+            document.getElementById('db-status').innerText = "Baza jest pusta. Dodaj linię w Panelu Facio (w pełnej wersji).";
+            // Testowe dane jeśli pusto
+            db = [{
+                num: "100", dir: "TEST JEDWABNICZA", type: "bus", rob: ["08:00"], sob: [], nie: [],
+                stops: [{n: "Start", a: 0}, {n: "Meta", a: 5}]
+            }];
+        }
+    } catch (e) {
+        reportError('db-status', "Nie można odczytać pamięci przeglądarki!");
+    }
+
+    function renderLines() {
+        const container = document.getElementById('line-list-container');
+        try {
+            container.innerHTML = '';
+            if (db.length === 0) container.innerHTML = "Brak linii w systemie.";
+            db.forEach((line, index) => {
+                const div = document.createElement('div');
+                div.className = 'stop-item';
+                div.innerHTML = `<strong>Linia ${line.num}</strong> -> ${line.dir}`;
+                div.onclick = () => showRoute(index);
+                container.appendChild(div);
+            });
+        } catch (e) {
+            reportError('line-list-container', e.message);
         }
     }
 
-    function addStopRow(data) {
-        const div = document.createElement('div');
-        div.style = "display:grid; grid-template-columns: 2fr 1fr 40px; gap:8px; margin-bottom:8px;";
-        div.innerHTML = `
-            <input type="text" class="s-n" value="${data.name||''}" placeholder="Przystanek">
-            <input type="number" class="s-a" value="${data.adj||0}" placeholder="+min">
-            <button onclick="this.parentElement.remove()" style="color:red; font-weight:900; background:none; border:none; cursor:pointer;">X</button>`;
-        document.getElementById('ed-stops').appendChild(div);
-    }
-
-    function doBulk() {
-        document.getElementById('bulk').value.split('\n').filter(t=>t.trim()!=='').forEach(t => addStopRow({name: t.trim(), adj: 0}));
-        document.getElementById('bulk').value = '';
-    }
-
-    function saveData() {
-        const line = {
-            type: document.getElementById('inp-type').value,
-            num: document.getElementById('inp-num').value,
-            dir: document.getElementById('inp-dir').value.toUpperCase(),
-            rob: document.getElementById('inp-rob').value.split(',').map(s=>s.trim()).filter(s=>s!==''),
-            sob: document.getElementById('inp-sob').value.split(',').map(s=>s.trim()).filter(s=>s!==''),
-            nie: document.getElementById('inp-nie').value.split(',').map(s=>s.trim()).filter(s=>s!==''),
-            stops: Array.from(document.querySelectorAll('#ed-stops > div')).map(el => ({
-                name: el.querySelector('.s-n').value,
-                adj: parseInt(el.querySelector('.s-a').value) || 0
-            }))
-        };
-        if(editIdx === 'new') db.push(line); else db[editIdx] = line;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-        closeEdit();
-    }
-
-    function delData() { if(confirm("Usunąć?")) { db.splice(editIdx,1); localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); closeEdit(); } }
-    function closeEdit() { document.getElementById('editor').style.display='none'; render(); }
-
     function showRoute(idx) {
-        const l = db[idx];
-        showSec('route-sec');
-        document.getElementById('route-title').innerText = (l.type==='tram'?'Tramwaj ':'Autobus ')+l.num+" ➔ "+l.dir;
-        const list = document.getElementById('route-list');
-        list.innerHTML = '';
-        let total = 0;
-        l.stops.forEach((s, si) => {
-            total += s.adj;
-            let transfers = new Set();
-            db.forEach(line => {
-                if(line.num !== l.num && line.stops.some(st => st.name.toLowerCase() === s.name.toLowerCase())) transfers.add(line.num);
+        document.getElementById('main-view').classList.remove('active');
+        document.getElementById('route-view').classList.add('active');
+        const container = document.getElementById('stops-container');
+        const title = document.getElementById('current-line-title');
+        
+        try {
+            const line = db[idx];
+            title.innerText = `Linia ${line.num} -> ${line.dir}`;
+            container.innerHTML = '';
+
+            if (!line.stops || line.stops.length === 0) {
+                throw new Error("Ta linia nie ma przypisanych przystanków!");
+            }
+
+            line.stops.forEach(s => {
+                const d = document.createElement('div');
+                d.className = 'stop-item';
+                d.innerText = `🚏 ${s.n} (+${s.a} min)`;
+                container.appendChild(d);
             });
-            const transHtml = Array.from(transfers).map(t => `<span class="pill">${t}</span>`).join('');
-            list.innerHTML += `<div class="stop-row" onclick="showTT(${idx}, ${si})">
-                                <div class="stop-time">${total} min</div>
-                                <div class="stop-n">${s.name}</div>
-                                <div>${transHtml}</div>
-                               </div>`;
-        });
+        } catch (e) {
+            reportError('stops-container', e.message);
+        }
     }
 
-    function showTT(lIdx, sIdx) {
-        const l = db[lIdx];
-        const stop = l.stops[sIdx];
-        showSec('tt-sec');
-        document.getElementById('tt-num').innerText = l.num;
-        document.getElementById('tt-stop').innerText = stop.name;
-        document.getElementById('tt-dir').innerText = l.dir;
-        document.getElementById('tt-back').onclick = () => showRoute(lIdx);
-
-        let totalAdj = 0;
-        for(let i=0; i<=sIdx; i++) totalAdj += l.stops[i].adj;
-
-        const body = document.getElementById('tt-body');
-        body.innerHTML = '';
-        let hMap = {};
-
-        const parseTime = (list, type) => {
-            list.forEach(str => {
-                let m = str.match(/(\d{1,2}):(\d{2})/);
-                if(!m) return;
-                let h = parseInt(m[1]);
-                let min = parseInt(m[2]) + totalAdj;
-                
-                let d = new Date(2026, 0, 1, h, min);
-                let finalH = d.getHours();
-                let finalM = d.getMinutes().toString().padStart(2, '0');
-                let mark = str.replace(m[0], '').trim();
-
-                if(!hMap[finalH]) hMap[finalH] = {rob:[], sob:[], nie:[]};
-                hMap[finalH][type].push(finalM + (mark ? `<span class="marker">${mark}</span>` : ''));
-            });
-        };
-
-        parseTime(l.rob, 'rob'); parseTime(l.sob, 'sob'); parseTime(l.nie, 'nie');
-
-        Object.keys(hMap).sort((a,b)=>a-b).forEach(h => {
-            body.innerHTML += `<div class="tt-row">
-                                <div class="tt-hour">${h.toString().padStart(2, '0')}</div>
-                                <div class="tt-mins">${hMap[h].rob.join(' ')}</div>
-                                <div class="tt-mins">${hMap[h].sob.join(' ')}</div>
-                                <div class="tt-mins">${hMap[h].nie.join(' ')}</div>
-                               </div>`;
-        });
+    function showMain() {
+        document.getElementById('route-view').classList.remove('active');
+        document.getElementById('main-view').classList.add('active');
     }
 
-    render();
+    function clearData() {
+        localStorage.removeItem('MZK_V19_DATA');
+        location.reload();
+    }
+
+    // Start
+    renderLines();
 </script>
+
 </body>
 </html>

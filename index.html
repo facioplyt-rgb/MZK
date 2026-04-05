@@ -3,119 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK GORZÓW V26</title>
+    <title>MZK GORZÓW - SYSTEM V25</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f0f2f5; }
-        body { font-family: 'Montserrat', sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding-bottom: 80px; }
+        :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; }
+        body { font-family: 'Montserrat', sans-serif; margin: 0; background: #f4f7f6; color: var(--dark); padding-bottom: 80px; }
         
-        header { background: var(--mzk); color: white; padding: 20px; text-align: center; border-bottom: 6px solid var(--yellow); }
-        .container { max-width: 600px; margin: auto; padding: 20px; }
-        .section { display: none; }
-        .active-sec { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        header { background: var(--mzk); color: white; padding: 25px; text-align: center; border-bottom: 6px solid var(--yellow); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        header h1 { margin: 0; font-weight: 900; font-size: 1.6rem; text-transform: uppercase; }
 
-        /* KAFELKI */
-        .category { border-left: 5px solid var(--mzk); padding-left: 10px; margin: 20px 0 10px; font-weight: 900; font-size: 0.9rem; color: #666; }
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; }
-        .card { background: white; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-bottom: 4px solid #ccc; transition: 0.2s; }
-        .card:hover { transform: translateY(-3px); }
-        .card b { font-size: 2.2rem; display: block; color: var(--mzk); }
-        .card.tram b { color: var(--red); }
+        .container { max-width: 700px; margin: 20px auto; padding: 0 15px; }
+        .section { display: none; animation: fadeIn 0.3s ease; }
+        .active-sec { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* WARIANTY */
-        .v-btn { background: white; padding: 18px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; font-weight: 700; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
-        .v-btn:hover { border-color: var(--mzk); color: var(--mzk); }
+        /* LISTA LINII */
+        .category-title { border-left: 5px solid var(--mzk); padding-left: 10px; margin: 25px 0 15px; font-weight: 900; color: #555; display: flex; align-items: center; gap: 10px; }
+        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .line-card { background: white; border-radius: 18px; padding: 25px; text-align: center; cursor: pointer; border-bottom: 5px solid #ddd; transition: 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.05); }
+        .line-card b { font-size: 2.2rem; color: var(--mzk); display: block; }
+        .tram-card b { color: var(--red); }
 
-        /* TABLICZKA */
-        .tt-box { background: white; border-radius: 20px; overflow: hidden; border: 3px solid var(--dark); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .tt-head { background: var(--dark); color: white; padding: 20px; text-align: center; }
-        .tt-dir { background: var(--yellow); color: black; padding: 10px; font-weight: 900; text-align: center; font-size: 0.8rem; }
-        .tt-grid { display: grid; grid-template-columns: 70px 1fr; border-bottom: 1px solid #eee; }
-        .tt-h { background: #f0f0f0; font-weight: 900; text-align: center; padding: 15px 0; border-right: 3px solid var(--dark); font-size: 1.4rem; }
-        .tt-m { padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; align-content: center; font-weight: 600; font-size: 1.2rem; }
+        /* WARIANTY (CZARNY KAFELEK ZE SCREENA) */
+        .variant-btn { 
+            background: var(--dark); 
+            color: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            margin-bottom: 15px; 
+            cursor: pointer; 
+            transition: 0.2s; 
+            display: flex; 
+            flex-direction: column; 
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+        .v-num { font-size: 3.5rem; font-weight: 900; line-height: 1; }
+        .v-dir { font-size: 1.1rem; font-weight: 700; text-transform: uppercase; margin-top: 5px; color: #eee; }
+
+        /* TRASA I ROZKŁAD */
+        .stop-item { background: white; padding: 18px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 5px solid var(--mzk); font-weight: 700; }
+        .tt-table { width: 100%; background: white; border-radius: 15px; overflow: hidden; border: 3px solid var(--dark); margin-top: 15px; }
+        .tt-header { background: var(--dark); color: white; padding: 15px; text-align: center; }
+        .tt-row { border-bottom: 1px solid #eee; display: flex; }
+        .tt-hour { background: #f0f0f0; font-weight: 900; width: 60px; text-align: center; padding: 12px; border-right: 2px solid var(--dark); font-size: 1.3rem; }
+        .tt-min { padding: 10px; display: flex; gap: 10px; flex-wrap: wrap; font-size: 1.1rem; font-weight: 700; }
 
         /* NAV */
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #ddd; z-index: 1000; }
-        nav div { text-align: center; font-size: 0.7rem; font-weight: 900; color: #888; cursor: pointer; }
+        nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #ddd; z-index: 100; }
+        nav div { text-align: center; font-size: 0.7rem; font-weight: 800; color: #777; cursor: pointer; }
         nav div.active { color: var(--mzk); }
-        nav div i { font-size: 1.4rem; display: block; margin-bottom: 2px; }
+        nav div i { font-size: 1.4rem; display: block; margin-bottom: 3px; }
 
-        .back-btn { background: none; border: none; color: var(--red); font-weight: 900; cursor: pointer; padding: 10px 0; margin-bottom: 10px; }
-        textarea, input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
-        .btn-save { background: var(--mzk); color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: 900; cursor: pointer; }
+        .btn-back { border: none; background: none; color: var(--red); font-weight: 900; cursor: pointer; text-transform: uppercase; margin-bottom: 15px; display: flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
 
-<header><h1 style="margin:0">MZK GORZÓW</h1></header>
+<header><h1>MZK GORZÓW</h1></header>
 
 <div class="container">
     <div id="s-pax" class="section active-sec">
-        <div class="category">LINIE AUTOBUSOWE</div>
-        <div id="grid-bus" class="line-grid"></div>
-        <div class="category">LINIE TRAMWAJOWE</div>
-        <div id="grid-tram" class="line-grid"></div>
+        <div class="category-title"><i class="fa-solid fa-bus"></i> Linie Autobusowe</div>
+        <div id="list-buses" class="line-grid"></div>
+        <div class="category-title"><i class="fa-solid fa-train-tram"></i> Linie Tramwajowe</div>
+        <div id="list-trams" class="line-grid"></div>
     </div>
 
-    <div id="s-vars" class="section">
-        <button class="back-btn" onclick="openSec('pax')"><i class="fa-solid fa-chevron-left"></i> WRÓĆ DO LINII</button>
-        <h2 id="v-title"></h2>
-        <div id="v-list"></div>
+    <div id="s-variants" class="section">
+        <button onclick="show('pax')" class="btn-back"><i class="fa-solid fa-chevron-left"></i> POWRÓT</button>
+        <div id="variant-list"></div>
     </div>
 
     <div id="s-route" class="section">
-        <button id="btn-back-vars" class="back-btn"><i class="fa-solid fa-chevron-left"></i> WRÓĆ DO KIERUNKÓW</button>
+        <button onclick="show('variants')" class="btn-back"><i class="fa-solid fa-chevron-left"></i> WYBÓR KIERUNKU</button>
         <h3 id="r-title" style="color:var(--mzk)"></h3>
-        <div id="r-list"></div>
+        <div id="route-container"></div>
     </div>
 
     <div id="s-tt" class="section">
-        <button id="btn-back-route" class="back-btn"><i class="fa-solid fa-chevron-left"></i> WRÓĆ DO TRASY</button>
-        <div class="tt-box">
-            <div class="tt-head"><h2 id="tt-num" style="margin:0; font-size:3.5rem;">--</h2></div>
-            <div class="tt-dir" id="tt-stop-name">---</div>
-            <div id="tt-body"></div>
+        <button onclick="show('route')" class="btn-back"><i class="fa-solid fa-chevron-left"></i> POWRÓT DO TRASY</button>
+        <div class="tt-table">
+            <div class="tt-header">
+                <h2 id="tt-stop-name" style="margin:0">Przystanek</h2>
+                <small id="tt-dir-info"></small>
+            </div>
+            <div id="tt-rows"></div>
         </div>
     </div>
 
     <div id="s-adm" class="section">
         <div id="adm-login" style="text-align:center">
-            <h3>Panel Facio</h3>
-            <input type="password" id="pass" placeholder="Hasło">
-            <button class="btn-save" onclick="login()">ZALOGUJ</button>
+            <h3>Panel Administracyjny</h3>
+            <input type="password" id="adm-pass" style="width:100%; padding:12px; margin-bottom:10px;">
+            <button onclick="login()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px; font-weight:900;">ZALOGUJ</button>
         </div>
-        <div id="adm-dash" style="display:none">
-            <button class="btn-save" onclick="openEd('new')">+ DODAJ WARIANT</button>
-            <div id="adm-list" style="margin-top:20px"></div>
+        <div id="adm-dash" style="display:none;">
+            <button onclick="openEd()" style="width:100%; padding:15px; background:var(--dark); color:white; border:none; border-radius:10px; font-weight:900;">+ DODAJ LINIE</button>
+            <div id="adm-list" style="margin-top:20px;"></div>
         </div>
     </div>
 </div>
 
 <nav>
-    <div onclick="openSec('pax')" id="n-pax" class="active"><i class="fa-solid fa-bus"></i>LINIE</div>
-    <div onclick="openSec('adm')" id="n-adm"><i class="fa-solid fa-lock"></i>ADMIN</div>
+    <div onclick="show('pax')" id="n-pax" class="active"><i class="fa-solid fa-list"></i>LINIE</div>
+    <div onclick="window.open('https://earth.google.com/web/')"><i class="fa-solid fa-map-location-dot"></i>MAPA</div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-gears"></i>PANEL</div>
 </nav>
 
-<div id="editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; display:none; overflow-y:auto; padding:20px; box-sizing:border-box;">
-    <h3>Konfiguracja Wariantu</h3>
-    <input type="text" id="e-num" placeholder="Numer (np. 124)">
-    <input type="text" id="e-dir" placeholder="Kierunek (np. Os. Staszica)">
+<div id="editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; display:none; padding:20px; box-sizing:border-box; overflow-y:auto;">
+    <h2>Edytor Wariantu</h2>
+    <input type="text" id="e-num" placeholder="Numer linii">
+    <input type="text" id="e-dir" placeholder="Kierunek">
     <select id="e-type" style="width:100%; padding:10px; margin-bottom:10px;"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <p>Rozkład (Godziny oddzielone przecinkiem lub enterem):</p>
-    <textarea id="e-times" style="height:100px;" placeholder="05:10, 05:40, 06:15..."></textarea>
+    <textarea id="e-rob" style="width:100%; height:80px;" placeholder="Godziny (05:10, 05:40...)"></textarea>
     <p>Przystanki (Nazwa,Czas):</p>
-    <textarea id="e-stops" style="height:100px;" placeholder="Piaski,0&#10;Katedra,4&#10;Dworzec,7"></textarea>
-    <button class="btn-save" onclick="save()">ZAPISZ WARIANT</button>
-    <button onclick="document.getElementById('editor').style.display='none'" style="width:100%; border:none; background:none; padding:15px; color:red; font-weight:bold; cursor:pointer;">ANULUJ</button>
+    <textarea id="e-stops" style="width:100%; height:100px;" placeholder="Przystanek1,0&#10;Przystanek2,5"></textarea>
+    <button onclick="save()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px;">ZAPISZ</button>
+    <button onclick="document.getElementById('editor').style.display='none'" style="width:100%; margin-top:10px;">ANULUJ</button>
 </div>
 
 <script>
-    const DB_KEY = 'MZK_V26_DATA';
-    let db = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const STORAGE = 'MZK_V25_DATA';
+    let db = JSON.parse(localStorage.getItem(STORAGE)) || [];
 
-    function openSec(id) {
+    function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
@@ -124,82 +138,87 @@
     }
 
     function renderPax() {
-        const b = document.getElementById('grid-bus'), t = document.getElementById('grid-tram');
-        b.innerHTML = ''; t.innerHTML = '';
-        const unique = [...new Set(db.map(l => l.num))];
-        unique.forEach(num => {
+        const bG = document.getElementById('list-buses'), tG = document.getElementById('list-trams');
+        bG.innerHTML = ''; tG.innerHTML = '';
+        const uniqueLines = [...new Set(db.map(l => l.num))].sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
+        uniqueLines.forEach(num => {
             const l = db.find(x => x.num === num);
-            const h = `<div class="card ${l.type === 'tram' ? 'tram' : ''}" onclick="openVars('${num}')"><b>${num}</b></div>`;
-            if(l.type === 'tram') t.innerHTML += h; else b.innerHTML += h;
+            const card = `<div class="line-card ${l.type==='tram'?'tram-card':''}" onclick="openVariants('${num}')"><b>${num}</b></div>`;
+            if(l.type==='tram') tG.innerHTML += card; else bG.innerHTML += card;
         });
     }
 
-    function openVars(num) {
-        openSec('vars');
-        document.getElementById('v-title').innerText = `Linia ${num}`;
-        const list = document.getElementById('v-list'); list.innerHTML = '';
-        db.filter(x => x.num === num).forEach((l, i) => {
-            const realIdx = db.indexOf(l);
-            list.innerHTML += `<div class="v-btn" onclick="openRoute(${realIdx})"><span>${l.dir}</span> <i class="fa-solid fa-chevron-right"></i></div>`;
+    function openVariants(num) {
+        show('variants');
+        const list = document.getElementById('variant-list');
+        list.innerHTML = '';
+        db.filter(l => l.num === num).forEach((l, idx) => {
+            const globalIdx = db.indexOf(l);
+            list.innerHTML += `
+                <div class="variant-btn" onclick="openRoute(${globalIdx})">
+                    <div class="v-num">${l.num}</div>
+                    <div class="v-dir">${l.dir}</div>
+                </div>`;
         });
     }
 
     function openRoute(idx) {
-        openSec('route');
+        show('route');
         const l = db[idx];
-        document.getElementById('r-title').innerText = `Kierunek: ${l.dir}`;
-        document.getElementById('btn-back-vars').onclick = () => openVars(l.num);
-        const list = document.getElementById('r-list'); list.innerHTML = '';
+        document.getElementById('r-title').innerText = `Linia ${l.num} -> ${l.dir}`;
+        const cont = document.getElementById('route-container');
+        cont.innerHTML = '';
         let total = 0;
-        l.stops.forEach((s, si) => {
+        l.stops.forEach((s, sIdx) => {
             total += parseInt(s.a || 0);
-            const item = document.createElement('div');
-            item.className = 'v-btn';
-            item.innerHTML = `<span>${s.n}</span> <b>+${total} min</b>`;
-            item.onclick = () => viewTT(idx, si);
-            list.appendChild(item);
+            cont.innerHTML += `<div class="stop-item" onclick="viewTT(${idx}, ${sIdx})">
+                <span>${s.n}</span> <span style="color:var(--mzk)">+${total} min</span>
+            </div>`;
         });
     }
 
     function viewTT(lIdx, sIdx) {
-        openSec('tt');
+        show('tt');
         const l = db[lIdx]; const s = l.stops[sIdx];
-        document.getElementById('tt-num').innerText = l.num;
         document.getElementById('tt-stop-name').innerText = s.n;
-        document.getElementById('btn-back-route').onclick = () => openRoute(lIdx);
-
+        document.getElementById('tt-dir-info').innerText = `Linia ${l.num} | Kierunek: ${l.dir}`;
+        
         let delay = 0;
         for(let i=0; i<=sIdx; i++) delay += parseInt(l.stops[i].a || 0);
 
-        const body = document.getElementById('tt-body'); body.innerHTML = '';
-        let hMap = {};
+        const rowsCont = document.getElementById('tt-rows');
+        rowsCont.innerHTML = '';
+        let hoursMap = {};
 
-        // NAPRAWA ENTERÓW: Zamieniamy entery na przecinki i usuwamy zbędne spacje
-        let cleanTimes = l.times.replace(/\n/g, ',').split(',');
-
-        cleanTimes.forEach(t => {
-            let m = t.trim().match(/(\d{1,2}):(\d{2})/);
-            if(!m) return;
-            let d = new Date(2026, 0, 1, m[1], parseInt(m[2]) + delay);
-            let h = d.getHours();
-            let min = d.getMinutes().toString().padStart(2, '0');
-            if(!hMap[h]) hMap[h] = [];
-            hMap[h].push(min);
+        (l.rob || "").split(',').forEach(t => {
+            let parts = t.trim().split(':');
+            if(parts.length !== 2) return;
+            let h = parseInt(parts[0]), m = parseInt(parts[1]);
+            let date = new Date(2026, 0, 1, h, m + delay);
+            let finalH = date.getHours(), finalM = date.getMinutes().toString().padStart(2, '0');
+            if(!hoursMap[finalH]) hoursMap[finalH] = [];
+            hoursMap[finalH].push(finalM);
         });
 
-        Object.keys(hMap).sort((a,b)=>a-b).forEach(h => {
-            body.innerHTML += `<div class="tt-grid"><div class="tt-h">${h.toString().padStart(2, '0')}</div><div class="tt-m">${hMap[h].join(' ')}</div></div>`;
+        Object.keys(hoursMap).sort((a,b)=>a-b).forEach(h => {
+            rowsCont.innerHTML += `<div class="tt-row">
+                <div class="tt-hour">${h.toString().padStart(2, '0')}</div>
+                <div class="tt-min">${hoursMap[h].sort().join(' ')}</div>
+            </div>`;
         });
     }
 
-    function login() { if(document.getElementById('pass').value === '123') { 
-        document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; renderAdm(); 
+    function login() { if(document.getElementById('adm-pass').value === '123') { 
+        document.getElementById('adm-login').style.display='none'; 
+        document.getElementById('adm-dash').style.display='block'; renderAdm(); 
     }}
 
     function renderAdm() {
         const list = document.getElementById('adm-list'); list.innerHTML = '';
         db.forEach((l, i) => {
-            list.innerHTML += `<div style="background:white; padding:10px; margin-bottom:5px; border-radius:10px;"><b>${l.num}</b> -> ${l.dir} <button onclick="del(${i})" style="color:red; border:none; background:none; float:right;">USUŃ</button></div>`;
+            list.innerHTML += `<div style="background:white; padding:10px; margin-bottom:5px; border-radius:5px; display:flex; justify-content:space-between;">
+                <b>${l.num} -> ${l.dir}</b> <button onclick="del(${i})">USUŃ</button>
+            </div>`;
         });
     }
 
@@ -209,17 +228,15 @@
             num: document.getElementById('e-num').value,
             dir: document.getElementById('e-dir').value,
             type: document.getElementById('e-type').value,
-            times: document.getElementById('e-times').value,
-            stops: document.getElementById('e-stops').value.split('\n').filter(x => x.includes(',')).map(x => {
-                let p = x.split(','); return { n: p[0].trim(), a: p[1].trim() };
+            rob: document.getElementById('e-rob').value,
+            stops: document.getElementById('e-stops').value.trim().split('\n').map(x => {
+                let p = x.split(','); return { n: p[0].trim(), a: p[1] || 0 };
             })
         };
-        db.push(line);
-        localStorage.setItem(DB_KEY, JSON.stringify(db));
-        document.getElementById('editor').style.display='none';
-        renderPax(); renderAdm();
+        db.push(line); localStorage.setItem(STORAGE, JSON.stringify(db));
+        document.getElementById('editor').style.display='none'; renderPax(); renderAdm();
     }
-    function del(i) { if(confirm("Usunąć?")) { db.splice(i,1); localStorage.setItem(DB_KEY, JSON.stringify(db)); renderAdm(); }}
+    function del(i) { if(confirm("Usunąć?")) { db.splice(i,1); localStorage.setItem(STORAGE, JSON.stringify(db)); renderAdm(); }}
 
     renderPax();
 </script>

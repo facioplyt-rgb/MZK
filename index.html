@@ -104,7 +104,7 @@
     <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Admin</span></div>
 </nav>
 
-<div id="form-stop-status" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:4000;display:none;padding:20px;">
+<div id="form-stop-status" style="fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:4000;display:none;padding:20px;">
     <h2 id="edit-stop-name">Status Przystanku</h2>
     <div class="app-card" style="margin-top:20px; display:block;">
         <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
@@ -144,7 +144,7 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_v17_db');
+        const local = localStorage.getItem('mzk_v19_db');
         if(local) db = JSON.parse(local);
         if(!db.stopDetails) db.stopDetails = {};
         if(!db.news) db.news = [];
@@ -152,7 +152,7 @@
         render();
     }
 
-    function save() { localStorage.setItem('mzk_v17_db', JSON.stringify(db)); extractStops(); render(); }
+    function save() { localStorage.setItem('mzk_v19_db', JSON.stringify(db)); extractStops(); render(); }
 
     function extractStops() {
         let stopsSet = new Set();
@@ -243,19 +243,20 @@
         document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
         const body = document.getElementById('tt-body'); body.innerHTML = '';
         let cumulative = 0;
+        
         line.stops.split('\n').filter(s => s.trim()).forEach((sLine, sIdx) => {
             let [name, offStr] = sLine.split('|').map(x => x.trim());
             let offset = parseInt(offStr?.replace('+', '')) || (sIdx === 0 ? 0 : 2);
             cumulative += offset;
             
-            // Sprawdzanie czy w samej nazwie jest "nż." LUB czy status w bazie to NŻ
+            // Zachowujemy 'cumulative' w stałej dla tego konkretnego przystanku (closure)
+            const stopCumulative = cumulative; 
+            
             const det = db.stopDetails[name] || { nz: false };
             const isStopNz = det.nz || name.toLowerCase().includes('nż.');
             const cleanName = name.replace(/ nż\./gi, '').trim();
 
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
-            
-            // TUTAJ USUNIĘTO +${cumulative} min - teraz jest tylko nazwa i NŻ
             card.innerHTML = `<div><b>${cleanName} ${isStopNz ? '(NŻ)' : ''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
             
             card.onclick = () => {
@@ -266,7 +267,8 @@
                         let [hh, mm] = h.trim().split(':').map(Number);
                         if(isNaN(hh)) return "";
                         let d = new Date(); 
-                        d.setHours(hh, mm + cumulative);
+                        // Kluczowa zmiana: używamy stopCumulative przypisanego do tego przystanku
+                        d.setHours(hh, mm + stopCumulative);
                         return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
                     }).join('');
                 }

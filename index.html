@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW</title>
+    <title>MZK GORZÓW - SYSTEM</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
@@ -16,23 +16,31 @@
         .section { display: none; }
         .active-sec { display: block; }
 
-        /* LINIE */
+        /* LISTA LINII */
         .line-item { background: white; padding: 20px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 6px solid var(--mzk); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .line-item.tram { border-left-color: var(--red); }
 
-        /* PRZYSTANKI */
+        /* WIDOK PRZYSTANKÓW */
         .tt-header { background: var(--mzk); color: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; text-align: center; }
         .tt-header.tram { background: var(--red); }
         
-        .stop-row { background: white; padding: 15px; margin-bottom: 5px; border-radius: 10px; border-left: 4px solid #ddd; cursor: pointer; }
-        .on-request { color: var(--red); font-size: 0.65rem; font-weight: 900; margin-left: 5px; }
+        .stop-row { background: white; padding: 15px; margin-bottom: 8px; border-radius: 10px; border-left: 4px solid #ddd; cursor: pointer; position: relative; }
+        .stop-name { font-weight: 800; font-size: 1.05rem; display: block; }
+        .on-request { color: var(--red); font-size: 0.7rem; font-weight: 900; margin-left: 5px; }
         
-        /* PRZYWRÓCONE INFO */
-        .stop-info-text { font-size: 0.75rem; color: #666; display: block; margin-top: 5px; border-top: 1px dashed #eee; padding-top: 5px; font-weight: 500; }
-        
-        .hours-box { background: var(--dark); color: white; padding: 12px; border-radius: 8px; margin-top: 10px; display: none; animation: slideIn 0.3s; }
-        @keyframes slideIn { from { opacity:0; transform: translateY(-5px); } to { opacity:1; transform: translateY(0); } }
-        .hour-pill { background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 5px; display: inline-block; margin: 3px; font-weight: 700; font-size: 1.1rem; }
+        /* TUTAJ JEST TWOJA INFORMACJA Z PANELU PRZYSTANKI */
+        .global-info-box { 
+            margin-top: 8px; 
+            padding-top: 8px; 
+            border-top: 1px dashed #ccc; 
+            font-size: 0.8rem; 
+            color: #555; 
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        .hours-box { background: var(--dark); color: white; padding: 12px; border-radius: 8px; margin-top: 10px; display: none; }
+        .hour-pill { background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 5px; display: inline-block; margin: 3px; font-weight: 700; font-size: 1.1rem; }
 
         /* NAV */
         nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; height: 75px; border-top: 1px solid #eee; z-index: 2000; }
@@ -43,7 +51,7 @@
         /* ADMIN */
         .adm-btn { background: var(--dark); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; margin-bottom: 10px; cursor: pointer; }
         input, textarea, select { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
-        .stop-edit-item { background: #f1f1f1; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+        .stop-edit-item { background: #f1f1f1; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ccc; }
         .admin-item { background: white; padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
@@ -83,7 +91,7 @@
                 <div id="adm-lines-list"></div>
             </div>
             <div id="t-p" style="display:none;">
-                <button onclick="openStopEditor(-1)" class="adm-btn" style="background:#444">+ NOWY OPIS</button>
+                <button onclick="openStopEditor(-1)" class="adm-btn" style="background:#444">+ NOWY OPIS PRZYSTANKU</button>
                 <div id="adm-stops-list"></div>
             </div>
             <div id="t-d" style="display:none;">
@@ -105,30 +113,31 @@
 
 <div id="m-line-editor" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;overflow-y:auto;">
     <h3>EDYCJA LINII</h3>
-    <input type="text" id="le-num" placeholder="Numer">
-    <input type="text" id="le-dir" placeholder="Kierunek">
+    <input type="text" id="le-num" placeholder="Numer (np. 101)">
+    <input type="text" id="le-dir" placeholder="Kierunek (np. Piaski)">
     <select id="le-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="le-hours" placeholder="Godziny z pętli (08:00, 08:30)"></textarea>
+    <textarea id="le-hours" placeholder="Godziny z pętli (oddziel przecinkiem: 08:00, 08:30)"></textarea>
     <div id="le-stops-container"></div>
     <button onclick="addStopRow()" class="adm-btn" style="background:#666">+ DODAJ PRZYSTANEK</button>
     <button onclick="saveLine()" class="adm-btn" style="background:var(--mzk)">ZAPISZ LINIĘ</button>
-    <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;">ANULUJ</button>
+    <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;margin-top:10px;">ANULUJ / ZAMKNIJ</button>
 </div>
 
 <div id="m-stop-editor" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;">
-    <h3>OPIS PRZYSTANKU</h3>
+    <h3>GLOBALNY OPIS PRZYSTANKU</h3>
+    <p style="font-size:0.7rem; color: #666;">Nazwa musi być identyczna jak ta wpisana w trasie linii.</p>
     <input type="text" id="se-name" placeholder="Nazwa przystanku">
-    <textarea id="se-desc" placeholder="Opis / Informacje" style="height:150px;"></textarea>
-    <button onclick="saveStopDesc()" class="adm-btn">ZAPISZ OPIS</button>
+    <textarea id="se-desc" placeholder="Opis (np. Przesiadka na linie: 102, 103)" style="height:150px;"></textarea>
+    <button onclick="saveStopDesc()" class="adm-btn">ZAPISZ INFORMACJE</button>
     <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;">ANULUJ</button>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('MZK_V9')) || { lines: [], stops: [], map: "" };
+    let db = JSON.parse(localStorage.getItem('MZK_V10')) || { lines: [], stops: [], map: "" };
     let tempRoute = [];
     let curIdx = -1;
 
-    function sync() { localStorage.setItem('MZK_V9', JSON.stringify(db)); render(); }
+    function sync() { localStorage.setItem('MZK_V10', JSON.stringify(db)); render(); }
 
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
@@ -148,16 +157,16 @@
 
         const al = document.getElementById('adm-lines-list'); al.innerHTML = '';
         db.lines.forEach((l, i) => {
-            al.innerHTML += `<div class="admin-item" onclick="openLineEditor(${i})"><span>${l.num} -> ${l.dir}</span> <button onclick="event.stopPropagation(); deleteLine(${i})" style="background:red;color:white;border:none;padding:5px;border-radius:5px">USUŃ</button></div>`;
+            al.innerHTML += `<div class="admin-item" onclick="openLineEditor(${i})"><span>${l.num} -> ${l.dir}</span> <button onclick="event.stopPropagation(); deleteLine(${i})" style="background:red;color:white;border:none;padding:5px;border-radius:5px">X</button></div>`;
         });
 
         const as = document.getElementById('adm-stops-list'); as.innerHTML = '';
         db.stops.forEach((s, i) => {
-            as.innerHTML += `<div class="admin-item" onclick="openStopEditor(${i})"><span>${s.name}</span> <button onclick="event.stopPropagation(); deleteStop(${i})" style="background:red;color:white;border:none;padding:5px;border-radius:5px">USUŃ</button></div>`;
+            as.innerHTML += `<div class="admin-item" onclick="openStopEditor(${i})"><span>${s.name}</span> <button onclick="event.stopPropagation(); deleteStop(${i})" style="background:red;color:white;border:none;padding:5px;border-radius:5px">X</button></div>`;
         });
     }
 
-    // --- ROZKŁAD ---
+    // --- WIDOK PRZYSTANKÓW ---
     function openVars(num) {
         show('vars');
         const vr = document.getElementById('vars-render');
@@ -179,35 +188,43 @@
         let cumulative = 0;
         l.route.forEach((s, si) => {
             cumulative += s.time;
-            const sInfo = db.stops.find(gs => gs.name.toLowerCase() === s.name.toLowerCase());
+            
+            // DOPASOWANIE INFORMACJI Z PANELU PRZYSTANKI
+            const globalInfo = db.stops.find(gs => gs.name.trim().toLowerCase() === s.name.trim().toLowerCase());
             
             const div = document.createElement('div');
             div.className = 'stop-row';
             div.innerHTML = `
                 <span style="float:right; font-weight:900; color:var(--mzk)">+${cumulative} min</span>
-                <b>${s.name}</b> ${s.req ? '<span class="on-request">(NŻ)</span>' : ''}
-                ${sInfo ? `<span class="stop-info-text">${sInfo.desc}</span>` : ''}
+                <span class="stop-name">${s.name} ${s.req ? '<span class="on-request">(NŻ)</span>' : ''}</span>
+                ${globalInfo ? `<div class="global-info-box"><i class="fa-solid fa-info-circle"></i> ${globalInfo.desc}</div>` : ''}
                 <div class="hours-box" id="hb-${si}"></div>
             `;
-            div.onclick = () => toggleH(si, l.hours, cumulative);
+            div.onclick = (e) => {
+                if(e.target.closest('.hours-box')) return;
+                toggleH(si, l.hours, cumulative);
+            };
             container.appendChild(div);
         });
     }
 
     function toggleH(si, hours, off) {
         const box = document.getElementById('hb-'+si);
-        if(box.style.display === 'block') { box.style.display = 'none'; return; }
+        const isOpen = box.style.display === 'block';
         document.querySelectorAll('.hours-box').forEach(b => b.style.display = 'none');
-        let htm = '';
-        hours.split(',').forEach(h => {
-            let [hh, mm] = h.trim().split(':').map(Number);
-            let d = new Date(); d.setHours(hh, mm + off);
-            htm += `<span class="hour-pill">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-        });
-        box.innerHTML = htm; box.style.display = 'block';
+        if(!isOpen) {
+            let htm = '';
+            hours.split(',').forEach(h => {
+                if(!h.includes(':')) return;
+                let [hh, mm] = h.trim().split(':').map(Number);
+                let d = new Date(); d.setHours(hh, mm + off);
+                htm += `<span class="hour-pill">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
+            });
+            box.innerHTML = htm; box.style.display = 'block';
+        }
     }
 
-    // --- ADMIN ---
+    // --- PANEL ADMINA ---
     function openLineEditor(idx) {
         curIdx = idx;
         if(idx === -1) {
@@ -230,12 +247,15 @@
         tempRoute.forEach((s, i) => {
             c.innerHTML += `
                 <div class="stop-edit-item">
-                    <input type="text" placeholder="Nazwa" value="${s.name}" onchange="tempRoute[${i}].name=this.value">
-                    <div style="display:flex; gap:5px; align-items:center; margin-top:5px;">
-                        + <input type="number" value="${s.time}" style="width:50px" onchange="tempRoute[${i}].time=parseInt(this.value)"> min
-                        <label><input type="checkbox" ${s.req?'checked':''} onchange="tempRoute[${i}].req=this.checked"> NŻ</label>
-                        <button onclick="move(${i},-1)">↑</button><button onclick="move(${i},1)">↓</button>
-                        <button onclick="tempRoute.splice(${i},1);renderEditStops()" style="background:red;color:white;border:none">X</button>
+                    <input type="text" placeholder="Nazwa przystanku" value="${s.name}" onchange="tempRoute[${i}].name=this.value">
+                    <div style="display:flex; gap:10px; align-items:center; margin-top:5px;">
+                        <span>+</span><input type="number" value="${s.time}" style="width:60px" onchange="tempRoute[${i}].time=parseInt(this.value)"><span>min</span>
+                        <label style="font-size:0.8rem;"><input type="checkbox" ${s.req?'checked':''} onchange="tempRoute[${i}].req=this.checked"> NŻ</label>
+                        <div style="margin-left:auto;">
+                            <button onclick="move(${i},-1)" style="padding:5px;">↑</button>
+                            <button onclick="move(${i},1)" style="padding:5px;">↓</button>
+                            <button onclick="tempRoute.splice(${i},1);renderEditStops()" style="background:red;color:white;border:none;padding:5px;border-radius:5px;">X</button>
+                        </div>
                     </div>
                 </div>`;
         });
@@ -248,7 +268,13 @@
     }
 
     function saveLine() {
-        const l = { num: document.getElementById('le-num').value, dir: document.getElementById('le-dir').value, type: document.getElementById('le-type').value, hours: document.getElementById('le-hours').value, route: tempRoute };
+        const l = { 
+            num: document.getElementById('le-num').value, 
+            dir: document.getElementById('le-dir').value, 
+            type: document.getElementById('le-type').value, 
+            hours: document.getElementById('le-hours').value, 
+            route: tempRoute 
+        };
         if(curIdx===-1) db.lines.push(l); else db.lines[curIdx]=l;
         sync(); closeModal();
     }
@@ -266,16 +292,16 @@
         sync(); closeModal();
     }
 
-    function deleteLine(i) { if(confirm("Usunąć linię?")) { db.lines.splice(i,1); sync(); } }
-    function deleteStop(i) { if(confirm("Usunąć opis?")) { db.stops.splice(i,1); sync(); } }
     function login() { if(document.getElementById('adm-pass').value==='123') { document.getElementById('adm-auth').style.display='none'; document.getElementById('adm-panel').style.display='block'; } }
     function tab(id) { ['l','p','d'].forEach(t => document.getElementById('t-'+t).style.display = (t===id?'block':'none')); }
     function closeModal() { document.getElementById('m-line-editor').style.display='none'; document.getElementById('m-stop-editor').style.display='none'; }
-    function saveMap() { db.map = document.getElementById('map-url').value; sync(); alert("OK!"); }
-    function exportDB() { const b=new Blob([JSON.stringify(db)],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='mzk.txt'; a.click(); }
+    function deleteLine(i) { if(confirm("Usunąć linię?")) { db.lines.splice(i,1); sync(); } }
+    function deleteStop(i) { if(confirm("Usunąć opis?")) { db.stops.splice(i,1); sync(); } }
+    function saveMap() { db.map = document.getElementById('map-url').value; sync(); alert("Mapa zapisana!"); }
+    function exportDB() { const b=new Blob([JSON.stringify(db)],{type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='mzk_backup.txt'; a.click(); }
     function importDB(e) { const r=new FileReader(); r.onload=function(){ db=JSON.parse(r.result); sync(); }; r.readAsText(e.target.files[0]); }
 
-    sync();
+    render();
 </script>
 </body>
 </html>

@@ -80,7 +80,7 @@
 
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
-            <input type="password" id="pass" placeholder="Kod" style="text-align:center;">
+            <input type="password" id="pass" placeholder="Kod Admina" style="text-align:center;">
             <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none;">
@@ -95,7 +95,7 @@
             <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportData()" class="main-btn">Eksportuj Backup</button><input type="file" id="importFile" style="display:none" onchange="importData(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Backup</button></div>
+            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportData()" class="main-btn">Eksportuj Baza.txt</button><input type="file" id="importFile" style="display:none" onchange="importData(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Baza.txt</button></div>
         </div>
     </div>
 </div>
@@ -110,22 +110,22 @@
 
 <div id="form-stop-status" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:4000;display:none;padding:20px;">
     <h2 id="edit-stop-name">Status Przystanku</h2>
-    <div class="app-card" style="margin-top:20px; display:block;"><label style="display:flex; align-items:center; gap:10px;"><input type="checkbox" id="fs-nz" style="width:25px;height:25px;"> <b>Przystanek na żądanie (NŻ)</b></label></div>
-    <label class="group-label">Co jest w pobliżu?</label><textarea id="fs-near" style="height:100px;" placeholder="np. Sklepy, Park, Szkoła..."></textarea>
+    <div class="app-card" style="margin-top:20px; display:block;"><label style="display:flex; align-items:center; gap:10px;"><input type="checkbox" id="fs-nz" style="width:25px;height:25px;"> <b>Na żądanie (NŻ)</b></label></div>
+    <label class="group-label">W pobliżu:</label><textarea id="fs-near" style="height:100px;"></textarea>
     <button onclick="saveStopStatus()" class="main-btn">Zapisz</button><button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
 <div id="form-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h2>Zarządzaj Linią</h2>
+    <h2>Edycja Linii</h2>
     <input type="text" id="fl-num" placeholder="Numer"><input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <textarea id="fl-hours" placeholder="Godziny: 05:00, 05:30..."></textarea>
     <textarea id="fl-stops-raw" style="height:250px;" placeholder="Nazwa Przystanku"></textarea>
-    <button onclick="saveLine()" class="main-btn">Zapisz</button><button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz</button><button onclick="closeForms()" class="main-btn" style="background:none">Wróć</button>
 </div>
 
 <div id="form-news" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h2>Zarządzaj Komunikatem</h2>
+    <h2>Komunikat</h2>
     <input type="text" id="fn-title" placeholder="Tytuł"><textarea id="fn-content" style="height:200px;"></textarea>
     <select id="fn-lvl"><option value="info">Info</option><option value="warn">Ważne</option><option value="alert">Pilne</option></select>
     <button onclick="saveNews()" class="main-btn">Zapisz</button><button onclick="closeForms()" class="main-btn" style="background:none">Wróć</button>
@@ -138,14 +138,14 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_v17_db');
+        const local = localStorage.getItem('mzk_v18_db');
         if(local) db = JSON.parse(local);
         if(!db.stopDetails) db.stopDetails = {};
         extractStops();
         render();
     }
 
-    function save() { localStorage.setItem('mzk_v17_db', JSON.stringify(db)); extractStops(); render(); }
+    function save() { localStorage.setItem('mzk_v18_db', JSON.stringify(db)); extractStops(); render(); }
 
     function extractStops() {
         let stopsSet = new Set();
@@ -159,19 +159,21 @@
     }
 
     function render() {
+        // LINIE
         const busC = document.getElementById('lines-bus'); const tramC = document.getElementById('lines-tram');
         busC.innerHTML = ''; tramC.innerHTML = '';
         const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
         uniqueNums.forEach(num => {
             const l = db.lines.find(x => x.num === num);
             const div = document.createElement('div'); div.className = 'app-card';
-            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Wybierz kierunek</b></span><i class="fa-solid fa-chevron-right"></i>`;
+            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Kierunki...</b></span><i class="fa-solid fa-chevron-right"></i>`;
             div.onclick = () => openVariants(num);
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
 
         filterStops();
 
+        // ADMIN
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>${n.title}</span><button onclick="openNewsForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-stops-list').innerHTML = allAutoStops.map(s => {
@@ -179,11 +181,11 @@
             return `<div class="app-card"><span>${s} ${isNz}</span><button onclick="openStopStatusForm('${s}')" style="color:var(--accent); background:none; border:none; font-weight:800;">STATUS</button></div>`;
         }).join('');
 
-        document.getElementById('public-news-list').innerHTML = db.news.length ? db.news.map(n => `<div class="app-card" style="display:block; border-left: 5px solid ${n.lvl==='alert'?'#ff4842':n.lvl==='warn'?'#feca05':'#00ab55'}"><b>${n.title}</b><p style="font-size:0.9rem; margin-top:5px; white-space:pre-wrap;">${n.content}</p></div>`).join('') : '<p style="text-align:center;">Brak newsów.</p>';
+        document.getElementById('public-news-list').innerHTML = db.news.length ? db.news.map(n => `<div class="app-card" style="display:block; border-left: 5px solid ${n.lvl==='alert'?'#ff4842':n.lvl==='warn'?'#feca05':'#00ab55'}"><b>${n.title}</b><p style="font-size:0.9rem; margin-top:5px; white-space:pre-wrap;">${n.content}</p></div>`).join('') : '<p style="text-align:center;">Brak komunikatów.</p>';
         document.getElementById('contact-display').innerText = db.contact;
     }
 
-    // WIDOK PASAŻERA - PRZYSTANKI
+    // PASAŻER - PRZYSTANKI
     function filterStops() {
         const query = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
@@ -208,53 +210,33 @@
         }).join('');
     }
 
-    // POPRAWIONE WYSZUKIWANIE LINII DLA PRZYSTANKU
     function getLinesForStop(stopName) {
         let linesHtml = "";
-        let foundLines = [];
-
+        let found = false;
         db.lines.forEach(l => {
-            if(l.stops) {
-                // Rozbijamy trasę na przystanki i czyścimy nazwy
-                const stopArray = l.stops.split('\n').map(item => item.split('|')[0].trim());
-                if(stopArray.includes(stopName)) {
-                    foundLines.push({num: l.num, dir: l.dir});
-                }
+            // Bezpieczne sprawdzenie czy przystanek jest na liście (ignorując wielkość liter i spacje)
+            const stopArray = l.stops.split('\n').map(x => x.split('|')[0].trim().toLowerCase());
+            if(stopArray.includes(stopName.toLowerCase())) {
+                linesHtml += `<div class="stop-line-item"><span class="mini-line-badge">${l.num}</span> <span>kierunek: <b>${l.dir}</b></span></div>`;
+                found = true;
             }
         });
-
-        if(foundLines.length > 0) {
-            foundLines.forEach(fl => {
-                linesHtml += `<div class="stop-line-item"><span class="mini-line-badge">${fl.num}</span> <span>kierunek: <b>${fl.dir}</b></span></div>`;
-            });
-        } else {
-            linesHtml = "<p style='font-size:0.75rem; color:var(--text-sec);'>Brak przypisanych linii.</p>";
-        }
-        return linesHtml;
+        return found ? linesHtml : "<p style='font-size:0.75rem;'>Brak informacji o liniach.</p>";
     }
 
     function toggleStopLines(idx) {
         const div = document.getElementById(`stop-lines-${idx}`);
         const icon = document.getElementById(`icon-${idx}`);
-        const isHidden = div.style.display === 'none';
-        div.style.display = isHidden ? 'block' : 'none';
-        icon.className = isHidden ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+        if(div.style.display === 'none') {
+            div.style.display = 'block';
+            icon.className = 'fa-solid fa-chevron-up';
+        } else {
+            div.style.display = 'none';
+            icon.className = 'fa-solid fa-chevron-down';
+        }
     }
 
-    function openStopStatusForm(name) {
-        editingStopName = name;
-        const det = db.stopDetails[name] || { nz: false, near: "" };
-        document.getElementById('edit-stop-name').innerText = name;
-        document.getElementById('fs-nz').checked = det.nz;
-        document.getElementById('fs-near').value = det.near;
-        document.getElementById('form-stop-status').style.display = 'block';
-    }
-
-    function saveStopStatus() {
-        db.stopDetails[editingStopName] = { nz: document.getElementById('fs-nz').checked, near: document.getElementById('fs-near').value };
-        save(); closeForms();
-    }
-
+    // ROZKŁADY
     function openVariants(num) {
         const variants = db.lines.filter(l => String(l.num) === String(num));
         show('vars');
@@ -296,6 +278,19 @@
         });
     }
 
+    // ADMIN FUNKCJE
+    function openStopStatusForm(name) {
+        editingStopName = name;
+        const det = db.stopDetails[name] || { nz: false, near: "" };
+        document.getElementById('edit-stop-name').innerText = name;
+        document.getElementById('fs-nz').checked = det.nz;
+        document.getElementById('fs-near').value = det.near;
+        document.getElementById('form-stop-status').style.display = 'block';
+    }
+    function saveStopStatus() {
+        db.stopDetails[editingStopName] = { nz: document.getElementById('fs-nz').checked, near: document.getElementById('fs-near').value };
+        save(); closeForms();
+    }
     function openLineForm(idx) {
         curIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:""} : db.lines[idx];
         document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir;
@@ -317,6 +312,7 @@
         save(); closeForms();
     }
 
+    // NAWIGACJA
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
@@ -331,7 +327,7 @@
         if(t === 'c') document.getElementById('edit-contact-text').value = db.contact;
     }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
-    function closeForms() { document.querySelectorAll('[id^="form-"]').forEach(f => f.style.display='none'); document.getElementById('form-stop-status').style.display='none'; }
+    function closeForms() { document.querySelectorAll('[id^="form-"]').forEach(f => f.style.display='none'); }
     function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); alert("Zapisano!"); }
     function exportData() { const blob = new Blob([JSON.stringify(db)], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mzk_baza.txt'; a.click(); }
     function importData(e) { const r = new FileReader(); r.onload = (ev) => { db = JSON.parse(ev.target.result); extractStops(); save(); alert("Wczytano!"); }; r.readAsText(e.target.files[0]); }

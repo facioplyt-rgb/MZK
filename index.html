@@ -25,12 +25,11 @@
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
         
-        /* Styl dla listy linii pod przystankiem */
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; }
         .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
         .stop-line-item.is-tram i { color: var(--danger); }
-        .spacer { white-space: pre; } /* Pozwala na wyświetlanie spacji */
+        .spacer { white-space: pre; }
 
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
@@ -43,6 +42,7 @@
         .adm-nav-main button.active { background: var(--accent); color: white; }
         .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr 65px 45px 40px; gap: 8px; align-items: center; }
         .stop-edit-item input { margin: 0; padding: 10px 5px; font-size: 0.85rem; height: 40px; background: #0b0f19; border: 1px solid #333; color: white; }
+        .bulk-area { background: #000; border: 1px dashed var(--accent); padding: 10px; border-radius: 10px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -55,17 +55,15 @@
         <div class="group-label">Autobusy</div><div id="lines-bus"></div>
     </div>
     <div id="s-stops" class="section">
-        <div class="group-label">Wszystkie Przystanki</div>
-        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
+        <div class="group-label">Wyszukaj Przystanek</div>
+        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
     <div id="s-news" class="section">
-        <div class="group-label">Komunikaty</div>
-        <div id="public-news-list"></div>
+        <div class="group-label">Komunikaty</div><div id="public-news-list"></div>
     </div>
     <div id="s-contact" class="section">
-        <div class="group-label">Informacje</div>
-        <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
+        <div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
     </div>
     
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
@@ -102,14 +100,21 @@
 </nav>
 
 <div id="form-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h2>Edytuj Linię</h2>
-    <input type="text" id="fl-num" placeholder="Numer">
+    <h2>Zarządzaj Linią</h2>
+    <input type="text" id="fl-num" placeholder="Numer linii">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="fl-hours" placeholder="Godziny odjazdów..."></textarea>
+    <textarea id="fl-hours" placeholder="Godziny odjazdów z pętli (np. 08:00, 08:30)"></textarea>
+    
+    <div class="bulk-area">
+        <div class="group-label" style="margin-top:0; color:var(--accent);">Wklej listę przystanków (jeden pod drugim):</div>
+        <textarea id="fl-bulk" placeholder="Przystanek A&#10;Przystanek B&#10;Przystanek C" style="height:100px; margin-bottom:5px;"></textarea>
+        <button onclick="convertBulk()" class="main-btn" style="padding:8px; font-size:0.8rem; background:#333;">Konwertuj na listę ↓</button>
+    </div>
+
     <div id="fl-stops-list"></div>
-    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj Przystanek</button>
-    <button onclick="saveLine()" class="main-btn">Zapisz</button>
+    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj pojedynczy przystanek</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz wszystko</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -119,7 +124,7 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_db_final_v6');
+        const local = localStorage.getItem('mzk_db_final_v7');
         if(local) {
             db = JSON.parse(local);
             repairAllLines();
@@ -140,7 +145,7 @@
     }
 
     function save() { 
-        localStorage.setItem('mzk_db_final_v6', JSON.stringify(db)); 
+        localStorage.setItem('mzk_db_final_v7', JSON.stringify(db)); 
         extractStops(); 
         render(); 
     }
@@ -169,7 +174,6 @@
         const busC = document.getElementById('lines-bus'); 
         const tramC = document.getElementById('lines-tram');
         busC.innerHTML = ''; tramC.innerHTML = '';
-        
         const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
         uniqueNums.forEach(num => {
             const l = db.lines.find(x => x.num === num);
@@ -178,7 +182,6 @@
             div.onclick = () => openVariants(num);
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
-
         filterStops();
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact;
@@ -225,30 +228,18 @@
         });
     }
 
-    // MODYFIKACJA: Dodanie linii pod nazwą z trzema spacjami odstępu
     function filterStops() {
         const query = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
         const filtered = allAutoStops.filter(s => s.toLowerCase().includes(query));
-        
         list.innerHTML = filtered.map(s => {
             const lines = getLinesForStop(s);
-            // Tworzenie ciągu: Ikona Numer   Ikona Numer   Ikona Numer
-            const linesString = lines.map(ln => `
-                <span class="stop-line-item ${ln.type==='tram'?'is-tram':''}">
-                    <i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}
-                </span>
-            `).join('<span class="spacer">   </span>'); // Trzy spacje między elementami
-
-            return `
-                <div class="app-card" style="display:block;">
-                    <b>${s}</b>
-                    <div class="stop-lines-row">${linesString}</div>
-                </div>
-            `;
+            const linesString = lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('<span class="spacer">   </span>');
+            return `<div class="app-card" style="display:block;"><b>${s}</b><div class="stop-lines-row">${linesString}</div></div>`;
         }).join('');
     }
 
+    // FORMULARZ ADMINA
     function openLineForm(idx) {
         curIdx = idx;
         const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:[]} : db.lines[idx];
@@ -256,16 +247,28 @@
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
         document.getElementById('fl-hours').value = l.hours;
+        document.getElementById('fl-bulk').value = "";
         const container = document.getElementById('fl-stops-list');
         container.innerHTML = '';
         (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
         document.getElementById('form-line').style.display = 'block';
     }
 
+    // NOWA FUNKCJA: Konwersja wklejonego tekstu na pola edycji
+    function convertBulk() {
+        const text = document.getElementById('fl-bulk').value;
+        if(!text.trim()) return;
+        const lines = text.split('\n').filter(s => s.trim() !== "");
+        lines.forEach((name, i) => {
+            addStopRow(name.trim(), (i === 0 ? 0 : 2), name.toLowerCase().includes('nż.'));
+        });
+        document.getElementById('fl-bulk').value = ""; // Wyczyść po konwersji
+    }
+
     function addStopRow(name = "", time = 2, nz = false) {
         const div = document.createElement('div');
         div.className = 'stop-edit-item';
-        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time"><label><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label><button onclick="this.parentElement.remove()">X</button>`;
+        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time" placeholder="+min"><label><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label><button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); font-weight:800;">X</button>`;
         document.getElementById('fl-stops-list').appendChild(div);
     }
 

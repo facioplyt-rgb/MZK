@@ -9,7 +9,7 @@
     <style>
         :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f4f7f6; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--dark); padding-bottom: 90px; overflow-x: hidden; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--dark); padding-bottom: 90px; }
         
         header { background: var(--mzk); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--yellow); position: sticky; top: 0; z-index: 1000; }
         header h1 { font-weight: 900; font-size: 1.1rem; text-transform: uppercase; }
@@ -20,56 +20,42 @@
         .active-sec { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* WIDOK LINII - SKALOWANIE NAPISÓW */
-        .type-title { border-left: 5px solid var(--mzk); padding-left: 10px; margin: 25px 0 10px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
-        .tram-title { border-left-color: var(--red); }
+        /* SKALOWANIE KAFELKÓW */
         .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
-        
         .line-card { 
-            background: white; border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; 
-            border-bottom: 4px solid #ddd; display: flex; flex-direction: column; justify-content: center; height: 110px;
+            background: white; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; 
+            border-bottom: 4px solid #ddd; height: 115px; display: flex; flex-direction: column; justify-content: center;
+            overflow: hidden; /* Żeby nic nie wystawało */
         }
-        .line-card b { font-size: 1.8rem; color: var(--mzk); line-height: 1; }
+        .line-card b { font-size: 1.7rem; color: var(--mzk); display: block; }
         .line-card small { 
-            font-size: 0.7rem; color: #444; font-weight: 700; margin-top: 8px;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2;
+            font-size: 0.65rem; color: #444; font-weight: 700; margin-top: 5px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
+            overflow: hidden; line-height: 1.2; text-overflow: ellipsis;
         }
         .tram-card b { color: var(--red); }
 
-        /* PRZYSTANKI */
-        .stop-item { background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid var(--mzk); }
-        .stop-main { display: flex; justify-content: space-between; align-items: center; }
-        .stop-name { font-weight: 800; font-size: 0.95rem; }
-        .nz-badge { background: var(--red); color: white; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; font-weight: 900; }
-
-        /* NAV */
+        /* RESZTA STYLÓW */
+        .type-title { border-left: 5px solid var(--mzk); padding-left: 10px; margin: 20px 0 10px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+        .stop-item { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--mzk); }
         nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; height: 75px; border-top: 1px solid #eee; z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; cursor: pointer; }
         nav div.active { color: var(--mzk); }
         nav span { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; margin-top: 4px; }
-
-        /* ADMIN */
-        .adm-nav { display: flex; gap: 4px; margin-bottom: 15px; }
-        .adm-nav button { flex: 1; padding: 12px 5px; border: none; border-radius: 8px; font-weight: 800; background: #eee; font-size: 0.7rem; color: #666; transition: 0.2s; }
-        .adm-nav button.active { background: var(--mzk); color: white; }
-        .adm-list-item { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
-        .btn-black { background: #121212; color: white; padding: 15px; border: none; border-radius: 10px; width: 100%; font-weight: 900; margin-bottom: 15px; cursor: pointer; text-transform: uppercase; }
         
-        input, textarea, select { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; font-size: 0.9rem; }
+        .btn-adm { background: #121212; color: white; padding: 15px; border: none; border-radius: 10px; width: 100%; font-weight: 900; margin-bottom: 15px; cursor: pointer; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>MZK GORZÓW</h1>
-    <span>by Facio</span>
-</header>
+<header><h1>MZK GORZÓW</h1><span>by Facio</span></header>
 
 <div class="container">
     <div id="s-lines" class="section active-sec">
         <div class="type-title"><i class="fa-solid fa-bus"></i> AUTOBUSY</div>
         <div id="list-buses" class="line-grid"></div>
-        <div class="type-title tram-title"><i class="fa-solid fa-train-tram"></i> TRAMWAJE</div>
+        <div class="type-title" style="border-color:var(--red)"><i class="fa-solid fa-train-tram"></i> TRAMWAJE</div>
         <div id="list-trams" class="line-grid"></div>
     </div>
 
@@ -79,43 +65,32 @@
     </div>
 
     <div id="s-route" class="section">
-        <button onclick="show('lines')" style="border:none; background:none; color:var(--red); font-weight:900; padding:10px 0; cursor:pointer;">← POWRÓT</button>
+        <button onclick="show('lines')" style="border:none; background:none; color:var(--red); font-weight:900; cursor:pointer; padding:10px 0;">← POWRÓT</button>
         <div id="route-display"></div>
     </div>
 
     <div id="s-adm" class="section">
         <div id="adm-login">
             <input type="password" id="adm-pass" placeholder="Hasło panelu">
-            <button onclick="login()" class="btn-black" style="background:var(--mzk)">ZALOGUJ</button>
+            <button onclick="login()" class="btn-adm" style="background:var(--mzk)">ZALOGUJ</button>
         </div>
-        
         <div id="adm-dash" style="display:none;">
-            <div class="adm-nav">
-                <button id="an-l" class="active" onclick="setAdmSec('l')">LINIE</button>
-                <button id="an-p" onclick="setAdmSec('p')">PRZYSTANKI</button>
-                <button id="an-i" onclick="setAdmSec('i')">INFO</button>
-                <button id="an-m" onclick="setAdmSec('m')">MAPA</button>
+            <div style="display:flex; gap:5px; margin-bottom:15px;">
+                <button onclick="setAdm('l')" id="b-l" style="flex:1; padding:10px; font-weight:800;">LINIE</button>
+                <button onclick="setAdm('p')" id="b-p" style="flex:1; padding:10px; font-weight:800;">PRZYSTANKI</button>
+                <button onclick="setAdm('i')" id="b-i" style="flex:1; padding:10px; font-weight:800;">INFO</button>
             </div>
-
-            <div id="ad-sec-l">
-                <button onclick="openCreator()" class="btn-black">+ DODAJ LINIĘ / WARIANT</button>
+            <div id="ad-l">
+                <button onclick="openCreator()" class="btn-adm">+ DODAJ LINIĘ / WARIANT</button>
                 <div id="adm-lines-list"></div>
             </div>
-
-            <div id="ad-sec-p" style="display:none;">
-                <button onclick="addNewStopPrompt()" class="btn-black" style="background:#444">+ DODAJ NOWY PRZYSTANEK</button>
+            <div id="ad-p" style="display:none;">
+                <button onclick="addStopManual()" class="btn-adm" style="background:#444">+ DODAJ PRZYSTANEK</button>
                 <div id="adm-stops-list"></div>
             </div>
-
-            <div id="ad-sec-i" style="display:none;">
-                <button onclick="editInfoPrompt(null)" class="btn-black" style="background:#444">+ NOWY KOMUNIKAT</button>
+            <div id="ad-i" style="display:none;">
+                <button onclick="addInfo()" class="btn-adm" style="background:#444">+ NOWY KOMUNIKAT</button>
                 <div id="adm-info-list"></div>
-            </div>
-
-            <div id="ad-sec-m" style="display:none;">
-                <label>Link Google Maps:</label>
-                <input type="text" id="adm-map-url">
-                <button onclick="saveMap()" class="btn-black" style="background:var(--mzk)">ZAPISZ LINK MAPY</button>
             </div>
         </div>
     </div>
@@ -128,159 +103,82 @@
     <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-user-gear"></i><span>Panel</span></div>
 </nav>
 
-<div id="m-stop" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:3000; display:none; padding:20px; overflow-y:auto;">
-    <h2 id="ms-title" style="font-weight:900;"></h2>
-    <hr style="margin:15px 0;">
-    <label>Status:</label>
-    <select id="ms-demand"><option value="none">Stały</option><option value="all">Na żądanie (NŻ)</option></select>
-    <label>POI (W pobliżu):</label><input type="text" id="ms-poi" placeholder="np. Galeria, Dworzec">
-    <label>Ważne info:</label><textarea id="ms-extra" placeholder="np. Przystanek tymczasowy"></textarea>
-    <button onclick="saveGlobalStop()" class="btn-black" style="background:var(--mzk)">ZAPISZ GLOBALNIE</button>
-    <button onclick="document.getElementById('m-stop').style.display='none'" style="width:100%; border:none; background:none; padding:10px;">ANULUJ</button>
-</div>
-
 <div id="m-creator" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:3000; display:none; padding:20px; overflow-y:auto;">
     <h2 style="font-weight:900">Nowy Wariant</h2>
-    <input type="text" id="c-num" placeholder="Numer linii (np. 100)">
-    <input type="text" id="c-dir" placeholder="Kierunek / Nazwa wariantu (np. Jedwabnicza P.H)">
+    <input type="text" id="c-num" placeholder="Nr (np. 124)">
+    <input type="text" id="c-dir" placeholder="Kierunek (np. Panorama)">
     <select id="c-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="c-stops" style="height:150px;" placeholder="Wklej przystanki (jeden pod drugim)"></textarea>
-    <button onclick="generateLine()" class="btn-black" style="background:var(--mzk)">DODAJ WARIANT</button>
-    <button onclick="document.getElementById('m-creator').style.display='none'" style="width:100%; border:none; background:none; padding:10px;">ZAMKNIJ</button>
+    <textarea id="c-stops" style="height:150px;" placeholder="Wpisz przystanki (jeden pod drugim)"></textarea>
+    <button onclick="saveLine()" class="btn-adm" style="background:var(--mzk)">ZAPISZ</button>
+    <button onclick="document.getElementById('m-creator').style.display='none'" style="width:100%; border:none; background:none;">ANULUJ</button>
 </div>
 
 <script>
-    // Klucz bazy danych - dane zostają po odświeżeniu
-    const DB_KEY = 'MZK_FACIO_FINAL_STABLE';
-    let db = JSON.parse(localStorage.getItem(DB_KEY)) || { lines: [], globalStops: {}, info: [], map: "" };
-    let editingStopName = null;
+    // KLUCZ, KTÓREGO NIE ZMIENIAJ PRZY AKTUALIZACJI KODU:
+    const KEY = 'STALA_BAZA_MZK_GORZOW';
+    
+    let db = JSON.parse(localStorage.getItem(KEY)) || { lines: [], stops: {}, info: [], map: "" };
 
-    function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); renderLines(); renderInfo(); }
-
-    function show(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.getElementById('s-'+id).classList.add('active-sec');
-        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
-        if(id === 'lines') renderLines();
-        if(id === 'info') renderInfo();
+    function save() { 
+        localStorage.setItem(KEY, JSON.stringify(db)); 
+        render(); 
     }
 
-    function login() { if(document.getElementById('adm-pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; document.getElementById('adm-map-url').value = db.map; renderAdmLines(); } }
-
-    function setAdmSec(s) {
-        document.querySelectorAll('[id^="ad-sec-"]').forEach(d => d.style.display='none');
-        document.querySelectorAll('.adm-nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById('ad-sec-'+s).style.display='block';
-        document.getElementById('an-'+s).classList.add('active');
-        if(s === 'p') renderAdmStops();
-        if(s === 'i') renderAdmInfo();
-    }
-
-    // LOGIKA PRZYSTANKÓW
-    function addNewStopPrompt() {
-        const name = prompt("Nazwa przystanku:");
-        if(name && !db.globalStops[name.trim()]) {
-            db.globalStops[name.trim()] = { demand: 'none', poi: '', extra: '' };
-            save(); renderAdmStops();
-        }
-    }
-
-    function renderAdmStops() {
-        const d = document.getElementById('adm-stops-list'); d.innerHTML = '';
-        Object.keys(db.globalStops).sort().forEach(name => {
-            d.innerHTML += `<div class="adm-list-item"><span><b>${name}</b></span><div><button onclick="openGlobalStopEditor('${name}')" style="background:var(--yellow); border:none; padding:8px 12px; border-radius:5px; font-weight:700;">EDYTUJ</button><button onclick="deleteStop('${name}')" style="background:none; border:none; color:red; margin-left:10px;"><i class="fa-solid fa-trash"></i></button></div></div>`;
-        });
-    }
-
-    function openGlobalStopEditor(name) {
-        editingStopName = name;
-        const s = db.globalStops[name];
-        document.getElementById('ms-title').innerText = name;
-        document.getElementById('ms-demand').value = s.demand;
-        document.getElementById('ms-poi').value = s.poi;
-        document.getElementById('ms-extra').value = s.extra;
-        document.getElementById('m-stop').style.display='block';
-    }
-
-    function saveGlobalStop() {
-        db.globalStops[editingStopName] = { demand: document.getElementById('ms-demand').value, poi: document.getElementById('ms-poi').value, extra: document.getElementById('ms-extra').value };
-        save(); document.getElementById('m-stop').style.display='none'; renderAdmStops();
-    }
-
-    function deleteStop(name) { if(confirm('Usunąć z bazy?')) { delete db.globalStops[name]; save(); renderAdmStops(); } }
-
-    // LOGIKA LINII / WARIANTÓW
-    function generateLine() {
-        const num = document.getElementById('c-num').value, dir = document.getElementById('c-dir').value, type = document.getElementById('c-type').value;
-        const stopsRaw = document.getElementById('c-stops').value.trim().split('\n');
-        if(!num || !dir || stopsRaw.length === 0) return alert("Wypełnij pola!");
-
-        const lineStops = stopsRaw.map(n => {
-            const name = n.trim();
-            if(!db.globalStops[name]) db.globalStops[name] = { demand: 'none', poi: '', extra: '' };
-            return { n: name };
-        });
-
-        db.lines.push({ num, dir, type, stops: lineStops });
-        save(); document.getElementById('m-creator').style.display='none'; renderAdmLines();
-    }
-
-    function renderAdmLines() {
-        const d = document.getElementById('adm-lines-list'); d.innerHTML = '';
-        db.lines.forEach((l, i) => {
-            d.innerHTML += `<div class="adm-list-item"><b>${l.num} ➔ ${l.dir}</b><button onclick="db.lines.splice(${i},1); save(); renderAdmLines();" style="color:red; background:none; border:none; font-weight:900;">USUŃ</button></div>`;
-        });
-    }
-
-    // UŻYTKOWNIK
-    function renderLines() {
+    function render() {
         const b = document.getElementById('list-buses'), t = document.getElementById('list-trams');
         b.innerHTML = ''; t.innerHTML = '';
         db.lines.forEach((l, i) => {
-            const html = `<div class="line-card ${l.type==='tram'?'tram-card':''}" onclick="renderRoute(${i})"><b>${l.num}</b><small>${l.dir}</small></div>`;
-            if(l.type === 'tram') t.innerHTML += html; else b.innerHTML += html;
+            const h = `<div class="line-card ${l.type==='tram'?'tram-card':''}" onclick="viewRoute(${i})"><b>${l.num}</b><small>${l.dir}</small></div>`;
+            if(l.type === 'tram') t.innerHTML += h; else b.innerHTML += h;
         });
+        
+        const idisp = document.getElementById('info-display'); idisp.innerHTML = '';
+        db.info.forEach(m => { idisp.innerHTML += `<div style="background:white; padding:15px; border-radius:10px; margin-bottom:10px; border-left:5px solid var(--yellow); font-weight:700;">${m}</div>`; });
     }
 
-    function renderRoute(idx) {
+    function viewRoute(idx) {
         show('route');
         const l = db.lines[idx];
         const d = document.getElementById('route-display');
-        d.innerHTML = `<h2 style="font-weight:900; margin-bottom:15px;">${l.num} ➔ ${l.dir}</h2>`;
+        d.innerHTML = `<h2 style="font-weight:900;">${l.num} ➔ ${l.dir}</h2><br>`;
         l.stops.forEach(s => {
-            const g = db.globalStops[s.n] || { demand: 'none', poi: '', extra: '' };
-            d.innerHTML += `
-                <div class="stop-item">
-                    <div class="stop-main"><span class="stop-name">${s.n}</span>${g.demand==='all'?'<span class="nz-badge">NŻ</span>':''}</div>
-                    <div style="font-size:0.65rem; color:#666; margin-top:4px;">
-                        ${g.poi ? `<span><i class="fa-solid fa-location-dot"></i> ${g.poi}</span>` : ''}
-                        ${g.extra ? `<span style="color:var(--red); margin-left:10px; font-weight:700;">${g.extra}</span>` : ''}
-                    </div>
-                </div>`;
+            const g = db.stops[s] || { nz: false, poi: "" };
+            d.innerHTML += `<div class="stop-item"><b>${s}</b> ${g.nz ? '<span style="color:red; font-size:0.7rem;">[NŻ]</span>':''}</div>`;
         });
     }
 
-    function renderInfo() {
-        const d = document.getElementById('info-display'); d.innerHTML = '';
-        db.info.forEach(m => { d.innerHTML += `<div style="background:white; padding:15px; border-radius:12px; margin-bottom:10px; border-left:6px solid var(--yellow); font-weight:700;">${m}</div>`; });
+    function saveLine() {
+        const num = document.getElementById('c-num').value, dir = document.getElementById('c-dir').value, type = document.getElementById('c-type').value;
+        const sRaw = document.getElementById('c-stops').value.split('\n').filter(x => x.trim() !== "");
+        sRaw.forEach(s => { if(!db.stops[s.trim()]) db.stops[s.trim()] = { nz: false, poi: "" }; });
+        db.lines.push({ num, dir, type, stops: sRaw.map(x => x.trim()) });
+        save(); document.getElementById('m-creator').style.display='none';
     }
 
-    function editInfoPrompt(idx) {
-        const txt = prompt("Treść:", idx !== null ? db.info[idx] : "");
-        if(txt) { if(idx !== null) db.info[idx] = txt; else db.info.push(txt); save(); renderAdmInfo(); }
+    function login() { if(document.getElementById('adm-pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; renderAdm(); } }
+    
+    function setAdm(s) { 
+        ['l','p','i'].forEach(x => document.getElementById('ad-'+x).style.display = x===s?'block':'none');
+        renderAdm();
     }
 
-    function renderAdmInfo() {
-        const d = document.getElementById('adm-info-list'); d.innerHTML = '';
-        db.info.forEach((m, i) => { d.innerHTML += `<div class="adm-list-item"><p>${m.substring(0,25)}...</p><button onclick="db.info.splice(${i},1); save(); renderAdmInfo();">X</button></div>`; });
+    function renderAdm() {
+        const ll = document.getElementById('adm-lines-list'); ll.innerHTML = '';
+        db.lines.forEach((l, i) => { ll.innerHTML += `<div style="background:white; padding:10px; margin-bottom:5px; border-radius:5px; display:flex; justify-content:space-between;"><span>${l.num} - ${l.dir}</span><button onclick="db.lines.splice(${i},1);save();renderAdm();" style="color:red; border:none; background:none;">USUŃ</button></div>`; });
+        
+        const sl = document.getElementById('adm-stops-list'); sl.innerHTML = '';
+        Object.keys(db.stops).sort().forEach(name => {
+            sl.innerHTML += `<div style="background:white; padding:10px; margin-bottom:5px; border-radius:5px; display:flex; justify-content:space-between;"><span>${name}</span><button onclick="toggleNz('${name}')">${db.stops[name].nz?'NŻ TAK':'STAŁY'}</button></div>`;
+        });
     }
 
-    function goMap() { if(db.map) window.open(db.map, '_blank'); else alert('Mapa nieustawiona'); }
-    function saveMap() { db.map = document.getElementById('adm-map-url').value; save(); alert('Zapisano'); }
+    function toggleNz(n) { db.stops[n].nz = !db.stops[n].nz; save(); renderAdm(); }
+    function addInfo() { const t = prompt("Treść:"); if(t) { db.info.push(t); save(); renderAdm(); } }
+    function show(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); document.getElementById('s-'+id).classList.add('active-sec'); }
     function openCreator() { document.getElementById('m-creator').style.display='block'; }
+    function goMap() { alert("Skonfiguruj link w Panelu Admina"); }
 
-    renderLines(); renderInfo();
+    render();
 </script>
 </body>
 </html>

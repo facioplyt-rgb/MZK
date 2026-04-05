@@ -25,7 +25,9 @@
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
         
-        .nearby-info { color: var(--warn); font-size: 0.75rem; margin-top: 2px; font-weight: 400; }
+        /* Informacja o okolicy */
+        .nearby-info { color: var(--warn); font-size: 0.75rem; margin-top: 3px; font-weight: 400; opacity: 0.9; }
+        
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; }
         .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
@@ -36,15 +38,18 @@
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
+        
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
+        
         .adm-nav-main { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
         
-        /* Stop list admin */
-        .adm-stop-card { background: #1c252e; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
+        /* Styl karty przystanku w adminie */
+        .adm-stop-card { background: #1c252e; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #333; }
         .adm-stop-card.is-nz { border-left-color: var(--danger); }
+        .adm-stop-card input { margin-bottom: 8px; padding: 10px; font-size: 0.8rem; }
         
         .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr 65px 45px 40px; gap: 8px; align-items: center; }
         .stop-edit-item input { margin: 0; padding: 10px 5px; font-size: 0.85rem; height: 40px; background: #0b0f19; border: 1px solid #333; color: white; }
@@ -62,7 +67,7 @@
     </div>
     <div id="s-stops" class="section">
         <div class="group-label">Wyszukiwarka Przystanków</div>
-        <input type="text" id="stop-search" class="search-box" placeholder="Gdzie chcesz jechać?" oninput="filterStops()">
+        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
     <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
@@ -86,7 +91,7 @@
             </div>
             <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
             <div id="tab-p" class="adm-tab" style="display:none;">
-                <div class="group-label">Baza Przystanków</div>
+                <div class="group-label">Zarządzaj Bazą Przystanków</div>
                 <div id="adm-stops-list"></div>
             </div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
@@ -105,19 +110,17 @@
 </nav>
 
 <div id="form-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h2>Zarządzaj Linią</h2>
-    <input type="text" id="fl-num" placeholder="Numer linii">
+    <h2>Edycja Linii</h2>
+    <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="fl-hours" placeholder="Godziny odjazdów (np. 12:00, 12:15)"></textarea>
-    
+    <textarea id="fl-hours" placeholder="Godziny odjazdów (np. 08:10, 08:40)"></textarea>
     <div class="bulk-area">
-        <textarea id="fl-bulk" placeholder="Wklej trasę (przystanki po kolei)..." style="height:80px; margin-bottom:5px;"></textarea>
+        <textarea id="fl-bulk" placeholder="Wklej listę przystanków..." style="height:80px; margin-bottom:5px;"></textarea>
         <button onclick="convertBulk()" class="main-btn" style="padding:8px; font-size:0.8rem; background:#333;">Konwertuj ↓</button>
     </div>
-
     <div id="fl-stops-list"></div>
-    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj stop</button>
+    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj ręcznie</button>
     <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -128,7 +131,7 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_db_v10');
+        const local = localStorage.getItem('mzk_db_v11');
         if(local) {
             db = JSON.parse(local);
             if(!db.stopDetails) db.stopDetails = {};
@@ -160,7 +163,7 @@
     }
 
     function save() { 
-        localStorage.setItem('mzk_db_v10', JSON.stringify(db)); 
+        localStorage.setItem('mzk_db_v11', JSON.stringify(db)); 
         extractStops(); 
         render(); 
     }
@@ -173,7 +176,7 @@
                     const name = cleanStopName(s.name).name;
                     if(name) {
                         stopsSet.add(name);
-                        // Inicjalizacja detali jeśli nie istnieją
+                        // Jeśli przystanek jest nowy, stwórz dla niego bazę detali
                         if(!db.stopDetails[name]) db.stopDetails[name] = { nearby: "", isNz: s.nz || false };
                     }
                 });
@@ -201,7 +204,7 @@
         uniqueNums.forEach(num => {
             const l = db.lines.find(x => x.num === num);
             const div = document.createElement('div'); div.className = 'app-card';
-            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Wybierz kierunek</b></span><i class="fa-solid fa-chevron-right"></i>`;
+            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Kierunek: ${l.dir}</b></span><i class="fa-solid fa-chevron-right"></i>`;
             div.onclick = () => openVariants(num);
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
@@ -212,7 +215,7 @@
         document.getElementById('contact-display').innerText = db.contact;
     }
 
-    // Widok PRZYSTANKI (Publiczny)
+    // Publiczna wyszukiwarka przystanków
     function filterStops() {
         const query = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
@@ -220,25 +223,24 @@
         
         list.innerHTML = filtered.map(s => {
             const lines = getLinesForStop(s);
-            const details = db.stopDetails[s] || {nearby:"", isNz: false};
-            const linesString = lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('<span class="spacer">   </span>');
-
+            const det = db.stopDetails[s] || {nearby:"", isNz: false};
+            const linesStr = lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('<span class="spacer">   </span>');
             return `
                 <div class="app-card" style="display:block;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div>
                             <b>${s}</b>
-                            ${details.nearby ? `<div class="nearby-info">${details.nearby}</div>` : ''}
+                            ${det.nearby ? `<div class="nearby-info">${det.nearby}</div>` : ''}
                         </div>
-                        ${details.isNz ? '<span class="nz-badge">NŻ</span>' : ''}
+                        ${det.isNz ? '<span class="nz-badge">NŻ</span>' : ''}
                     </div>
-                    <div class="stop-lines-row">${linesString}</div>
+                    <div class="stop-lines-row">${linesStr}</div>
                 </div>
             `;
         }).join('');
     }
 
-    // Widok ROZKŁADU LINII (Publiczny)
+    // Widok ROZKŁADU LINII
     function renderTimetable(idx) {
         const line = db.lines[idx]; if(!line) return;
         show('tt');
@@ -250,16 +252,16 @@
             totalMinutes += parseInt(stop.time) || 0;
             const currentOffset = totalMinutes;
             const cleanName = cleanStopName(stop.name).name;
-            const details = db.stopDetails[cleanName] || {nearby:"", isNz: stop.nz};
+            const det = db.stopDetails[cleanName] || {nearby:"", isNz: stop.nz};
             
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between;">
                     <div>
                         <b>${cleanName}</b>
-                        ${details.nearby ? `<div class="nearby-info">${details.nearby}</div>` : ''}
+                        ${det.nearby ? `<div class="nearby-info">${det.nearby}</div>` : ''}
                     </div>
-                    ${(stop.nz || details.isNz) ? '<span class="nz-badge">NŻ</span>' : ''}
+                    ${(stop.nz || det.isNz) ? '<span class="nz-badge">NŻ</span>' : ''}
                 </div>
                 <div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>
             `;
@@ -279,19 +281,21 @@
         });
     }
 
-    // PANEL ADMINA - ZAKŁADKA PRZYSTANKI
+    // ADMIN: Zakładka PRZYSTANKI
     function renderAdminStops() {
         const container = document.getElementById('adm-stops-list');
+        if(!allAutoStops.length) { container.innerHTML = '<p style="text-align:center; color:var(--text-sec);">Brak przystanków w bazie linii.</p>'; return; }
+        
         container.innerHTML = allAutoStops.map(s => {
             const det = db.stopDetails[s] || {nearby:"", isNz: false};
             return `
                 <div class="adm-stop-card ${det.isNz?'is-nz':''}">
-                    <div style="font-weight:800; margin-bottom:10px;">${s}</div>
-                    <input type="text" placeholder="Co w pobliżu?" value="${det.nearby}" 
+                    <div style="font-weight:800; margin-bottom:10px; color:var(--accent);">${s}</div>
+                    <input type="text" placeholder="Co jest w pobliżu? (np. Park, Galeria)" value="${det.nearby}" 
                         onchange="updateStopDetail('${s}', 'nearby', this.value)">
-                    <label style="display:flex; align-items:center; gap:10px; font-size:0.8rem; color:var(--text-sec);">
+                    <label style="display:flex; align-items:center; gap:10px; font-size:0.8rem; cursor:pointer;">
                         <input type="checkbox" ${det.isNz?'checked':''} 
-                            onchange="updateStopDetail('${s}', 'isNz', this.checked)"> Na żądanie (NŻ)
+                            onchange="updateStopDetail('${s}', 'isNz', this.checked)"> Przystanek na żądanie (NŻ)
                     </label>
                 </div>
             `;
@@ -301,10 +305,10 @@
     function updateStopDetail(stopName, field, value) {
         if(!db.stopDetails[stopName]) db.stopDetails[stopName] = {nearby:"", isNz:false};
         db.stopDetails[stopName][field] = value;
-        save();
+        localStorage.setItem('mzk_db_v11', JSON.stringify(db)); // Szybki zapis bez pełnego renderowania wszystkiego
     }
 
-    // POZOSTAŁE FUNKCJE FORMULARZA (LINIE)
+    // FORMULARZ LINII
     function openLineForm(idx) {
         curIdx = idx;
         const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:[]} : db.lines[idx];
@@ -354,7 +358,7 @@
         save(); closeForms();
     }
 
-    // SYSTEMOWE
+    // NAWIGACJA I LOGIN
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
@@ -367,6 +371,7 @@
         document.querySelectorAll('.adm-nav-main button').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-'+t).style.display='block';
         document.getElementById('mt-'+t).classList.add('active');
+        if(t === 'p') renderAdminStops();
     }
 
     function openVariants(num) {

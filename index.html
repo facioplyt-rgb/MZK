@@ -2,118 +2,164 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>MZK TESTER V19</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MZK GORZÓW V20</title>
     <style>
-        body { font-family: sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
-        .debug-panel { background: #fff; border: 2px solid #000; padding: 15px; margin-bottom: 20px; }
-        .error-msg { color: red; font-weight: bold; border: 1px solid red; padding: 10px; background: #fff0f0; }
-        .btn { padding: 10px 20px; cursor: pointer; background: #008744; color: white; border: none; border-radius: 5px; }
-        .section { display: none; background: white; padding: 20px; border-radius: 10px; margin-top: 10px; }
-        .active { display: block; }
-        .stop-item { padding: 10px; border-bottom: 1px solid #ccc; cursor: pointer; }
+        :root { --mzk: #008744; --yellow: #feca05; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f4f4; }
+        header { background: var(--mzk); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--yellow); font-weight: bold; }
+        
+        .nav { display: flex; justify-content: center; background: white; padding: 10px; gap: 10px; border-bottom: 1px solid #ddd; }
+        button { padding: 10px 15px; cursor: pointer; border: 1px solid #ccc; border-radius: 5px; font-weight: bold; }
+        .btn-mzk { background: var(--mzk); color: white; border: none; }
+        
+        .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 10px; }
+        
+        /* Lista przystanków - naprawiona */
+        .stop-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 15px; 
+            border-bottom: 1px solid #eee; 
+            background: white;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .stop-row:hover { background: #f0f0f0; }
+        .stop-name { font-weight: bold; font-size: 1.1rem; }
+        .stop-time { color: var(--mzk); font-weight: 900; }
+
+        .hidden { display: none; }
+        .line-box { border: 2px solid #333; padding: 15px; text-align: center; margin-bottom: 10px; border-radius: 10px; cursor: pointer; background: white; }
     </style>
 </head>
 <body>
 
-<div class="debug-panel">
-    <h3>Panel Diagnostyczny MZK</h3>
-    <p>Status bazy danych: <span id="db-status">Sprawdzanie...</span></p>
-    <button class="btn" onclick="clearData()">USUŃ WSZYSTKO I RESTART</button>
+<header>MZK GORZÓW • SYSTEM ROZKŁADÓW</header>
+
+<div class="nav">
+    <button onclick="switchView('view-pax')">PASAŻER</button>
+    <button onclick="switchView('view-adm')">PANEL FACIO</button>
 </div>
 
-<div id="main-view" class="section active">
-    <h2>Lista Linii</h2>
-    <div id="line-list-container"></div>
-</div>
+<div class="container">
+    
+    <div id="view-pax">
+        <div id="pax-list"></div>
+    </div>
 
-<div id="route-view" class="section">
-    <button onclick="showMain()">← POWRÓT</button>
-    <h2 id="current-line-title"></h2>
-    <div id="stops-container"></div>
+    <div id="view-route" class="hidden">
+        <button onclick="switchView('view-pax')" style="background:#cc0000; color:white; margin-bottom:15px;">← POWRÓT DO LINII</button>
+        <h2 id="route-title" style="color:var(--mzk)"></h2>
+        <div id="route-container">
+            </div>
+    </div>
+
+    <div id="view-adm" class="hidden">
+        <div class="card" id="login-box">
+            <input type="password" id="pass" placeholder="Hasło Admina">
+            <button class="btn-mzk" onclick="checkLogin()">ZALOGUJ</button>
+        </div>
+        <div id="adm-content" class="hidden">
+            <button class="btn-mzk" onclick="addNewLine()">+ DODAJ NOWĄ LINIĘ</button>
+            <div id="adm-list" style="margin-top:20px;"></div>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    // System raportowania błędów
-    function reportError(where, msg) {
-        const container = document.getElementById(where);
-        container.innerHTML = `<div class="error-msg">BŁĄD w ${where}: ${msg}</div>`;
-        console.error(`Błąd w ${where}:`, msg);
-    }
-
-    // Inicjalizacja bazy
-    let db = [];
-    try {
-        const data = localStorage.getItem('MZK_V19_DATA');
-        if (data) {
-            db = JSON.parse(data);
-            document.getElementById('db-status').innerText = `Załadowano ${db.length} linii.`;
-        } else {
-            document.getElementById('db-status').innerText = "Baza jest pusta. Dodaj linię w Panelu Facio (w pełnej wersji).";
-            // Testowe dane jeśli pusto
-            db = [{
-                num: "100", dir: "TEST JEDWABNICZA", type: "bus", rob: ["08:00"], sob: [], nie: [],
-                stops: [{n: "Start", a: 0}, {n: "Meta", a: 5}]
-            }];
+    // Baza danych
+    let db = JSON.parse(localStorage.getItem('MZK_V20_DB')) || [
+        {
+            num: "100", 
+            dir: "OŚ. STASZICA", 
+            stops: [{n: "Przystanek Testowy 1", a: 0}, {n: "Przystanek Testowy 2", a: 5}],
+            rob: ["08:00", "09:00"]
         }
-    } catch (e) {
-        reportError('db-status', "Nie można odczytać pamięci przeglądarki!");
+    ];
+
+    function save() { localStorage.setItem('MZK_V20_DB', JSON.stringify(db)); render(); }
+
+    function switchView(id) {
+        document.getElementById('view-pax').classList.add('hidden');
+        document.getElementById('view-route').classList.add('hidden');
+        document.getElementById('view-adm').classList.add('hidden');
+        document.getElementById(id).classList.remove('hidden');
     }
 
-    function renderLines() {
-        const container = document.getElementById('line-list-container');
-        try {
-            container.innerHTML = '';
-            if (db.length === 0) container.innerHTML = "Brak linii w systemie.";
-            db.forEach((line, index) => {
-                const div = document.createElement('div');
-                div.className = 'stop-item';
-                div.innerHTML = `<strong>Linia ${line.num}</strong> -> ${line.dir}`;
-                div.onclick = () => showRoute(index);
-                container.appendChild(div);
-            });
-        } catch (e) {
-            reportError('line-list-container', e.message);
-        }
+    function render() {
+        const paxList = document.getElementById('pax-list');
+        const admList = document.getElementById('adm-list');
+        paxList.innerHTML = '';
+        admList.innerHTML = '';
+
+        db.forEach((line, index) => {
+            // Kafelki dla pasażera
+            const div = document.createElement('div');
+            div.className = 'line-box';
+            div.innerHTML = `<b style="font-size:1.5rem">Linia ${line.num}</b><br>${line.dir}`;
+            div.onclick = () => showRoute(index);
+            paxList.appendChild(div);
+
+            // Lista dla admina
+            const admDiv = document.createElement('div');
+            admDiv.className = 'line-box';
+            admDiv.style.borderColor = 'red';
+            admDiv.innerHTML = `Edytuj Linię ${line.num} <button onclick="deleteLine(${index})">X</button>`;
+            admList.appendChild(admDiv);
+        });
     }
 
-    function showRoute(idx) {
-        document.getElementById('main-view').classList.remove('active');
-        document.getElementById('route-view').classList.add('active');
-        const container = document.getElementById('stops-container');
-        const title = document.getElementById('current-line-title');
+    function showRoute(index) {
+        switchView('view-route');
+        const line = db[index];
+        document.getElementById('route-title').innerText = `Linia ${line.num} ➔ ${line.dir}`;
         
-        try {
-            const line = db[idx];
-            title.innerText = `Linia ${line.num} -> ${line.dir}`;
-            container.innerHTML = '';
+        const container = document.getElementById('route-container');
+        container.innerHTML = ''; // Czyścimy
 
-            if (!line.stops || line.stops.length === 0) {
-                throw new Error("Ta linia nie ma przypisanych przystanków!");
-            }
+        if (!line.stops || line.stops.length === 0) {
+            container.innerHTML = '<p style="color:red">Brak przystanków dla tej linii! Dodaj je w panelu admina.</p>';
+            return;
+        }
 
-            line.stops.forEach(s => {
-                const d = document.createElement('div');
-                d.className = 'stop-item';
-                d.innerText = `🚏 ${s.n} (+${s.a} min)`;
-                container.appendChild(d);
-            });
-        } catch (e) {
-            reportError('stops-container', e.message);
+        let totalTime = 0;
+        line.stops.forEach(stop => {
+            totalTime += parseInt(stop.a || 0);
+            const row = document.createElement('div');
+            row.className = 'stop-row';
+            row.innerHTML = `
+                <span class="stop-name">🚏 ${stop.n}</span>
+                <span class="stop-time">${totalTime} min</span>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function checkLogin() {
+        if(document.getElementById('pass').value === '123') {
+            document.getElementById('login-box').classList.add('hidden');
+            document.getElementById('adm-content').classList.remove('hidden');
         }
     }
 
-    function showMain() {
-        document.getElementById('route-view').classList.remove('active');
-        document.getElementById('main-view').classList.add('active');
+    function addNewLine() {
+        const n = prompt("Numer linii:");
+        const d = prompt("Kierunek:");
+        if(n && d) {
+            db.push({num: n, dir: d, stops: [{n: "Pierwszy Przystanek", a: 0}], rob: [], sob: [], nie: []});
+            save();
+        }
     }
 
-    function clearData() {
-        localStorage.removeItem('MZK_V19_DATA');
-        location.reload();
-    }
+    function deleteLine(i) { if(confirm("Usunąć?")) { db.splice(i, 1); save(); } }
 
     // Start
-    renderLines();
+    render();
 </script>
 
 </body>

@@ -295,4 +295,165 @@
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>[${n.cat || 'info'}] <b>${n.title}</b></span><div><button onclick="openNewsForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800; margin-right:10px;">EDYTUJ</button><button onclick="deleteNews(${i})" style="color:var(--danger); background:none; border:none; font-weight:800;">USUŃ</button></div></div>`).reverse().join('');
 
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir} <small style="color:var(--text-sec)">(${l.category || 'brak'})</small></span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
-   
+        document.getElementById('contact-display').innerText = db.contact;
+        document.getElementById('edit-contact-text').value = db.contact;
+        
+        renderCategoriesAdmin();
+        filterStops();
+        renderAdminStops();
+    }
+
+    function renderCategoriesAdmin() {
+        const list = document.getElementById('adm-cats-list');
+        list.innerHTML = db.lineCategories.map((c, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1c252e; padding:10px; border-radius:10px; margin-bottom:5px;">
+                <span style="font-weight:600; font-size:0.85rem;">${c}</span>
+                <div>
+                    <button onclick="openCatForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800; cursor:pointer; margin-right:10px;">EDYTUJ</button>
+                    <button onclick="deleteCategory(${i})" style="color:var(--danger); background:none; border:none; font-weight:800; cursor:pointer;">USUŃ</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function addCategory() {
+        const name = document.getElementById('new-cat-name').value.trim();
+        if(!name) return;
+        if(db.lineCategories.includes(name)) return alert("Ta kategoria już istnieje!");
+        db.lineCategories.push(name);
+        document.getElementById('new-cat-name').value = '';
+        save();
+    }
+
+    function deleteCategory(i) {
+        if(confirm("Czy na pewno chcesz usunąć tę kategorię? Przypisane do niej linie trafią do 'Pozostałych'.")) {
+            db.lineCategories.splice(i, 1);
+            save();
+        }
+    }
+
+    function openCatForm(idx) {
+        curCatIdx = idx;
+        const catName = db.lineCategories[idx];
+        document.getElementById('fc-name').value = catName;
+        
+        let html = '';
+        db.lines.forEach((l, lIdx) => {
+            const isChecked = l.category === catName;
+            html += `<div style="display:flex; align-items:center; margin-bottom:12px;">
+                <input type="checkbox" id="chk-l-${lIdx}" ${isChecked ? 'checked' : ''} style="width:20px; height:20px; margin:0 10px 0 0; cursor:pointer;">
+                <label for="chk-l-${lIdx}" style="cursor:pointer; font-size:0.9rem;"><b>${l.num}</b> - ${l.dir}</label>
+            </div>`;
+        });
+        
+        document.getElementById('fc-lines-list').innerHTML = html || '<div style="color:var(--text-sec); text-align:center;">Brak linii w bazie.</div>';
+        document.getElementById('form-cat').style.display = 'block';
+    }
+
+    function saveCategoryEdit() {
+        const newName = document.getElementById('fc-name').value.trim();
+        if(!newName) return alert("Wpisz nazwę kategorii!");
+        
+        const oldName = db.lineCategories[curCatIdx];
+        
+        if(newName !== oldName && db.lineCategories.includes(newName)) {
+            return alert("Kategoria o takiej nazwie już istnieje!");
+        }
+
+        db.lineCategories[curCatIdx] = newName;
+
+        db.lines.forEach((l, lIdx) => {
+            const chk = document.getElementById(`chk-l-${lIdx}`);
+            if(chk) {
+                if(chk.checked) {
+                    l.category = newName;
+                } else if(l.category === oldName || l.category === newName) {
+                    l.category = ""; 
+                }
+            }
+        });
+
+        save(); closeForms();
+    }
+
+    function openNewsForm(idx) {
+        curNewsIdx = idx;
+        const n = idx === -1 ? {title:"", content:"", cat:"info"} : db.news[idx];
+        document.getElementById('fn-title').value = n.title;
+        document.getElementById('fn-content').value = n.content;
+        document.getElementById('fn-cat').value = n.cat || "info";
+        document.getElementById('form-news').style.display = 'block';
+    }
+
+    function saveNews() {
+        const t = document.getElementById('fn-title').value;
+        const c = document.getElementById('fn-content').value;
+        const cat = document.getElementById('fn-cat').value;
+        if(!t) return alert("Wpisz tytuł");
+        const data = { title: t, content: c, cat: cat, date: getFormattedDate() };
+        if(curNewsIdx === -1) db.news.push(data); else db.news[curNewsIdx] = data;
+        save(); closeForms();
+    }
+
+    function deleteNews(i) { if(confirm("Usunąć?")) { db.news.splice(i, 1); save(); } }
+
+    function openLineForm(idx) {
+        curLineIdx = idx;
+        const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", category:"Autobusy", stops:[]} : db.lines[idx];
+        document.getElementById('fl-num').value = l.num;
+        document.getElementById('fl-dir').value = l.dir;
+        document.getElementById('fl-type').value = l.type;
+        document.getElementById('fl-hours').value = l.hours;
+        
+        const catSelect = document.getElementById('fl-cat');
+        catSelect.innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category === c ? 'selected' : ''}>${c}</option>`).join('');
+        
+        document.getElementById('fl-stops-list').innerHTML = '';
+        (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
+        document.getElementById('form-line').style.display = 'block';
+    }
+
+    function addStopRow(name = "", time = 2, nz = false) {
+        const div = document.createElement('div'); div.className = 'stop-edit-item';
+        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time"><label>NŻ<input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label><button onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('fl-stops-list').appendChild(div);
+    }
+
+    function saveLine() {
+        const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({
+            name: el.querySelector('.edit-stop-name').value.trim(),
+            time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
+            nz: el.querySelector('.edit-stop-nz').checked
+        })).filter(s => s.name !== "");
+        const data = { 
+            num: document.getElementById('fl-num').value, 
+            dir: document.getElementById('fl-dir').value, 
+            type: document.getElementById('fl-type').value, 
+            category: document.getElementById('fl-cat').value,
+            hours: document.getElementById('fl-hours').value, 
+            stops: stops 
+        };
+        if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
+        save(); closeForms();
+    }
+
+    function renderAdminStops() { document.getElementById('adm-stops-list').innerHTML = allAutoStops.map(s => { const det = db.stopDetails[s] || {nearby:"", isNz: false}; return `<div class="adm-stop-card ${det.isNz?'is-nz':''}"><i class="fa-solid fa-trash del-stop" onclick="deleteGlobalStop('${s}')"></i><input type="text" value="${s}" onblur="renameGlobalStop('${s}', this.value)"><input type="text" placeholder="Pobliże" value="${det.nearby}" onchange="updateStopDetail('${s}', 'nearby', this.value)"><label><input type="checkbox" ${det.isNz?'checked':''} onchange="updateStopDetail('${s}', 'isNz', this.checked)"> NŻ</label></div>`; }).join(''); }
+    function renameGlobalStop(o, n) { if(!n || o === n) return; db.stopDetails[n] = db.stopDetails[o]; delete db.stopDetails[o]; db.lines.forEach(l => l.stops.forEach(s => { if(s.name === o) s.name = n; })); save(); }
+    function deleteGlobalStop(n) { if(confirm("Usunąć wszędzie?")) { db.lines.forEach(l => l.stops = l.stops.filter(s => s.name !== n)); delete db.stopDetails[n]; save(); } }
+    function updateStopDetail(s, f, v) { if(!db.stopDetails[s]) db.stopDetails[s] = {nearby:"", isNz:false}; db.stopDetails[s][f] = v; localStorage.setItem('mzk_full_backup_v12', JSON.stringify(db)); }
+    function convertBulk() { const t = document.getElementById('fl-bulk').value; t.split('\n').filter(s => s.trim() !== "").forEach((r, i) => { const info = cleanStopName(r); addStopRow(info.name, (i === 0 ? 0 : 2), info.isNz); }); document.getElementById('fl-bulk').value = ""; }
+    function show(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); document.getElementById('s-'+id).classList.add('active-sec'); document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active'); }
+    function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.querySelectorAll('.adm-nav-main button').forEach(b => b.classList.remove('active')); document.getElementById('tab-'+t).style.display='block'; document.getElementById('mt-'+t).classList.add('active'); }
+    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
+    function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
+    function exportFullBackup() { const b = new Blob([JSON.stringify(db, null, 2)], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `backup_mzk.txt`; a.click(); }
+    function importFullBackup(e) { const r = new FileReader(); r.onload = (ev) => { try { db = JSON.parse(ev.target.result); save(); location.reload(); } catch(err) { alert("Błąd pliku!"); } }; r.readAsText(e.target.files[0]); }
+    function openVariants(num) { show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`; const list = document.getElementById('vars-list'); list.innerHTML = ''; db.lines.forEach((l, index) => { if(String(l.num) === String(num)) { const d = document.createElement('div'); d.className = "app-card"; d.innerHTML = `<b>Do: ${l.dir}</b> <i class="fa-solid fa-arrow-right"></i>`; d.onclick = () => renderTimetable(index); list.appendChild(d); } }); }
+    function renderTimetable(idx) { const line = db.lines[idx]; show('tt'); document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`; const body = document.getElementById('tt-body'); body.innerHTML = ''; let total = 0; line.stops.forEach((stop, sIdx) => { total += parseInt(stop.time) || 0; const currentOffset = total; const det = db.stopDetails[stop.name] || {nearby:"", isNz: stop.nz}; const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block'; card.innerHTML = `<div><b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}${det.nearby?`<div class="nearby-info">${det.nearby}</div>`:''}</div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`; card.onclick = () => { const g = document.getElementById(`g-${sIdx}`); g.style.display = g.style.display==='grid'?'none':'grid'; if(g.style.display==='grid') { g.innerHTML = line.hours.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return ""; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset); return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`; }).join(''); } }; body.appendChild(card); }); }
+    function filterStops() { const q = document.getElementById('stop-search').value.toLowerCase(); const list = document.getElementById('public-stops-list'); list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => { const lines = []; db.lines.forEach(l => { if(l.stops.some(st => st.name === s)) { if(!lines.some(e => e.num === l.num)) lines.push({num: l.num, type: l.type}); } }); const det = db.stopDetails[s] || {nearby:"", isNz: false}; const lStr = lines.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('<span class="spacer">   </span>'); return `<div class="app-card" style="display:block;"><div><b>${s}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}${det.nearby ? `<div class="nearby-info">${det.nearby}</div>` : ''}</div><div class="stop-lines-row">${lStr}</div></div>`; }).join(''); }
+    function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); }
+
+    init();
+</script>
+</body>
+</html>

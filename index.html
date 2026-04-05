@@ -100,7 +100,7 @@
                 <div id="adm-lines-list"></div>
             </div>
             <div id="tab-p" class="adm-tab" style="display:none;">
-                <p style="font-size:0.7rem; color:var(--text-sec); margin-bottom:10px;">Poniższa lista generuje się automatycznie z Twoich linii.</p>
+                <p style="font-size:0.7rem; color:var(--text-sec); margin-bottom:10px;">Lista przystanków (zaciągnięta z Twoich linii):</p>
                 <div id="adm-stops-list"></div>
             </div>
             <div id="tab-n" class="adm-tab" style="display:none;">
@@ -111,7 +111,7 @@
             <div id="tab-s" class="adm-tab" style="display:none;">
                 <button onclick="exportData()" class="main-btn">Pobierz Backup</button>
                 <input type="file" id="importFile" style="display:none" onchange="importData(event)">
-                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Wgraj Backup</button>
+                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Wgraj Backup (mzk_baza.txt)</button>
             </div>
         </div>
     </div>
@@ -151,27 +151,32 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_v13_db');
+        const local = localStorage.getItem('mzk_v14_db');
         if(local) db = JSON.parse(local);
+        if(!db.news) db.news = [];
         extractStops();
         render();
     }
 
     function save() { 
-        localStorage.setItem('mzk_v13_db', JSON.stringify(db)); 
+        localStorage.setItem('mzk_v14_db', JSON.stringify(db)); 
         extractStops();
         render(); 
     }
 
-    // AUTOMATYCZNE WYCIĄGANIE PRZYSTANKÓW Z LINII
+    // SYSTEM AUTOMATYCZNEGO WYCIĄGANIA PRZYSTANKÓW
     function extractStops() {
         let stopsSet = new Set();
-        db.lines.forEach(l => {
-            l.stops.split('\n').forEach(s => {
-                let name = s.split('|')[0].trim();
-                if(name) stopsSet.add(name);
+        if(db.lines) {
+            db.lines.forEach(l => {
+                if(l.stops) {
+                    l.stops.split('\n').forEach(s => {
+                        let name = s.split('|')[0].trim();
+                        if(name) stopsSet.add(name);
+                    });
+                }
             });
-        });
+        }
         allAutoStops = [...stopsSet].sort();
     }
 
@@ -179,16 +184,18 @@
         const busC = document.getElementById('lines-bus'); const tramC = document.getElementById('lines-tram');
         busC.innerHTML = ''; tramC.innerHTML = '';
         
-        const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
-        uniqueNums.forEach(num => {
-            const l = db.lines.find(x => x.num === num);
-            const div = document.createElement('div'); div.className = 'app-card';
-            div.innerHTML = `<div class="line-info"><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b>Kierunki...</b></div><i class="fa-solid fa-chevron-right"></i>`;
-            div.onclick = () => openVariants(num);
-            if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
-        });
+        if(db.lines) {
+            const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
+            uniqueNums.forEach(num => {
+                const l = db.lines.find(x => x.num === num);
+                const div = document.createElement('div'); div.className = 'app-card';
+                div.innerHTML = `<div class="line-info"><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b>Kierunki...</b></div><i class="fa-solid fa-chevron-right"></i>`;
+                div.onclick = () => openVariants(num);
+                if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
+            });
+        }
 
-        filterStops(); // Renderuje listę przystanków z wyszukiwarką
+        filterStops();
 
         document.getElementById('public-news-list').innerHTML = db.news.length ? db.news.map(n => `
             <div class="app-card" style="display:block; border-left: 5px solid ${n.lvl==='alert'?'#ff4842':n.lvl==='warn'?'#feca05':'#00ab55'}">
@@ -202,18 +209,15 @@
         document.getElementById('contact-display').innerText = db.contact;
     }
 
-    // WYSZUKIWARKA PRZYSTANKÓW
     function filterStops() {
         const query = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
         const filtered = allAutoStops.filter(s => s.toLowerCase().includes(query));
-        
-        list.innerHTML = filtered.map(s => `
+        list.innerHTML = filtered.length ? filtered.map(s => `
             <div class="app-card" style="display:block;">
-                <b>${s}</b>
-                <p style="font-size:0.7rem; color:var(--text-sec); margin-top:5px;">Przystanek obsługiwany przez MZK Gorzów</p>
+                <b>${s}</b><p style="font-size:0.7rem; color:var(--text-sec); margin-top:5px;">Przystanek MZK Gorzów</p>
             </div>
-        `).join('');
+        `).join('') : '<p style="text-align:center; color:var(--text-sec);">Nie znaleziono przystanku.</p>';
     }
 
     function openVariants(num) {
@@ -300,7 +304,13 @@
     }
     function importData(e) { 
         const r = new FileReader(); 
-        r.onload = (ev) => { db = JSON.parse(ev.target.result); save(); init(); alert("Baza wczytana!"); }; 
+        r.onload = (ev) => { 
+            db = JSON.parse(ev.target.result); 
+            // KLUCZOWA POPRAWKA: Przelicz przystanki zaraz po imporcie
+            extractStops(); 
+            save(); 
+            alert("Baza wczytana pomyślnie!"); 
+        }; 
         r.readAsText(e.target.files[0]); 
     }
 

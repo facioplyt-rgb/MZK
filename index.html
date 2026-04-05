@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; --warn: #feca05; }
+        :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; --warn: #feca05; --info: #1890ff; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
         header { background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(15px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
@@ -18,7 +18,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         
-        /* Skalowana siatka linii */
         .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; margin-bottom: 15px; }
         .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .line-square.bus { border-bottom: 4px solid var(--accent); }
@@ -26,7 +25,12 @@
         
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         .news-card { display: block; cursor: default; }
-        .news-date { font-size: 0.7rem; color: var(--accent); font-weight: 700; margin-bottom: 5px; }
+        .news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .news-date { font-size: 0.7rem; color: var(--text-sec); font-weight: 600; }
+        .news-tag { font-size: 0.6rem; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; }
+        .tag-utrudnienia { background: rgba(255, 72, 66, 0.2); color: var(--danger); }
+        .tag-rozklad { background: rgba(0, 171, 85, 0.2); color: var(--accent); }
+        .tag-info { background: rgba(24, 144, 255, 0.2); color: var(--info); }
 
         .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
@@ -134,6 +138,11 @@
 <div id="form-news" class="overlay-form">
     <h2>Dodaj / Edytuj News</h2>
     <input type="text" id="fn-title" placeholder="Tytuł newsa">
+    <select id="fn-cat">
+        <option value="info">Informacja</option>
+        <option value="utrudnienia">Utrudnienia</option>
+        <option value="rozklad">Zmiana rozkładu</option>
+    </select>
     <textarea id="fn-content" placeholder="Treść komunikatu..." style="height:200px"></textarea>
     <button onclick="saveNews()" class="main-btn">Zapisz News</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
@@ -157,14 +166,45 @@
         render();
     }
 
-    function save() { 
-        localStorage.setItem('mzk_full_backup_v12', JSON.stringify(db)); 
-        extractStops(); 
-        render(); 
+    function cleanStopName(n) {
+        let nz = false; const patterns = [/ nż\./gi, / nż/gi, / \(nż\)/gi, /nż\./gi];
+        patterns.forEach(p => { if(p.test(n)) { nz = true; n = n.replace(p, ""); } });
+        return { name: n.trim(), isNz: nz };
+    }
+
+    function repairAllLines() { 
+        db.lines.forEach(l => { 
+            if (typeof l.stops === 'string') { 
+                l.stops = l.stops.split('\n').filter(s => s.trim() !== "").map((s, i) => { 
+                    const info = cleanStopName(s); 
+                    // Automatyczne dodawanie NŻ do detali jeśli wykryto w nazwie
+                    if(info.isNz && info.name) {
+                        if(!db.stopDetails[info.name]) db.stopDetails[info.name] = {nearby:"", isNz: true};
+                        else db.stopDetails[info.name].isNz = true;
+                    }
+                    return { name: info.name, time: (i === 0 ? 0 : 2), nz: info.isNz }; 
+                }); 
+            } 
+        }); 
+    }
+
+    function save() { localStorage.setItem('mzk_full_backup_v12', JSON.stringify(db)); extractStops(); render(); }
+
+    function extractStops() { 
+        let sSet = new Set(); 
+        db.lines.forEach(l => { 
+            if(Array.isArray(l.stops)) l.stops.forEach(s => { 
+                if(s.name) { 
+                    sSet.add(s.name); 
+                    if(!db.stopDetails[s.name]) db.stopDetails[s.name] = { nearby: "", isNz: s.nz || false }; 
+                    if(s.nz) db.stopDetails[s.name].isNz = true; // Auto-update NŻ z backupu
+                } 
+            }); 
+        }); 
+        allAutoStops = [...sSet].sort(); 
     }
 
     function render() {
-        // Główne linie
         const busC = document.getElementById('lines-bus'); 
         const tramC = document.getElementById('lines-tram');
         busC.innerHTML = ''; tramC.innerHTML = '';
@@ -176,14 +216,19 @@
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
 
-        // Publiczne newsy
         const newsPublic = document.getElementById('public-news-list');
-        newsPublic.innerHTML = db.news.length ? db.news.map(n => `<div class="app-card news-card"><div class="news-date">${n.date}</div><div style="font-weight:700;">${n.title}</div><div style="font-size:0.85rem; color:var(--text-sec);">${n.content}</div></div>`).reverse().join('') : '<p style="text-align:center;">Brak newsów.</p>';
+        newsPublic.innerHTML = db.news.length ? db.news.map(n => `
+            <div class="app-card news-card">
+                <div class="news-header">
+                    <span class="news-tag tag-${n.cat || 'info'}">${n.cat || 'info'}</span>
+                    <div class="news-date">${n.date}</div>
+                </div>
+                <div style="font-weight:700;">${n.title}</div>
+                <div style="font-size:0.85rem; color:var(--text-sec); margin-top:5px;">${n.content}</div>
+            </div>`).reverse().join('') : '<p style="text-align:center;">Brak newsów.</p>';
 
-        // Admin newsy
-        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span><b>${n.title}</b></span><div><button onclick="openNewsForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800; margin-right:10px;">EDYTUJ</button><button onclick="deleteNews(${i})" style="color:var(--danger); background:none; border:none; font-weight:800;">USUŃ</button></div></div>`).reverse().join('');
+        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>[${n.cat || 'info'}] <b>${n.title}</b></span><div><button onclick="openNewsForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800; margin-right:10px;">EDYTUJ</button><button onclick="deleteNews(${i})" style="color:var(--danger); background:none; border:none; font-weight:800;">USUŃ</button></div></div>`).reverse().join('');
 
-        // Reszta admina
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact;
         document.getElementById('edit-contact-text').value = db.contact;
@@ -191,27 +236,27 @@
         renderAdminStops();
     }
 
-    // --- NEWSY FUNKCJE ---
     function openNewsForm(idx) {
         curNewsIdx = idx;
-        const n = idx === -1 ? {title:"", content:""} : db.news[idx];
+        const n = idx === -1 ? {title:"", content:"", cat:"info"} : db.news[idx];
         document.getElementById('fn-title').value = n.title;
         document.getElementById('fn-content').value = n.content;
+        document.getElementById('fn-cat').value = n.cat || "info";
         document.getElementById('form-news').style.display = 'block';
     }
 
     function saveNews() {
         const t = document.getElementById('fn-title').value;
         const c = document.getElementById('fn-content').value;
+        const cat = document.getElementById('fn-cat').value;
         if(!t) return alert("Wpisz tytuł");
-        const data = { title: t, content: c, date: new Date().toLocaleDateString() };
+        const data = { title: t, content: c, cat: cat, date: new Date().toLocaleDateString() };
         if(curNewsIdx === -1) db.news.push(data); else db.news[curNewsIdx] = data;
         save(); closeForms();
     }
 
     function deleteNews(i) { if(confirm("Usunąć?")) { db.news.splice(i, 1); save(); } }
 
-    // --- LINIE FUNKCJE ---
     function openLineForm(idx) {
         curLineIdx = idx;
         const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:[]} : db.lines[idx];
@@ -241,14 +286,6 @@
         save(); closeForms();
     }
 
-    // --- RESZTA LOGIKI (BEZ ZMIAN) ---
-    function cleanStopName(n) {
-        let nz = false; const patterns = [/ nż\./gi, / nż/gi, / \(nż\)/gi, /nż\./gi];
-        patterns.forEach(p => { if(p.test(n)) { nz = true; n = n.replace(p, ""); } });
-        return { name: n.trim(), isNz: nz };
-    }
-    function repairAllLines() { db.lines.forEach(l => { if (typeof l.stops === 'string') { l.stops = l.stops.split('\n').filter(s => s.trim() !== "").map((s, i) => { const info = cleanStopName(s); return { name: info.name, time: (i === 0 ? 0 : 2), nz: info.isNz }; }); } }); }
-    function extractStops() { let sSet = new Set(); db.lines.forEach(l => { if(Array.isArray(l.stops)) l.stops.forEach(s => { if(s.name) { sSet.add(s.name); if(!db.stopDetails[s.name]) db.stopDetails[s.name] = { nearby: "", isNz: s.nz || false }; } }); }); allAutoStops = [...sSet].sort(); }
     function renderAdminStops() { document.getElementById('adm-stops-list').innerHTML = allAutoStops.map(s => { const det = db.stopDetails[s] || {nearby:"", isNz: false}; return `<div class="adm-stop-card ${det.isNz?'is-nz':''}"><i class="fa-solid fa-trash del-stop" onclick="deleteGlobalStop('${s}')"></i><input type="text" value="${s}" onblur="renameGlobalStop('${s}', this.value)"><input type="text" placeholder="Pobliże" value="${det.nearby}" onchange="updateStopDetail('${s}', 'nearby', this.value)"><label><input type="checkbox" ${det.isNz?'checked':''} onchange="updateStopDetail('${s}', 'isNz', this.checked)"> NŻ</label></div>`; }).join(''); }
     function renameGlobalStop(o, n) { if(!n || o === n) return; db.stopDetails[n] = db.stopDetails[o]; delete db.stopDetails[o]; db.lines.forEach(l => l.stops.forEach(s => { if(s.name === o) s.name = n; })); save(); }
     function deleteGlobalStop(n) { if(confirm("Usunąć wszędzie?")) { db.lines.forEach(l => l.stops = l.stops.filter(s => s.name !== n)); delete db.stopDetails[n]; save(); } }
@@ -262,7 +299,7 @@
     function importFullBackup(e) { const r = new FileReader(); r.onload = (ev) => { try { db = JSON.parse(ev.target.result); save(); location.reload(); } catch(err) { alert("Błąd pliku!"); } }; r.readAsText(e.target.files[0]); }
     function openVariants(num) { show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`; const list = document.getElementById('vars-list'); list.innerHTML = ''; db.lines.forEach((l, index) => { if(String(l.num) === String(num)) { const d = document.createElement('div'); d.className = "app-card"; d.innerHTML = `<b>Do: ${l.dir}</b> <i class="fa-solid fa-arrow-right"></i>`; d.onclick = () => renderTimetable(index); list.appendChild(d); } }); }
     function renderTimetable(idx) { const line = db.lines[idx]; show('tt'); document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`; const body = document.getElementById('tt-body'); body.innerHTML = ''; let total = 0; line.stops.forEach((stop, sIdx) => { total += parseInt(stop.time) || 0; const currentOffset = total; const det = db.stopDetails[stop.name] || {nearby:"", isNz: stop.nz}; const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block'; card.innerHTML = `<div><b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}${det.nearby?`<div class="nearby-info">${det.nearby}</div>`:''}</div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`; card.onclick = () => { const g = document.getElementById(`g-${sIdx}`); g.style.display = g.style.display==='grid'?'none':'grid'; if(g.style.display==='grid') { g.innerHTML = line.hours.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return ""; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset); return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`; }).join(''); } }; body.appendChild(card); }); }
-    function filterStops() { const q = document.getElementById('stop-search').value.toLowerCase(); const list = document.getElementById('public-stops-list'); list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => { const lines = []; db.lines.forEach(l => { if(l.stops.some(st => st.name === s)) { if(!lines.some(e => e.num === l.num)) lines.push({num: l.num, type: l.type}); } }); const det = db.stopDetails[s] || {nearby:"", isNz: false}; const lStr = lines.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('<span class="spacer">   </span>'); return `<div class="app-card" style="display:block;"><div><b>${s}</b>${det.nearby ? `<div class="nearby-info">${det.nearby}</div>` : ''}</div><div class="stop-lines-row">${lStr}</div></div>`; }).join(''); }
+    function filterStops() { const q = document.getElementById('stop-search').value.toLowerCase(); const list = document.getElementById('public-stops-list'); list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => { const lines = []; db.lines.forEach(l => { if(l.stops.some(st => st.name === s)) { if(!lines.some(e => e.num === l.num)) lines.push({num: l.num, type: l.type}); } }); const det = db.stopDetails[s] || {nearby:"", isNz: false}; const lStr = lines.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('<span class="spacer">   </span>'); return `<div class="app-card" style="display:block;"><div><b>${s}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}${det.nearby ? `<div class="nearby-info">${det.nearby}</div>` : ''}</div><div class="stop-lines-row">${lStr}</div></div>`; }).join(''); }
     function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); }
 
     init();

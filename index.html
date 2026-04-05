@@ -144,7 +144,7 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_v16_db');
+        const local = localStorage.getItem('mzk_v17_db');
         if(local) db = JSON.parse(local);
         if(!db.stopDetails) db.stopDetails = {};
         if(!db.news) db.news = [];
@@ -152,7 +152,7 @@
         render();
     }
 
-    function save() { localStorage.setItem('mzk_v16_db', JSON.stringify(db)); extractStops(); render(); }
+    function save() { localStorage.setItem('mzk_v17_db', JSON.stringify(db)); extractStops(); render(); }
 
     function extractStops() {
         let stopsSet = new Set();
@@ -247,11 +247,16 @@
             let [name, offStr] = sLine.split('|').map(x => x.trim());
             let offset = parseInt(offStr?.replace('+', '')) || (sIdx === 0 ? 0 : 2);
             cumulative += offset;
+            
+            // Sprawdzanie czy w samej nazwie jest "nż." LUB czy status w bazie to NŻ
             const det = db.stopDetails[name] || { nz: false };
+            const isStopNz = det.nz || name.toLowerCase().includes('nż.');
+            const cleanName = name.replace(/ nż\./gi, '').trim();
+
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
             
-            // Naprawiono: Usunięto +min obok nazwy, dodano nż jeśli ustawiony status
-            card.innerHTML = `<div><b>${name} ${det.nz?'(NŻ)':''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            // TUTAJ USUNIĘTO +${cumulative} min - teraz jest tylko nazwa i NŻ
+            card.innerHTML = `<div><b>${cleanName} ${isStopNz ? '(NŻ)' : ''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
             
             card.onclick = () => {
                 const g = document.getElementById(`g-${sIdx}`);
@@ -260,11 +265,8 @@
                     g.innerHTML = line.hours.split(',').map(h => {
                         let [hh, mm] = h.trim().split(':').map(Number);
                         if(isNaN(hh)) return "";
-                        
-                        // Obliczanie realnej godziny odjazdu na danym przystanku
                         let d = new Date(); 
                         d.setHours(hh, mm + cumulative);
-                        
                         return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
                     }).join('');
                 }

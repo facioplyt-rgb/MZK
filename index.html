@@ -15,31 +15,43 @@
         .container { max-width: 550px; margin: 0 auto; padding: 15px; }
         .section { display: none; }
         .active-sec { display: block; animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
+        
+        /* Menu Główne */
         .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; }
-        .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .line-square:active { transform: scale(0.95); }
         .line-square.bus { border-bottom: 4px solid var(--accent); }
         .line-square.tram { border-bottom: 4px solid var(--danger); }
-        .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); cursor: pointer; }
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; }
-        .tt-container { width: 100%; margin-top: 15px; background: #0b0f19; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        
+        /* Karty Przystanków w Trasie */
+        .stop-card { background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); }
+        .stop-time-main { min-width: 60px; text-align: center; background: rgba(0,171,85,0.1); color: var(--accent); padding: 8px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; }
+        .stop-info-box { flex: 1; }
+        .stop-name { font-weight: 600; font-size: 1rem; margin-bottom: 2px; }
+        .other-hint { font-size: 0.7rem; color: var(--text-sec); }
+        .nz-badge { background: var(--danger); color: white; font-size: 0.55rem; padding: 1px 4px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
+
+        /* Widok Rozkładu (Tabela) */
+        .tt-container { width: 100%; margin-top: 15px; background: #0b0f19; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
         .tt-row { display: grid; grid-template-columns: 45px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .tt-row.header { background: #1c252e; font-size: 0.55rem; font-weight: 800; color: var(--text-sec); text-align: center; }
-        .tt-cell { padding: 10px 4px; font-size: 0.8rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 3px; }
+        .tt-row.header { background: #1c252e; font-size: 0.6rem; font-weight: 800; color: var(--text-sec); text-align: center; }
+        .tt-cell { padding: 10px 2px; font-size: 0.85rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.03); }
         .tt-cell.hour { font-weight: 800; color: var(--accent); background: rgba(0,171,85,0.05); }
-        .today-hl { background: rgba(0,171,85,0.15) !important; color: var(--accent); }
-        .stop-chip { display: inline-flex; align-items: center; gap: 5px; background: #1c252e; padding: 6px 12px; border-radius: 10px; margin: 4px; font-size: 0.8rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); }
-        .stop-chip.bus { color: var(--accent); }
-        .stop-chip.tram { color: var(--danger); }
+        .today-hl { background: rgba(0,171,85,0.1) !important; color: var(--accent); }
+
+        /* Chipsy przesiadek */
+        .stop-chip { display: inline-block; background: #1c252e; padding: 5px 10px; border-radius: 8px; margin: 3px; font-size: 0.75rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); }
+        .stop-chip.bus { color: var(--accent); } .stop-chip.tram { color: var(--danger); }
+
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-        input, textarea, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-        .other-info { color: var(--text-sec); font-size: 0.7rem; margin-top: 3px; display: block; }
+        input, textarea, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
     </style>
 </head>
 <body>
@@ -49,29 +61,34 @@
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
-        <div class="group-label">Szukaj Przystanku</div>
-        <input type="text" id="stop-search" placeholder="Wpisz nazwę..." oninput="renderStopsList()">
+        <div class="group-label">Wyszukiwarka</div>
+        <input type="text" id="stop-search" placeholder="Nazwa przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
     <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
-    <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
+    <div id="s-contact" class="section"><div class="group-label">Info</div><div id="contact-display" class="app-card" style="display:block;"></div></div>
+    
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    
     <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
+
     <div id="s-stop-details" class="section">
         <div id="sd-head"></div>
+        <div id="sd-timetable"></div>
         <div id="sd-content"></div>
-        <button id="sd-back-btn" class="main-btn" style="background:#333">Wróć</button>
+        <button id="sd-back-btn" class="main-btn" style="background:#333">Wróć do trasy</button>
     </div>
+
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
-            <input type="password" id="pass" placeholder="Hasło" style="text-align:center;">
+            <input type="password" id="pass" placeholder="Hasło">
             <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none;">
             <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:15px;">
-                <button onclick="setTab('l')" class="main-btn" style="padding:10px; font-size:0.7rem;">LINIE</button>
-                <button onclick="setTab('n')" class="main-btn" style="padding:10px; font-size:0.7rem;">NEWS</button>
-                <button onclick="setTab('s')" class="main-btn" style="padding:10px; font-size:0.7rem;">KOPIA</button>
+                <button onclick="setTab('l')" class="main-btn" style="padding:10px;">LINIE</button>
+                <button onclick="setTab('n')" class="main-btn" style="padding:10px;">NEWS</button>
+                <button onclick="setTab('s')" class="main-btn" style="padding:10px;">KOPIA</button>
             </div>
             <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
             <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj</button><input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn">Importuj</button></div>
@@ -94,7 +111,7 @@
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <textarea id="fl-hours" placeholder="Robocze"></textarea>
     <textarea id="fl-hours-sat" placeholder="Soboty"></textarea>
-    <textarea id="fl-hours-sun" placeholder="Nd / Św"></textarea>
+    <textarea id="fl-hours-sun" placeholder="Nd/Św"></textarea>
     <div id="fl-stops-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
     <button onclick="saveLine()" class="main-btn">Zapisz</button>
@@ -102,15 +119,13 @@
 </div>
 
 <script>
-    const DB_KEY = 'mzk_full_backup_v12';
+    const DB_KEY = 'mzk_v13_stable';
     let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {} };
     let curLineIdx = -1;
 
     function init() {
         const local = localStorage.getItem(DB_KEY);
-        if(local) {
-            try { db = JSON.parse(local); } catch(e) { console.error("DB Error"); }
-        }
+        if(local) db = JSON.parse(local);
         render();
         renderStopsList();
     }
@@ -140,79 +155,122 @@
         return groups;
     }
 
-    function getNextOtherLine(stopName, currentLineNum) {
-        if(!db.lines.length) return null;
+    function getNextTime(hoursStr, offset) {
+        const grouped = getGroupedHours(hoursStr, offset);
         const now = new Date();
-        const dayType = getDayType();
-        let closest = null;
+        const all = Object.values(grouped).flat();
+        for(let t of all) {
+            const [h,m] = t.full.split(':');
+            const d = new Date(); d.setHours(h,m,0);
+            if(d > now) return { full: t.full, diff: Math.floor((d-now)/60000) };
+        }
+        return null;
+    }
 
+    function getNextOther(stopName, curLineNum) {
+        let best = null;
+        const dt = getDayType();
         db.lines.forEach(l => {
-            if(l.num === currentLineNum) return;
-            let totalOffset = 0;
+            if(l.num === curLineNum) return;
+            let off = 0;
             l.stops.forEach(s => {
-                totalOffset += parseInt(s.time) || 0;
+                off += parseInt(s.time) || 0;
                 if(s.name === stopName) {
-                    const hoursStr = dayType==='work' ? l.hours : (dayType==='sat' ? l.hoursSat : l.hoursSun);
-                    if(!hoursStr) return;
-                    const grouped = getGroupedHours(hoursStr, totalOffset);
-                    Object.values(grouped).flat().forEach(t => {
-                        const [th, tm] = t.full.split(':');
-                        const d = new Date(); d.setHours(th, tm, 0);
-                        if(d > now && (!closest || d < closest.time)) {
-                            closest = { time: d, num: l.num };
-                        }
-                    });
+                    const hStr = dt==='work'?l.hours:(dt==='sat'?l.hoursSat:l.hoursSun);
+                    const nxt = getNextTime(hStr, off);
+                    if(nxt && (!best || nxt.diff < best.diff)) best = { diff: nxt.diff, num: l.num };
                 }
             });
         });
-        if(!closest) return null;
-        return { diff: Math.floor((closest.time - now)/60000), num: closest.num };
+        return best;
     }
 
-    function openStopDetails(stopName, backTo = 'home', backIdx = null, excludeLineNum = null) {
+    // --- KLIKNIĘCIE W PRZYSTANEK: WIDOK SZCZEGÓŁOWY ---
+    function openStopFullView(stopName, lineIdx, currentOffset) {
         show('stop-details');
-        const head = document.getElementById('sd-head');
-        const content = document.getElementById('sd-content');
-        let linesHere = [];
-        db.lines.forEach(l => {
-            if(l.stops.some(s => s.name === stopName)) {
-                if(excludeLineNum && l.num === excludeLineNum) return;
-                if(!linesHere.some(e => e.num === l.num)) linesHere.push({num: l.num, type: l.type});
-            }
-        });
-        const det = db.stopDetails[stopName] || {nearby: "Brak dodatkowych informacji."};
-        head.innerHTML = `<div class="group-label">Informacje o przystanku</div><h1>${stopName}</h1>`;
-        content.innerHTML = `<div class="app-card" style="display:block; cursor:default;"><div class="group-label">Linie (przesiadki)</div><div style="margin-bottom:20px;">${linesHere.map(ln => `<span class="stop-chip ${ln.type}">${ln.num}</span>`).join('')}</div><div class="group-label">Opis</div><p style="font-size:0.9rem; color:var(--text-sec);">${det.nearby}</p></div>`;
-        document.getElementById('sd-back-btn').onclick = () => { if(backTo==='tt') renderTimetable(backIdx); else if(backTo==='stops') show('stops'); else show('home'); };
+        const line = db.lines[lineIdx];
+        const dt = getDayType();
+        
+        // Nagłówek
+        document.getElementById('sd-head').innerHTML = `<div class="group-label">Linia ${line.num} • Przystanek</div><h1>${stopName}</h1>`;
+        
+        // Tabela Rozkładu (Tylko dla wybranego przystanku)
+        const gWork = getGroupedHours(line.hours, currentOffset);
+        const gSat = getGroupedHours(line.hoursSat, currentOffset);
+        const gSun = getGroupedHours(line.hoursSun, currentOffset);
+        const allH = [...new Set([...Object.keys(gWork),...Object.keys(gSat),...Object.keys(gSun)])].sort();
+
+        document.getElementById('sd-timetable').innerHTML = `
+            <div class="tt-container">
+                <div class="tt-row header">
+                    <div class="tt-cell">Godz</div>
+                    <div class="tt-cell ${dt==='work'?'today-hl':''}">Roboczy</div>
+                    <div class="tt-cell ${dt==='sat'?'today-hl':''}">Sobota</div>
+                    <div class="tt-cell ${dt==='sun'?'today-hl':''}">Nd/Św</div>
+                </div>
+                ${allH.map(h => `
+                    <div class="tt-row">
+                        <div class="tt-cell hour">${h}</div>
+                        <div class="tt-cell ${dt==='work'?'today-hl':''}">${(gWork[h]||[]).map(m=>m.min).join(' ')}</div>
+                        <div class="tt-cell ${dt==='sat'?'today-hl':''}">${(gSat[h]||[]).map(m=>m.min).join(' ')}</div>
+                        <div class="tt-cell ${dt==='sun'?'today-hl':''}">${(gSun[h]||[]).map(m=>m.min).join(' ')}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Przesiadki i Opis
+        let others = [];
+        db.lines.forEach(l => { if(l.num !== line.num && l.stops.some(s=>s.name===stopName)) { if(!others.some(e=>e.num===l.num)) others.push(l); } });
+        const det = db.stopDetails[stopName] || {nearby: "Brak dodatkowych opisów."};
+
+        document.getElementById('sd-content').innerHTML = `
+            <div class="group-label">Przesiadki</div>
+            <div style="margin-bottom:15px;">${others.map(o => `<span class="stop-chip ${o.type}">${o.num}</span>`).join('')}</div>
+            <div class="group-label">Okolica</div>
+            <p style="font-size:0.9rem; color:var(--text-sec); line-height:1.5; padding:0 5px;">${det.nearby}</p>
+        `;
+
+        document.getElementById('sd-back-btn').onclick = () => renderTimetable(lineIdx);
     }
 
+    // --- WIDOK TRASY (KOMPAKTOWY) ---
     function renderTimetable(idx) {
         const line = db.lines[idx];
         show('tt');
-        const dayType = getDayType();
-        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
+        const dt = getDayType();
+        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2><p style="font-size:0.7rem; color:var(--text-sec); margin-top:5px;">Kliknij przystanek, by zobaczyć rozkład</p>`;
+        
         const body = document.getElementById('tt-body');
         body.innerHTML = '';
-        let totalOffset = 0;
-        line.stops.forEach((stop, sIdx) => {
-            totalOffset += parseInt(stop.time) || 0;
-            const currentOffset = totalOffset;
-            const other = getNextOtherLine(stop.name, line.num);
-            const card = document.createElement('div');
-            card.className = 'app-card';
-            card.style.display = 'block';
-            
-            const gWork = getGroupedHours(line.hours, currentOffset);
-            const gSat = getGroupedHours(line.hoursSat, currentOffset);
-            const gSun = getGroupedHours(line.hoursSun, currentOffset);
-            const allHours = [...new Set([...Object.keys(gWork), ...Object.keys(gSat), ...Object.keys(gSun)])].sort();
+        let off = 0;
 
-            card.innerHTML = `<div style="display:flex; justify-content:space-between;"><div><b>${stop.name}</b><span class="other-info">${other ? 'Inna linia ('+other.num+') za: '+other.diff+' min' : 'Brak przesiadek'}</span></div><i class="fa-solid fa-circle-info" style="color:var(--accent);"></i></div><div class="tt-container"><div class="tt-row header"><div class="tt-cell">Godz</div><div class="tt-cell ${dayType==='work'?'today-hl':''}">Rob</div><div class="tt-cell ${dayType==='sat'?'today-hl':''}">Sob</div><div class="tt-cell ${dayType==='sun'?'today-hl':''}">Nd</div></div>${allHours.map(h => `<div class="tt-row"><div class="tt-cell hour">${h}</div><div class="tt-cell">${(gWork[h]||[]).map(m=>m.min).join(' ')}</div><div class="tt-cell">${(gSat[h]||[]).map(m=>m.min).join(' ')}</div><div class="tt-cell">${(gSun[h]||[]).map(m=>m.min).join(' ')}</div></div>`).join('')}</div>`;
-            card.onclick = () => openStopDetails(stop.name, 'tt', idx, line.num);
-            body.appendChild(card);
+        line.stops.forEach(stop => {
+            off += parseInt(stop.time) || 0;
+            const currentOff = off;
+            const hStr = dt==='work'?line.hours:(dt==='sat'?line.hoursSat:line.hoursSun);
+            const nxt = getNextTime(hStr, currentOff);
+            const other = getNextOther(stop.name, line.num);
+
+            const div = document.createElement('div');
+            div.className = 'stop-card';
+            div.innerHTML = `
+                <div class="stop-time-main">${nxt ? nxt.full : '--:--'}</div>
+                <div class="stop-info-box">
+                    <div class="stop-name">${stop.name}${stop.nz?'<span class="nz-badge">NŻ</span>':''}</div>
+                    <div class="other-hint">
+                        ${nxt ? `Za ${nxt.diff} min` : 'Koniec kursów'} 
+                        ${other ? ` • Inna (${other.num}) za ${other.diff} min` : ''}
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="opacity:0.2"></i>
+            `;
+            div.onclick = () => openStopFullView(stop.name, idx, currentOff);
+            body.appendChild(div);
         });
     }
 
+    // --- RESZTA LOGIKI (ADMIN, NEWS, SZUKANIE) ---
     function renderStopsList() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
@@ -220,25 +278,34 @@
         let all = new Set();
         db.lines.forEach(l => l.stops.forEach(s => all.add(s.name)));
         [...all].sort().filter(s => s.toLowerCase().includes(q)).forEach(name => {
-            const d = document.createElement('div'); d.className = 'app-card'; d.innerHTML = `<b>${name}</b>`;
-            d.onclick = () => openStopDetails(name, 'stops');
+            const d = document.createElement('div'); d.className = 'stop-card'; d.innerHTML = `<div class="stop-info-box"><div class="stop-name">${name}</div></div>`;
+            // Dla wyszukiwarki: otwórz detale bez powrotu do konkretnej linii
+            d.onclick = () => {
+                show('stop-details');
+                document.getElementById('sd-head').innerHTML = `<h1>${name}</h1>`;
+                document.getElementById('sd-timetable').innerHTML = ''; // Brak konkretnego rozkładu w wyszukiwarce ogólnej
+                let others = [];
+                db.lines.forEach(l => { if(l.stops.some(s=>s.name===name)) { if(!others.some(e=>e.num===l.num)) others.push(l); } });
+                document.getElementById('sd-content').innerHTML = `<div class="group-label">Linie tutaj</div><div>${others.map(o => `<span class="stop-chip ${o.type}">${o.num}</span>`).join('')}</div>`;
+                document.getElementById('sd-back-btn').onclick = () => show('stops');
+            };
             list.appendChild(d);
         });
     }
 
     function render() {
-        const sHome = document.getElementById('s-home');
-        sHome.innerHTML = '<div class="group-label">Linie</div>';
+        const home = document.getElementById('s-home');
+        home.innerHTML = '<div class="group-label">Wybierz linię</div>';
         const grid = document.createElement('div'); grid.className = 'lines-grid';
         let unique = new Set();
-        db.lines.forEach(l => {
+        db.lines.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).forEach(l => {
             if(!unique.has(l.num)) {
                 unique.add(l.num);
                 const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = l.num;
                 div.onclick = () => openVariants(l.num); grid.appendChild(div);
             }
         });
-        sHome.appendChild(grid);
+        home.appendChild(grid);
         document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card" style="display:block;"><small>${n.date}</small><h4>${n.title}</h4><p>${n.content}</p></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact;
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><b>${l.num}</b> ${l.dir} <button onclick="openLineForm(${i})" style="float:right; color:var(--accent); background:none; border:none;">EDYTUJ</button></div>`).join('');
@@ -246,10 +313,10 @@
 
     function openVariants(num) {
         show('vars');
-        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
+        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} • Kierunki</div>`;
         const list = document.getElementById('vars-list'); list.innerHTML = '';
         db.lines.forEach((l, idx) => { if(l.num == num) {
-            const d = document.createElement('div'); d.className = 'app-card'; d.innerHTML = `<b>Kierunek: ${l.dir}</b>`;
+            const d = document.createElement('div'); d.className = 'app-card'; d.innerHTML = `<b>${l.dir}</b>`;
             d.onclick = () => renderTimetable(idx); list.appendChild(d);
         }});
     }
@@ -258,8 +325,9 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        const nid = (id==='tt'||id==='vars'||id==='stop-details') ? 'home' : id;
+        const nid = (['tt','vars','stop-details'].includes(id)) ? 'home' : id;
         if(document.getElementById('n-'+nid)) document.getElementById('n-'+nid).classList.add('active');
+        window.scrollTo(0,0);
     }
 
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
@@ -273,8 +341,8 @@
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
         document.getElementById('fl-hours').value = l.hours;
-        document.getElementById('fl-hours-sat').value = l.hoursSat || "";
-        document.getElementById('fl-hours-sun').value = l.hoursSun || "";
+        document.getElementById('fl-hours-sat').value = l.hoursSat||"";
+        document.getElementById('fl-hours-sun').value = l.hoursSun||"";
         document.getElementById('fl-stops-list').innerHTML = '';
         l.stops.forEach(s => addStopRow(s.name, s.time, s.nz));
         document.getElementById('form-line').style.display = 'block';

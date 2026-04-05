@@ -5,180 +5,254 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MZK GORZÓW by Facio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f4f7f6; }
+        :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f4f7f6; --white: #ffffff; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--dark); padding-bottom: 90px; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--dark); padding-bottom: 100px; }
         
-        header { background: var(--mzk); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--yellow); position: sticky; top: 0; z-index: 1000; }
-        header h1 { font-weight: 900; font-size: 1.1rem; text-transform: uppercase; }
-        header span { display: block; font-size: 0.6rem; opacity: 0.8; font-weight: 400; margin-top: 4px; }
+        header { background: var(--mzk); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--yellow); position: sticky; top: 0; z-index: 1000; }
+        header h1 { font-weight: 900; font-size: 1.2rem; }
 
-        .container { max-width: 800px; margin: 0 auto; padding: 15px; }
-        .section { display: none; animation: fadeIn 0.2s ease; }
+        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+        .section { display: none; animation: fadeIn 0.2s; }
         .active-sec { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* SKALOWANIE KAFELKÓW */
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; }
-        .line-card { 
-            background: white; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; 
-            border-bottom: 4px solid #ddd; height: 115px; display: flex; flex-direction: column; justify-content: center;
-            overflow: hidden; /* Żeby nic nie wystawało */
-        }
-        .line-card b { font-size: 1.7rem; color: var(--mzk); display: block; }
-        .line-card small { 
-            font-size: 0.65rem; color: #444; font-weight: 700; margin-top: 5px;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
-            overflow: hidden; line-height: 1.2; text-overflow: ellipsis;
-        }
-        .tram-card b { color: var(--red); }
+        /* SIATKA LINII */
+        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-top: 10px; }
+        .line-btn { background: var(--white); border-radius: 12px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 900; color: var(--mzk); border-bottom: 4px solid #ddd; cursor: pointer; }
+        .line-btn.tram { color: var(--red); }
 
-        /* RESZTA STYLÓW */
-        .type-title { border-left: 5px solid var(--mzk); padding-left: 10px; margin: 20px 0 10px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
-        .stop-item { background: white; padding: 12px; border-radius: 10px; margin-bottom: 8px; border-left: 4px solid var(--mzk); }
-        nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; height: 75px; border-top: 1px solid #eee; z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; cursor: pointer; }
+        /* WYBÓR WARIANTU */
+        .variant-card { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--mzk); cursor: pointer; font-weight: 700; }
+
+        /* ROZKŁAD */
+        .timetable { background: white; border-radius: 15px; overflow: hidden; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .tt-header { background: #eee; padding: 10px; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; display: flex; justify-content: space-around; border-bottom: 1px solid #ddd; }
+        .tt-row { display: flex; padding: 15px 5px; border-bottom: 1px solid #f0f0f0; }
+        .tt-col { flex: 1; text-align: center; font-weight: 600; font-size: 0.9rem; }
+        .hour-block { margin: 2px; display: inline-block; background: #f9f9f9; padding: 4px 6px; border-radius: 4px; border: 1px solid #eee; }
+
+        /* ADMIN */
+        .btn-adm { background: var(--dark); color: white; padding: 12px; border: none; border-radius: 8px; width: 100%; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
+        .input-group { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
+        input, textarea, select { width: 100%; padding: 10px; margin: 5px 0 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; }
+        .day-label { font-size: 0.7rem; font-weight: 900; color: var(--mzk); display: block; margin-top: 5px; }
+
+        /* NAV */
+        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; height: 70px; border-top: 1px solid #eee; z-index: 2000; }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; cursor: pointer; font-size: 0.7rem; font-weight: 700; }
         nav div.active { color: var(--mzk); }
-        nav span { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; margin-top: 4px; }
-        
-        .btn-adm { background: #121212; color: white; padding: 15px; border: none; border-radius: 10px; width: 100%; font-weight: 900; margin-bottom: 15px; cursor: pointer; }
-        input, textarea, select { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; }
+        nav i { font-size: 1.2rem; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
-<header><h1>MZK GORZÓW</h1><span>by Facio</span></header>
+<header><h1>MZK GORZÓW</h1></header>
 
 <div class="container">
-    <div id="s-lines" class="section active-sec">
-        <div class="type-title"><i class="fa-solid fa-bus"></i> AUTOBUSY</div>
-        <div id="list-buses" class="line-grid"></div>
-        <div class="type-title" style="border-color:var(--red)"><i class="fa-solid fa-train-tram"></i> TRAMWAJE</div>
-        <div id="list-trams" class="line-grid"></div>
+    <div id="s-home" class="section active-sec">
+        <h3 style="margin-bottom: 10px;">WYBIERZ LINIĘ</h3>
+        <div id="main-grid" class="line-grid"></div>
     </div>
 
-    <div id="s-info" class="section">
-        <h2 style="font-weight:900; margin-bottom:15px;">KOMUNIKATY</h2>
-        <div id="info-display"></div>
+    <div id="s-variants" class="section">
+        <button onclick="show('home')" style="border:none; background:none; font-weight:800; color:var(--red); padding:10px 0;">← POWRÓT</button>
+        <h2 id="var-title" style="margin-bottom:15px;"></h2>
+        <div id="variants-list"></div>
     </div>
 
-    <div id="s-route" class="section">
-        <button onclick="show('lines')" style="border:none; background:none; color:var(--red); font-weight:900; cursor:pointer; padding:10px 0;">← POWRÓT</button>
-        <div id="route-display"></div>
+    <div id="s-timetable" class="section">
+        <button onclick="show('variants')" style="border:none; background:none; font-weight:800; color:var(--red); padding:10px 0;">← KIERUNKI</button>
+        <div id="tt-display"></div>
     </div>
 
     <div id="s-adm" class="section">
         <div id="adm-login">
-            <input type="password" id="adm-pass" placeholder="Hasło panelu">
-            <button onclick="login()" class="btn-adm" style="background:var(--mzk)">ZALOGUJ</button>
+            <input type="password" id="adm-pass" placeholder="Hasło">
+            <button onclick="login()" class="btn-adm" style="background:var(--mzk)">WEJDŹ</button>
         </div>
         <div id="adm-dash" style="display:none;">
-            <div style="display:flex; gap:5px; margin-bottom:15px;">
-                <button onclick="setAdm('l')" id="b-l" style="flex:1; padding:10px; font-weight:800;">LINIE</button>
-                <button onclick="setAdm('p')" id="b-p" style="flex:1; padding:10px; font-weight:800;">PRZYSTANKI</button>
-                <button onclick="setAdm('i')" id="b-i" style="flex:1; padding:10px; font-weight:800;">INFO</button>
-            </div>
-            <div id="ad-l">
-                <button onclick="openCreator()" class="btn-adm">+ DODAJ LINIĘ / WARIANT</button>
-                <div id="adm-lines-list"></div>
-            </div>
-            <div id="ad-p" style="display:none;">
-                <button onclick="addStopManual()" class="btn-adm" style="background:#444">+ DODAJ PRZYSTANEK</button>
-                <div id="adm-stops-list"></div>
-            </div>
-            <div id="ad-i" style="display:none;">
-                <button onclick="addInfo()" class="btn-adm" style="background:#444">+ NOWY KOMUNIKAT</button>
-                <div id="adm-info-list"></div>
-            </div>
+            <button onclick="openEditor()" class="btn-adm">+ NOWA LINIA / WARIANT</button>
+            <div id="adm-lines-list"></div>
         </div>
     </div>
 </div>
 
 <nav>
-    <div onclick="show('lines')" id="n-lines" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
-    <div onclick="show('info')" id="n-info"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
-    <div onclick="goMap()"><i class="fa-solid fa-map-location-dot"></i><span>Mapa</span></div>
-    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-user-gear"></i><span>Panel</span></div>
+    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i>LINIE</div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i>ADMIN</div>
 </nav>
 
-<div id="m-creator" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:3000; display:none; padding:20px; overflow-y:auto;">
-    <h2 style="font-weight:900">Nowy Wariant</h2>
-    <input type="text" id="c-num" placeholder="Nr (np. 124)">
-    <input type="text" id="c-dir" placeholder="Kierunek (np. Panorama)">
-    <select id="c-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="c-stops" style="height:150px;" placeholder="Wpisz przystanki (jeden pod drugim)"></textarea>
-    <button onclick="saveLine()" class="btn-adm" style="background:var(--mzk)">ZAPISZ</button>
-    <button onclick="document.getElementById('m-creator').style.display='none'" style="width:100%; border:none; background:none;">ANULUJ</button>
+<div id="m-editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:3000; display:none; padding:15px; overflow-y:auto;">
+    <h2 id="ed-title" style="font-weight:900">EDAKTOR LINII</h2>
+    <div class="input-group">
+        <input type="text" id="ed-num" placeholder="Numer linii (np. 124)">
+        <input type="text" id="ed-dir" placeholder="Kierunek (np. Os. Staszica)">
+        <select id="ed-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
+    </div>
+    
+    <div class="input-group">
+        <span class="day-label">PRZYSTANKI (jeden pod drugim)</span>
+        <textarea id="ed-stops" placeholder="Piaski&#10;Dworzec&#10;Arsenal" style="height:80px;"></textarea>
+    </div>
+
+    <div class="input-group">
+        <span class="day-label">GODZINY: DNI ROBOCZE (np. 06:15, 07:20)</span>
+        <textarea id="ed-h-work" placeholder="05:10, 06:20..."></textarea>
+        <span class="day-label">GODZINY: SOBOTY</span>
+        <textarea id="ed-h-sat" placeholder="07:00, 08:30..."></textarea>
+        <span class="day-label">GODZINY: NIEDZIELE/ŚWIĘTA</span>
+        <textarea id="ed-h-sun" placeholder="09:15, 11:00..."></textarea>
+    </div>
+
+    <button onclick="saveLine()" class="btn-adm" style="background:var(--mzk)">ZAPISZ WSZYSTKO</button>
+    <button onclick="document.getElementById('m-editor').style.display='none'" style="width:100%; border:none; background:none; padding:10px;">ANULUJ</button>
 </div>
 
 <script>
-    // KLUCZ, KTÓREGO NIE ZMIENIAJ PRZY AKTUALIZACJI KODU:
-    const KEY = 'STALA_BAZA_MZK_GORZOW';
-    
-    let db = JSON.parse(localStorage.getItem(KEY)) || { lines: [], stops: {}, info: [], map: "" };
+    const KEY = 'MZK_GORZOW_STABLE_V3';
+    let db = JSON.parse(localStorage.getItem(KEY)) || { lines: [] };
+    let editingIndex = null;
 
-    function save() { 
-        localStorage.setItem(KEY, JSON.stringify(db)); 
-        render(); 
+    function save() { localStorage.setItem(KEY, JSON.stringify(db)); renderHome(); renderAdm(); }
+
+    function show(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.getElementById('s-'+id).classList.add('active-sec');
+        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+        if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
     }
 
-    function render() {
-        const b = document.getElementById('list-buses'), t = document.getElementById('list-trams');
-        b.innerHTML = ''; t.innerHTML = '';
-        db.lines.forEach((l, i) => {
-            const h = `<div class="line-card ${l.type==='tram'?'tram-card':''}" onclick="viewRoute(${i})"><b>${l.num}</b><small>${l.dir}</small></div>`;
-            if(l.type === 'tram') t.innerHTML += h; else b.innerHTML += h;
-        });
+    // --- LOGIKA GŁÓWNA ---
+    function renderHome() {
+        const grid = document.getElementById('main-grid');
+        grid.innerHTML = '';
         
-        const idisp = document.getElementById('info-display'); idisp.innerHTML = '';
-        db.info.forEach(m => { idisp.innerHTML += `<div style="background:white; padding:15px; border-radius:10px; margin-bottom:10px; border-left:5px solid var(--yellow); font-weight:700;">${m}</div>`; });
-    }
-
-    function viewRoute(idx) {
-        show('route');
-        const l = db.lines[idx];
-        const d = document.getElementById('route-display');
-        d.innerHTML = `<h2 style="font-weight:900;">${l.num} ➔ ${l.dir}</h2><br>`;
-        l.stops.forEach(s => {
-            const g = db.stops[s] || { nz: false, poi: "" };
-            d.innerHTML += `<div class="stop-item"><b>${s}</b> ${g.nz ? '<span style="color:red; font-size:0.7rem;">[NŻ]</span>':''}</div>`;
+        // Unikalne numery linii
+        const uniqueLines = [...new Set(db.lines.map(l => l.num))].sort();
+        
+        uniqueLines.forEach(num => {
+            const sample = db.lines.find(l => l.num === num);
+            grid.innerHTML += `<div class="line-btn ${sample.type==='tram'?'tram':''}" onclick="viewVariants('${num}')">${num}</div>`;
         });
     }
 
-    function saveLine() {
-        const num = document.getElementById('c-num').value, dir = document.getElementById('c-dir').value, type = document.getElementById('c-type').value;
-        const sRaw = document.getElementById('c-stops').value.split('\n').filter(x => x.trim() !== "");
-        sRaw.forEach(s => { if(!db.stops[s.trim()]) db.stops[s.trim()] = { nz: false, poi: "" }; });
-        db.lines.push({ num, dir, type, stops: sRaw.map(x => x.trim()) });
-        save(); document.getElementById('m-creator').style.display='none';
+    function viewVariants(num) {
+        show('variants');
+        document.getElementById('var-title').innerText = `LINIA ${num}`;
+        const list = document.getElementById('variants-list');
+        list.innerHTML = '';
+        
+        db.lines.filter(l => l.num === num).forEach((l, idx) => {
+            // Szukamy globalnego indeksu
+            const globalIdx = db.lines.indexOf(l);
+            list.innerHTML += `<div class="variant-card" onclick="viewTimetable(${globalIdx})">
+                <span>➔ ${l.dir}</span>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>`;
+        });
     }
 
-    function login() { if(document.getElementById('adm-pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; renderAdm(); } }
-    
-    function setAdm(s) { 
-        ['l','p','i'].forEach(x => document.getElementById('ad-'+x).style.display = x===s?'block':'none');
-        renderAdm();
+    function viewTimetable(idx) {
+        show('timetable');
+        const l = db.lines[idx];
+        const disp = document.getElementById('tt-display');
+        
+        const formatH = (str) => str.split(',').map(h => `<span class="hour-block">${h.trim()}</span>`).join('');
+
+        disp.innerHTML = `
+            <h2 style="font-weight:900; color:var(--mzk)">${l.num}</h2>
+            <p style="font-weight:700; margin-bottom:15px;">Kierunek: ${l.dir}</p>
+            
+            <div class="timetable">
+                <div class="tt-header"><div>Robocze</div><div>Soboty</div><div>Niedziele</div></div>
+                <div class="tt-row">
+                    <div class="tt-col">${formatH(l.h_work)}</div>
+                    <div class="tt-col">${formatH(l.h_sat)}</div>
+                    <div class="tt-col">${formatH(l.h_sun)}</div>
+                </div>
+            </div>
+            
+            <h3 style="margin: 20px 0 10px;">PRZYSTANKI:</h3>
+            ${l.stops.map((s, i) => `<div style="padding:10px; background:white; border-bottom:1px solid #eee; font-weight:600;">${i+1}. ${s}</div>`).join('')}
+        `;
+    }
+
+    // --- ADMIN ---
+    function login() { 
+        if(document.getElementById('adm-pass').value === '123') { 
+            document.getElementById('adm-login').style.display='none'; 
+            document.getElementById('adm-dash').style.display='block'; 
+            renderAdm(); 
+        } 
     }
 
     function renderAdm() {
-        const ll = document.getElementById('adm-lines-list'); ll.innerHTML = '';
-        db.lines.forEach((l, i) => { ll.innerHTML += `<div style="background:white; padding:10px; margin-bottom:5px; border-radius:5px; display:flex; justify-content:space-between;"><span>${l.num} - ${l.dir}</span><button onclick="db.lines.splice(${i},1);save();renderAdm();" style="color:red; border:none; background:none;">USUŃ</button></div>`; });
-        
-        const sl = document.getElementById('adm-stops-list'); sl.innerHTML = '';
-        Object.keys(db.stops).sort().forEach(name => {
-            sl.innerHTML += `<div style="background:white; padding:10px; margin-bottom:5px; border-radius:5px; display:flex; justify-content:space-between;"><span>${name}</span><button onclick="toggleNz('${name}')">${db.stops[name].nz?'NŻ TAK':'STAŁY'}</button></div>`;
+        const list = document.getElementById('adm-lines-list');
+        list.innerHTML = '';
+        db.lines.forEach((l, i) => {
+            list.innerHTML += `
+                <div class="input-group" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><b>${l.num}</b> <small>${l.dir}</small></div>
+                    <div>
+                        <button onclick="editLine(${i})" style="color:blue; border:none; background:none; font-weight:800; margin-right:10px;">EDYTUJ</button>
+                        <button onclick="deleteLine(${i})" style="color:red; border:none; background:none; font-weight:800;">USUŃ</button>
+                    </div>
+                </div>`;
         });
     }
 
-    function toggleNz(n) { db.stops[n].nz = !db.stops[n].nz; save(); renderAdm(); }
-    function addInfo() { const t = prompt("Treść:"); if(t) { db.info.push(t); save(); renderAdm(); } }
-    function show(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); document.getElementById('s-'+id).classList.add('active-sec'); }
-    function openCreator() { document.getElementById('m-creator').style.display='block'; }
-    function goMap() { alert("Skonfiguruj link w Panelu Admina"); }
+    function openEditor() {
+        editingIndex = null;
+        document.getElementById('ed-title').innerText = "NOWY WARIANT";
+        ['ed-num', 'ed-dir', 'ed-stops', 'ed-h-work', 'ed-h-sat', 'ed-h-sun'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('m-editor').style.display = 'block';
+    }
 
-    render();
+    function editLine(i) {
+        editingIndex = i;
+        const l = db.lines[i];
+        document.getElementById('ed-title').innerText = "EDYCJA WARIANTU";
+        document.getElementById('ed-num').value = l.num;
+        document.getElementById('ed-dir').value = l.dir;
+        document.getElementById('ed-type').value = l.type;
+        document.getElementById('ed-stops').value = l.stops.join('\n');
+        document.getElementById('ed-h-work').value = l.h_work;
+        document.getElementById('ed-h-sat').value = l.h_sat;
+        document.getElementById('ed-h-sun').value = l.h_sun;
+        document.getElementById('m-editor').style.display = 'block';
+    }
+
+    function saveLine() {
+        const data = {
+            num: document.getElementById('ed-num').value,
+            dir: document.getElementById('ed-dir').value,
+            type: document.getElementById('ed-type').value,
+            stops: document.getElementById('ed-stops').value.split('\n').filter(s => s.trim() !== ""),
+            h_work: document.getElementById('ed-h-work').value,
+            h_sat: document.getElementById('ed-h-sat').value,
+            h_sun: document.getElementById('ed-h-sun').value
+        };
+
+        if(editingIndex !== null) db.lines[editingIndex] = data;
+        else db.lines.push(data);
+
+        save();
+        document.getElementById('m-editor').style.display = 'none';
+        renderAdm();
+    }
+
+    function deleteLine(i) {
+        if(confirm("Usunąć ten wariant?")) {
+            db.lines.splice(i, 1);
+            save();
+            renderAdm();
+        }
+    }
+
+    renderHome();
 </script>
 </body>
 </html>

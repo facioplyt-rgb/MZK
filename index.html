@@ -3,43 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - System Pełny</title>
+    <title>MZK GORZÓW - System Kompletny</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
         :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f4f7f6; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Montserrat', sans-serif; background: var(--bg); padding-bottom: 90px; }
-        
         header { background: var(--mzk); color: white; padding: 18px; text-align: center; border-bottom: 4px solid var(--yellow); font-weight: 900; text-transform: uppercase; position: sticky; top: 0; z-index: 1000; }
-
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
         .section { display: none; }
         .active-sec { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* LINIE - WIDOK GŁÓWNY */
+        /* LINIE */
         .cat-title { border-left: 5px solid var(--mzk); padding: 5px 12px; margin: 20px 0 10px; font-weight: 900; font-size: 0.9rem; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
         .cat-tram { border-color: var(--red); }
         .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
         .line-card { background: white; border-radius: 18px; padding: 20px 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; border-bottom: 4px solid #eee; }
         .line-card .num { font-size: 2.2rem; font-weight: 900; display: block; }
-        .line-card .dir { font-size: 0.7rem; font-weight: 800; color: #555; text-transform: uppercase; margin-top: 5px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .line-card .dir { font-size: 0.7rem; font-weight: 800; color: #555; text-transform: uppercase; margin-top: 5px; display: block; overflow: hidden; text-overflow: ellipsis; }
+
+        /* KOMUNIKATY */
+        .info-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--yellow); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .info-card h3 { font-size: 0.9rem; font-weight: 900; margin-bottom: 5px; color: var(--mzk); }
+        .info-card p { font-size: 0.8rem; line-height: 1.4; color: #444; }
 
         /* ROZKŁAD */
-        .tt-header-box { background: var(--mzk); color: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; position: relative; overflow: hidden; }
+        .tt-header-box { background: var(--mzk); color: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; position: relative; }
         .tt-header-box.tram { background: var(--red); }
         .tt-table { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #ddd; margin-bottom: 20px; }
         .tt-head-row { background: #222; color: white; display: flex; text-align: center; font-size: 0.65rem; font-weight: 900; padding: 12px 0; }
         .tt-col { flex: 1; padding: 10px 5px; text-align: center; border-right: 1px solid #eee; }
         .hour { background: #f0f0f0; padding: 4px 6px; margin: 3px; border-radius: 5px; display: inline-block; font-size: 0.85rem; font-weight: 800; border: 1px solid #ddd; }
-
-        /* PRZYSTANKI */
-        .stop-item { background: white; padding: 15px; margin-bottom: 8px; border-radius: 12px; border-left: 5px solid #ccc; cursor: pointer; }
-        .stop-detail { display: none; margin-top: 10px; padding: 10px; border-top: 1px dashed #ddd; background: #fafafa; }
-        .line-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; background: white; border: 1px solid #ddd; margin: 3px; font-size: 0.75rem; font-weight: 900; }
-        .p-bus { color: var(--mzk); }
-        .p-tram { color: var(--red); }
 
         /* NAV DOLNY */
         nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; height: 80px; border-top: 1px solid #eee; z-index: 2000; padding-bottom: 10px; }
@@ -50,6 +46,7 @@
         /* ADMIN */
         .adm-btn { background: var(--dark); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: 800; margin-bottom: 10px; cursor: pointer; }
         input, textarea, select { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
+        .stop-item { background: white; padding: 10px; margin-bottom: 5px; border-radius: 10px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
@@ -62,11 +59,16 @@
     </div>
 
     <div id="s-info" class="section">
-        <div style="background:white; padding:20px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-            <h2 style="font-weight:900; margin-bottom:15px;"><i class="fa-solid fa-circle-info" style="color:var(--mzk)"></i> Informacje</h2>
-            <p style="margin-bottom:10px;"><b>Ceny biletów:</b><br>Normalny: 3.00 zł<br>Ulgowy: 1.50 zł</p>
-            <p>Aplikacja MZK Gorzów ułatwia codzienne podróże po mieście.</p>
+        <h2 style="font-weight:900; margin:10px 0;"><i class="fa-solid fa-bullhorn"></i> Aktualności</h2>
+        <div id="info-display"></div>
+    </div>
+
+    <div id="s-map" class="section">
+        <h2 style="font-weight:900; margin-bottom:15px;"><i class="fa-solid fa-map"></i> Mapa Sieci</h2>
+        <div id="map-container" style="width:100%; height:400px; background:#ddd; border-radius:15px; overflow:hidden;">
+            <iframe id="map-iframe" src="" style="border:0; width:100%; height:100%;" allowfullscreen="" loading="lazy"></iframe>
         </div>
+        <p style="margin-top:10px; font-size:0.8rem; text-align:center; color:#666;">Jeśli mapa się nie wyświetla, sprawdź link w panelu admina.</p>
     </div>
 
     <div id="s-timetable" class="section">
@@ -76,14 +78,17 @@
 
     <div id="s-adm" class="section">
         <div id="adm-login">
-            <input type="password" id="adm-pass" placeholder="Hasło" style="text-align:center;">
+            <input type="password" id="adm-pass" placeholder="Hasło (123)" style="text-align:center;">
             <button onclick="login()" class="adm-btn">ZALOGUJ</button>
         </div>
         <div id="adm-dash" style="display:none;">
-            <div style="display:flex; gap:5px; margin-bottom:15px;">
-                <button onclick="setTab('l')" id="bl" style="flex:1; padding:10px; border-radius:8px; border:none; font-weight:800; background:var(--mzk); color:white;">LINIE</button>
-                <button onclick="setTab('p')" id="bp" style="flex:1; padding:10px; border-radius:8px; border:none; font-weight:800; background:#ddd;">PRZYSTANKI</button>
+            <div style="display:flex; gap:3px; margin-bottom:15px;">
+                <button onclick="setTab('l')" id="bl" style="flex:1; padding:8px; border-radius:5px; border:none; font-weight:800; background:var(--mzk); color:white; font-size:0.6rem;">LINIE</button>
+                <button onclick="setTab('p')" id="bp" style="flex:1; padding:8px; border-radius:5px; border:none; font-weight:800; background:#ddd; font-size:0.6rem;">PRZYSTANKI</button>
+                <button onclick="setTab('i')" id="bi" style="flex:1; padding:8px; border-radius:5px; border:none; font-weight:800; background:#ddd; font-size:0.6rem;">INFO</button>
+                <button onclick="setTab('m')" id="bm" style="flex:1; padding:8px; border-radius:5px; border:none; font-weight:800; background:#ddd; font-size:0.6rem;">MAPA</button>
             </div>
+            
             <div id="tab-l">
                 <button onclick="openLineEditor()" class="adm-btn" style="background:#444">+ DODAJ LINIĘ</button>
                 <div id="adm-lines-list"></div>
@@ -92,14 +97,23 @@
                 <button onclick="openStopEditor()" class="adm-btn" style="background:#444">+ INFO O PRZYSTANKU</button>
                 <div id="adm-stops-list"></div>
             </div>
+            <div id="tab-i" style="display:none;">
+                <button onclick="openInfoEditor()" class="adm-btn" style="background:#444">+ DODAJ KOMUNIKAT</button>
+                <div id="adm-info-list"></div>
+            </div>
+            <div id="tab-m" style="display:none;">
+                <h3 style="font-size:0.9rem; margin-bottom:10px;">Link do Mapy (Embed):</h3>
+                <input type="text" id="adm-map-link" placeholder="Wklej link iframe (src)">
+                <button onclick="saveMapLink()" class="adm-btn" style="background:var(--mzk)">ZAPISZ LINK</button>
+            </div>
         </div>
     </div>
 </div>
 
 <nav>
-    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-location-dot"></i><span>Linie</span></div>
-    <div onclick="show('info')" id="n-info"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
-    <div onclick="goMap()" id="n-map"><i class="fa-solid fa-map-location-dot"></i><span>Mapa</span></div>
+    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
+    <div onclick="show('info')" id="n-info"><i class="fa-solid fa-bullhorn"></i><span>Info</span></div>
+    <div onclick="show('map')" id="n-map"><i class="fa-solid fa-map-location-dot"></i><span>Mapa</span></div>
     <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Panel</span></div>
 </nav>
 
@@ -116,177 +130,111 @@
     <button onclick="closeModals()" style="width:100%; border:none; background:none; color:red; font-weight:800;">ANULUJ</button>
 </div>
 
-<div id="m-stop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h2 style="font-weight:900;">INFO O PRZYSTANKU</h2>
-    <input type="text" id="p-name" placeholder="Dokładna nazwa przystanku">
-    <input type="text" id="p-nearby" placeholder="Co jest w pobliżu?">
-    <label style="font-weight:800;"><input type="checkbox" id="p-req"> Przystanek na żądanie</label>
-    <button onclick="saveStop()" class="adm-btn" style="background:var(--mzk); margin-top:20px;">ZAPISZ</button>
+<div id="m-info" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;overflow-y:auto;">
+    <h2 style="font-weight:900;">NOWY KOMUNIKAT</h2>
+    <input type="text" id="i-title" placeholder="Tytuł komunikatu">
+    <textarea id="i-text" placeholder="Treść komunikatu" style="height:150px;"></textarea>
+    <button onclick="saveInfo()" class="adm-btn" style="background:var(--mzk); margin-top:10px;">DODAJ</button>
     <button onclick="closeModals()" style="width:100%; border:none; background:none; color:red; font-weight:800;">ANULUJ</button>
 </div>
 
 <script>
-    const STORAGE_KEY = 'MZK_GORZOW_FINAL_V10';
-    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { lines: [], stopsData: [] };
-    let editIdx = null;
+    const STORAGE_KEY = 'MZK_GORZOW_ULTIMATE_V1';
+    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { 
+        lines: [], 
+        stopsData: [], 
+        news: [], 
+        mapLink: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d77752.41725514073!2d15.176461994689843!3d52.73351283893322!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4706138d72855f7d%3A0xc3f8319f0744e80a!2sGorz%C3%B3w%20Wielkopolski!5e0!3m2!1spl!2spl!4v1715690000000!5m2!1spl!2spl" 
+    };
 
-    function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); renderHome(); renderAdm(); }
+    function save() { 
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); 
+        renderHome(); renderInfo(); renderAdm(); 
+        document.getElementById('map-iframe').src = db.mapLink;
+    }
 
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        const target = document.getElementById('s-' + id);
-        if (target) target.classList.add('active-sec');
-
+        document.getElementById('s-' + id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        const navBtn = document.getElementById('n-' + id);
-        if (navBtn) navBtn.classList.add('active');
-        
-        if(id === 'home') renderHome();
+        document.getElementById('n-' + id).classList.add('active');
+        if(id === 'map') document.getElementById('map-iframe').src = db.mapLink;
     }
 
+    // HOME - LINIE
     function renderHome() {
         const cont = document.getElementById('lines-display');
         cont.innerHTML = '';
-        
-        const groups = [
-            { id: 'tram', title: 'Linie Tramwajowe', icon: 'train-tram', color: 'var(--red)', class: 'cat-tram' },
-            { id: 'bus', title: 'Linie Autobusowe', icon: 'bus', color: 'var(--mzk)', class: '' }
-        ];
-
-        groups.forEach(g => {
-            const list = db.lines.filter(l => l.type === g.id);
-            if(list.length > 0) {
-                cont.innerHTML += `<div class="cat-title ${g.class}"><i class="fa-solid fa-${g.icon}"></i> ${g.title}</div>`;
+        ['tram', 'bus'].forEach(type => {
+            const filtered = db.lines.filter(l => l.type === type);
+            if(filtered.length > 0) {
+                cont.innerHTML += `<div class="cat-title ${type==='tram'?'cat-tram':''}"><i class="fa-solid fa-${type==='tram'?'train-tram':'bus'}"></i> ${type==='tram'?'Tramwaje':'Autobusy'}</div>`;
                 let grid = `<div class="line-grid">`;
-                list.forEach(l => {
-                    const realIdx = db.lines.indexOf(l);
-                    grid += `
-                        <div class="line-card" onclick="openTimetable(${realIdx})">
-                            <span class="num" style="color:${g.color}">${l.num}</span>
-                            <span class="dir">${l.dir}</span>
-                        </div>`;
+                filtered.forEach(l => {
+                    grid += `<div class="line-card" onclick="openTT(${db.lines.indexOf(l)})"><span class="num" style="color:${type==='tram'?'var(--red)':'var(--mzk)'}">${l.num}</span><span class="dir">${l.dir}</span></div>`;
                 });
                 cont.innerHTML += grid + `</div>`;
             }
         });
-        if(db.lines.length === 0) cont.innerHTML = '<p style="text-align:center; padding:40px; color:#999;">Brak linii. Dodaj je w Panelu Admina.</p>';
     }
 
-    function openTimetable(idx) {
+    // ROZKŁAD
+    function openTT(idx) {
         show('timetable');
         const l = db.lines[idx];
-        const isTram = l.type === 'tram';
-        const formatH = (h) => h ? h.split(',').map(t => `<span class="hour">${t.trim()}</span>`).join('') : '--';
-
-        let html = `
-            <div class="tt-header-box ${isTram?'tram':''}">
-                <h1 style="font-size:2.5rem; margin:0; line-height:1;">${l.num}</h1>
-                <p style="font-weight:800; text-transform:uppercase; margin-top:5px;"><i class="fa-solid fa-chevron-right"></i> ${l.dir}</p>
-                <i class="fa-solid fa-${isTram?'train-tram':'bus'}" style="position:absolute; right:10px; bottom:10px; font-size:4rem; opacity:0.2;"></i>
-            </div>
-            
-            <div class="tt-table">
-                <div class="tt-head-row">
-                    <div class="tt-col">ROBOCZE</div>
-                    <div class="tt-col">SOBOTY</div>
-                    <div class="tt-col">NIEDZIELE</div>
-                </div>
-                <div style="display:flex;">
-                    <div class="tt-col">${formatH(l.h_work)}</div>
-                    <div class="tt-col">${formatH(l.h_sat)}</div>
-                    <div class="tt-col">${formatH(l.h_sun)}</div>
-                </div>
-            </div>
-            <h4 style="margin-bottom:10px; font-weight:900;">TRASA:</h4>
-        `;
-
-        l.stops.forEach((sName, sIdx) => {
-            const sData = db.stopsData.find(sd => sd.name.toLowerCase().trim() === sName.toLowerCase().trim());
-            const others = db.lines.filter(ol => ol.stops.some(st => st.toLowerCase().trim() === sName.toLowerCase().trim()) && !(ol.num === l.num && ol.dir === l.dir));
-
-            html += `
-                <div class="stop-item" onclick="toggleStop(${sIdx})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <b><i class="fa-solid fa-location-dot" style="font-size:0.7rem; color:#bbb;"></i> ${sName}</b>
-                        ${sData?.isReq ? '<span style="background:var(--yellow); font-size:0.5rem; padding:2px 5px; border-radius:4px; font-weight:900;">NŻ</span>' : ''}
-                    </div>
-                    <div id="det-${sIdx}" class="stop-detail">
-                        <p style="font-size:0.75rem; color:#666; margin-bottom:8px;"><i class="fa-solid fa-map-pin"></i> ${sData?.nearby || 'Brak dodatkowych informacji.'}</p>
-                        <div style="font-size:0.65rem; font-weight:900; color:#999; margin-bottom:5px;">INNE LINIE:</div>
-                        ${others.map(o => `
-                            <span class="line-pill ${o.type==='tram'?'p-tram':'p-bus'}">
-                                <i class="fa-solid fa-${o.type==='tram'?'train-tram':'bus'}"></i> ${o.num}
-                            </span>
-                        `).join('')}
-                        ${others.length === 0 ? '<span style="font-size:0.7rem; color:#ccc;">Brak innych linii</span>' : ''}
-                    </div>
-                </div>`;
-        });
+        const fmt = (h) => h ? h.split(',').map(t => `<span class="hour">${t.trim()}</span>`).join('') : '--';
+        let html = `<div class="tt-header-box ${l.type==='tram'?'tram':''}"><h1>${l.num}</h1><p>${l.dir}</p></div>
+        <div class="tt-table"><div class="tt-head-row"><div class="tt-col">ROBOCZE</div><div class="tt-col">SOBOTY</div><div class="tt-col">NIEDZIELE</div></div>
+        <div style="display:flex;"><div class="tt-col">${fmt(l.h_work)}</div><div class="tt-col">${fmt(l.h_sat)}</div><div class="tt-col">${fmt(l.h_sun)}</div></div></div>`;
+        l.stops.forEach((s) => { html += `<div class="stop-item"><b>${s}</b></div>`; });
         document.getElementById('tt-content').innerHTML = html;
     }
 
-    function toggleStop(idx) {
-        const d = document.getElementById('det-'+idx);
-        d.style.display = d.style.display === 'block' ? 'none' : 'block';
+    // KOMUNIKATY
+    function renderInfo() {
+        const cont = document.getElementById('info-display');
+        cont.innerHTML = db.news.length ? '' : '<p>Brak nowych komunikatów.</p>';
+        db.news.forEach(n => {
+            cont.innerHTML += `<div class="info-card"><h3>${n.title}</h3><p>${n.text}</p></div>`;
+        });
     }
 
-    // ADMIN LOGIC
+    // ADMIN
     function login() { if(document.getElementById('adm-pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; renderAdm(); } }
+    
     function setTab(t) {
-        document.getElementById('tab-l').style.display = (t==='l'?'block':'none');
-        document.getElementById('tab-p').style.display = (t==='p'?'block':'none');
-        document.getElementById('bl').style.background = (t==='l'? 'var(--mzk)':'#ddd');
-        document.getElementById('bp').style.background = (t==='p'? 'var(--mzk)':'#ddd');
+        ['l','p','i','m'].forEach(x => { document.getElementById('tab-'+x).style.display = (x===t?'block':'none'); document.getElementById('b'+x).style.background = (x===t?'var(--mzk)':'#ddd'); document.getElementById('b'+x).style.color = (x===t?'white':'black'); });
     }
 
-    function closeModals() { document.getElementById('m-line').style.display='none'; document.getElementById('m-stop').style.display='none'; }
-    
     function openLineEditor() { editIdx = null; document.getElementById('m-line').style.display='block'; }
     function saveLine() {
-        const l = {
-            num: document.getElementById('l-num').value,
-            dir: document.getElementById('l-dir').value,
-            type: document.getElementById('l-type').value,
-            stops: document.getElementById('l-stops').value.split('\n').filter(x=>x.trim()),
-            h_work: document.getElementById('l-work').value,
-            h_sat: document.getElementById('l-sat').value,
-            h_sun: document.getElementById('l-sun').value
-        };
-        if(editIdx !== null) db.lines[editIdx] = l; else db.lines.push(l);
+        const l = { num: document.getElementById('l-num').value, dir: document.getElementById('l-dir').value, type: document.getElementById('l-type').value, stops: document.getElementById('l-stops').value.split('\n').filter(x=>x.trim()), h_work: document.getElementById('l-work').value, h_sat: document.getElementById('l-sat').value, h_sun: document.getElementById('l-sun').value };
+        db.lines.push(l); save(); closeModals();
+    }
+
+    function openInfoEditor() { document.getElementById('m-info').style.display='block'; }
+    function saveInfo() {
+        db.news.unshift({ title: document.getElementById('i-title').value, text: document.getElementById('i-text').value });
         save(); closeModals();
     }
 
-    function openStopEditor() { document.getElementById('m-stop').style.display='block'; }
-    function saveStop() {
-        const s = { name: document.getElementById('p-name').value, nearby: document.getElementById('p-nearby').value, isReq: document.getElementById('p-req').checked };
-        const exIdx = db.stopsData.findIndex(x => x.name.toLowerCase().trim() === s.name.toLowerCase().trim());
-        if(exIdx > -1) db.stopsData[exIdx] = s; else db.stopsData.push(s);
-        save(); closeModals();
+    function saveMapLink() {
+        const link = document.getElementById('adm-map-link').value;
+        if(link) { db.mapLink = link; save(); alert("Zapisano nowy link do mapy!"); }
     }
 
     function renderAdm() {
         const ll = document.getElementById('adm-lines-list'); ll.innerHTML = '';
-        db.lines.forEach((l, i) => {
-            ll.innerHTML += `<div class="stop-item" style="display:flex; justify-content:space-between;">
-                <span><b>${l.num}</b> ${l.dir}</span>
-                <button onclick="db.lines.splice(${i},1); save();" style="color:red; border:none; background:none;"><i class="fa-solid fa-trash"></i></button>
-            </div>`;
-        });
-        const pl = document.getElementById('adm-stops-list'); pl.innerHTML = '';
-        db.stopsData.forEach((s, i) => {
-            pl.innerHTML += `<div class="stop-item" style="display:flex; justify-content:space-between;">
-                <span><b>${s.name}</b></span>
-                <button onclick="db.stopsData.splice(${i},1); save();" style="color:red; border:none; background:none;"><i class="fa-solid fa-trash"></i></button>
-            </div>`;
-        });
+        db.lines.forEach((l, i) => { ll.innerHTML += `<div class="stop-item"><span>${l.num} -> ${l.dir}</span><button onclick="db.lines.splice(${i},1);save();" style="color:red;border:none;background:none;">USUŃ</button></div>`; });
+        const il = document.getElementById('adm-info-list'); il.innerHTML = '';
+        db.news.forEach((n, i) => { il.innerHTML += `<div class="stop-item"><span>${n.title}</span><button onclick="db.news.splice(${i},1);save();" style="color:red;border:none;background:none;">USUŃ</button></div>`; });
+        document.getElementById('adm-map-link').value = db.mapLink;
     }
 
-    function goMap() {
-        alert("Otwieranie mapy MZK Gorzów...");
-        window.open('https://www.google.com/maps/search/MZK+Gorzów+Przystanek', '_blank');
-    }
+    function closeModals() { document.querySelectorAll('[id^="m-"]').forEach(m => m.style.display='none'); }
 
-    renderHome();
+    // Start
+    renderHome(); renderInfo();
 </script>
 </body>
 </html>

@@ -16,34 +16,21 @@
         .section { display: none; }
         .active-sec { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* SKALOWANIE NUMERÓW LINII */
-        .line-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: flex-start; }
-        .line-card-mini { 
-            background: var(--surface); 
-            padding: 10px; 
-            border-radius: 16px; 
-            border: 1px solid rgba(255,255,255,0.1); 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            width: auto; 
-            min-width: 65px;
-            transition: transform 0.1s;
-        }
-        .line-card-mini:active { transform: scale(0.92); }
-        .line-badge { background: var(--accent); color: white; padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 1.1rem; text-align: center; }
-        .tram-badge { background: var(--danger); }
-
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .line-badge { background: var(--accent); color: white; padding: 6px 14px; border-radius: 12px; font-weight: 800; min-width: 60px; text-align: center; font-size: 1.1rem; }
+        .tram-badge { background: var(--danger); }
         .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
         .nearby-info { color: var(--warn); font-size: 0.75rem; margin-top: 3px; font-weight: 400; opacity: 0.9; }
-        
+        .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
+        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; }
+        .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
+        .stop-line-item.is-tram i { color: var(--danger); }
+        .spacer { white-space: pre; }
+
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
@@ -55,6 +42,14 @@
         .adm-nav-main { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
+        
+        .adm-stop-card { background: #1c252e; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #333; position: relative; }
+        .adm-stop-card.is-nz { border-left-color: var(--danger); }
+        .adm-stop-card .del-stop { position: absolute; top: 15px; right: 15px; color: var(--danger); cursor: pointer; }
+        
+        .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr 65px 45px 40px; gap: 8px; align-items: center; }
+        .stop-edit-item input { margin: 0; padding: 10px 5px; font-size: 0.85rem; height: 40px; background: #0b0f19; border: 1px solid #333; color: white; }
+        .bulk-area { background: #000; border: 1px dashed var(--accent); padding: 10px; border-radius: 10px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -63,23 +58,19 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec">
-        <div class="group-label">Tramwaje</div>
-        <div id="lines-tram" class="line-grid"></div>
-        <div class="group-label">Autobusy</div>
-        <div id="lines-bus" class="line-grid"></div>
+        <div class="group-label">Tramwaje</div><div id="lines-tram"></div>
+        <div class="group-label">Autobusy</div><div id="lines-bus"></div>
     </div>
-    
     <div id="s-stops" class="section">
-        <div class="group-label">Szukaj Przystanku</div>
-        <input type="text" id="stop-search" class="search-box" placeholder="Nazwa przystanku..." oninput="filterStops()">
+        <div class="group-label">Wyszukiwarka Przystanków</div>
+        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
-
     <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
     <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
     
-    <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button></div>
-    <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button></div>
+    <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
 
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
@@ -90,14 +81,22 @@
             <div class="adm-nav-main">
                 <button onclick="setTab('l')" id="mt-l" class="active">LINIE</button>
                 <button onclick="setTab('p')" id="mt-p">PRZYST</button>
+                <button onclick="setTab('n')" id="mt-n">NEWS</button>
+                <button onclick="setTab('c')" id="mt-c">INFO</button>
                 <button onclick="setTab('s')" id="mt-s">KOPIA</button>
             </div>
             <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
-            <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
+            <div id="tab-p" class="adm-tab" style="display:none;">
+                <div class="group-label">Zarządzaj Bazą Przystanków</div>
+                <div id="adm-stops-list"></div>
+            </div>
+            <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
+            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
             <div id="tab-s" class="adm-tab" style="display:none;">
-                <button onclick="exportFullBackup()" class="main-btn">Eksportuj Backup</button>
+                <p style="font-size: 0.7rem; color: var(--text-sec); margin-bottom: 10px;">Zapisuje: Linie, Newsy, Info, Przystanki i ich ustawienia.</p>
+                <button onclick="exportFullBackup()" class="main-btn">Eksportuj Pełny Backup</button>
                 <input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)">
-                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Backup</button>
+                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Pełny Backup</button>
             </div>
         </div>
     </div>
@@ -111,8 +110,25 @@
     <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Admin</span></div>
 </nav>
 
+<div id="form-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
+    <h2>Edycja Linii</h2>
+    <input type="text" id="fl-num" placeholder="Numer">
+    <input type="text" id="fl-dir" placeholder="Kierunek">
+    <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
+    <textarea id="fl-hours" placeholder="Godziny odjazdów (np. 08:10, 08:40)"></textarea>
+    <div class="bulk-area">
+        <textarea id="fl-bulk" placeholder="Wklej listę przystanków..." style="height:80px; margin-bottom:5px;"></textarea>
+        <button onclick="convertBulk()" class="main-btn" style="padding:8px; font-size:0.8rem; background:#333;">Konwertuj ↓</button>
+    </div>
+    <div id="fl-stops-list"></div>
+    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj ręcznie</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
 <script>
     let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {} };
+    let curIdx = -1;
     let allAutoStops = [];
 
     function init() {
@@ -120,9 +136,32 @@
         if(local) {
             db = JSON.parse(local);
             if(!db.stopDetails) db.stopDetails = {};
+            if(!db.news) db.news = [];
+            repairAllLines();
         }
         extractStops();
         render();
+    }
+
+    function cleanStopName(name) {
+        let isNz = false;
+        const nzPatterns = [/ nż\./gi, / nż/gi, / \(nż\)/gi, /nż\./gi];
+        let cleaned = name;
+        nzPatterns.forEach(p => {
+            if(p.test(cleaned)) { isNz = true; cleaned = cleaned.replace(p, ""); }
+        });
+        return { name: cleaned.trim(), isNz: isNz };
+    }
+
+    function repairAllLines() {
+        db.lines.forEach(l => {
+            if (typeof l.stops === 'string') {
+                l.stops = l.stops.split('\n').filter(s => s.trim() !== "").map((s, i) => {
+                    const info = cleanStopName(s);
+                    return { name: info.name, time: (i === 0 ? 0 : 2), nz: info.isNz };
+                });
+            }
+        });
     }
 
     function save() { 
@@ -131,126 +170,99 @@
         render(); 
     }
 
+    function extractStops() {
+        let stopsSet = new Set();
+        db.lines.forEach(l => {
+            if(Array.isArray(l.stops)) {
+                l.stops.forEach(s => { 
+                    const name = s.name;
+                    if(name) {
+                        stopsSet.add(name);
+                        if(!db.stopDetails[name]) db.stopDetails[name] = { nearby: "", isNz: s.nz || false };
+                    }
+                });
+            }
+        });
+        allAutoStops = [...stopsSet].sort();
+    }
+
     function render() {
         const busC = document.getElementById('lines-bus'); 
         const tramC = document.getElementById('lines-tram');
-        if(!busC || !tramC) return;
         busC.innerHTML = ''; tramC.innerHTML = '';
         
+        // Wyświetlanie samych unikalnych numerów linii bez kierunków [cite: 1]
         const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
         uniqueNums.forEach(num => {
             const l = db.lines.find(x => x.num === num);
-            const div = document.createElement('div'); 
-            div.className = 'line-card-mini';
-            div.innerHTML = `<span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span>`;
+            const div = document.createElement('div'); div.className = 'app-card';
+            // Zmieniono: wyświetla tylko Badge z numerem [cite: 1]
+            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span></span><i class="fa-solid fa-chevron-right"></i>`;
             div.onclick = () => openVariants(num);
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
 
-        if(document.getElementById('adm-lines-list')) {
-            document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="alert('Użyj edytora linii w pełnej wersji')" style="color:var(--accent); background:none; border:none;">EDYTUJ</button></div>`).join('');
-        }
+        filterStops();
+        renderAdminStops();
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
+        document.getElementById('contact-display').innerText = db.contact;
+        document.getElementById('edit-contact-text').value = db.contact;
     }
 
-    function openVariants(num) {
-        show('vars');
-        const head = document.getElementById('vars-head');
-        const list = document.getElementById('vars-list');
-        head.innerHTML = `<div class="group-label">Linia ${num}</div><h2>Wybierz kierunek:</h2>`;
-        list.innerHTML = '';
-        
-        db.lines.forEach((l, index) => {
-            if(String(l.num) === String(num)) {
-                const d = document.createElement('div');
-                d.className = "app-card";
-                d.innerHTML = `<span><b>Kierunek:</b> ${l.dir}</span><i class="fa-solid fa-chevron-right"></i>`;
-                d.onclick = () => renderTimetable(index);
-                list.appendChild(d);
-            }
-        });
-    }
-
-    function renderTimetable(idx) {
-        const line = db.lines[idx];
-        show('tt');
-        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
-        const body = document.getElementById('tt-body');
-        body.innerHTML = '';
-        
-        let totalTime = 0;
-        line.stops.forEach((stop, sIdx) => {
-            totalTime += (parseInt(stop.time) || 0);
-            const currentOffset = totalTime;
-            const det = db.stopDetails[stop.name] || {nearby:"", isNz: stop.nz};
-            
-            const card = document.createElement('div');
-            card.className = 'app-card';
-            card.style.display = 'block';
-            card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <b>${stop.name}</b> ${det.isNz ? '<span class="nz-badge">NŻ</span>' : ''}
-                        ${det.nearby ? `<div class="nearby-info">${det.nearby}</div>` : ''}
-                    </div>
-                    <i class="fa-solid fa-clock" style="color:var(--text-sec); opacity:0.5;"></i>
+    // --- PRZYSTANKI ADMIN (EDYTOR I USUWANIE) ---
+    function renderAdminStops() {
+        const container = document.getElementById('adm-stops-list');
+        container.innerHTML = allAutoStops.map(s => {
+            const det = db.stopDetails[s] || {nearby:"", isNz: false};
+            return `
+                <div class="adm-stop-card ${det.isNz?'is-nz':''}">
+                    <i class="fa-solid fa-trash del-stop" onclick="deleteGlobalStop('${s}')"></i>
+                    <div class="group-label" style="margin:0 0 5px 0">Nazwa przystanku</div>
+                    <input type="text" value="${s}" onblur="renameGlobalStop('${s}', this.value)">
+                    <div class="group-label" style="margin:5px 0 5px 0">W pobliżu</div>
+                    <input type="text" placeholder="Np. Galeria, Park" value="${det.nearby}" 
+                        onchange="updateStopDetail('${s}', 'nearby', this.value)">
+                    <label style="display:flex; align-items:center; gap:10px; font-size:0.8rem; cursor:pointer;">
+                        <input type="checkbox" ${det.isNz?'checked':''} 
+                            onchange="updateStopDetail('${s}', 'isNz', this.checked)"> Na żądanie (NŻ)
+                    </label>
                 </div>
-                <div id="g-${idx}-${sIdx}" class="tt-grid" style="display:none; margin-top:15px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;"></div>
             `;
-            
-            card.onclick = () => {
-                const g = document.getElementById(`g-${idx}-${sIdx}`);
-                const isVisible = g.style.display === 'grid';
-                document.querySelectorAll('.tt-grid').forEach(el => el.style.display = 'none');
-                if(!isVisible) {
-                    g.style.display = 'grid';
-                    if(!line.hours) { g.innerHTML = '<small>Brak danych o godzinach</small>'; return; }
-                    g.innerHTML = line.hours.split(',').map(h => {
-                        let p = h.trim().split(':');
-                        if(p.length < 2) return "";
-                        let d = new Date();
-                        d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset);
-                        return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-                    }).join('');
-                }
-            };
-            body.appendChild(card);
+        }).join('');
+    }
+
+    function renameGlobalStop(oldName, newName) {
+        if(!newName || oldName === newName) return;
+        db.stopDetails[newName] = db.stopDetails[oldName];
+        delete db.stopDetails[oldName];
+        db.lines.forEach(l => {
+            l.stops.forEach(s => { if(s.name === oldName) s.name = newName; });
         });
+        save();
     }
 
-    function show(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.getElementById('s-'+id).classList.add('active-sec');
-        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        const navItem = document.getElementById('n-'+id);
-        if(navItem) navItem.classList.add('active');
-        window.scrollTo(0,0);
+    function deleteGlobalStop(name) {
+        if(!confirm(`Czy na pewno usunąć przystanek "${name}" ze wszystkich linii?`)) return;
+        db.lines.forEach(l => {
+            l.stops = l.stops.filter(s => s.name !== name);
+        });
+        delete db.stopDetails[name];
+        save();
     }
 
-    function extractStops() {
-        let stopsSet = new Set();
-        db.lines.forEach(l => { if(l.stops && Array.isArray(l.stops)) l.stops.forEach(s => stopsSet.add(s.name)); });
-        allAutoStops = [...stopsSet].sort();
+    function updateStopDetail(stopName, field, value) {
+        if(!db.stopDetails[stopName]) db.stopDetails[stopName] = {nearby:"", isNz:false};
+        db.stopDetails[stopName][field] = value;
+        localStorage.setItem('mzk_full_backup_v12', JSON.stringify(db));
     }
 
-    function filterStops() {
-        const query = document.getElementById('stop-search').value.toLowerCase();
-        const list = document.getElementById('public-stops-list');
-        const filtered = allAutoStops.filter(s => s.toLowerCase().includes(query));
-        list.innerHTML = filtered.map(s => `<div class="app-card"><b>${s}</b><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i></div>`).join('');
-    }
-
-    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
-    function setTab(t) {
-        document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none');
-        document.getElementById('tab-'+t).style.display='block';
-    }
-    
+    // --- BACKUP ---
     function exportFullBackup() {
         const dataStr = JSON.stringify(db, null, 2);
         const blob = new Blob([dataStr], {type:'text/plain'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `mzk_backup.txt`;
+        a.download = `mzk_gorzow_backup_${new Date().toLocaleDateString()}.txt`;
         a.click();
     }
 
@@ -260,10 +272,129 @@
             try {
                 const imported = JSON.parse(ev.target.result);
                 if(imported.lines) { db = imported; save(); location.reload(); }
-            } catch(err) { alert("Błąd pliku!"); }
+            } catch(err) { alert("Błąd pliku backupu!"); }
         };
         r.readAsText(e.target.files[0]);
     }
+
+    // --- PUBLICZNE ---
+    function filterStops() {
+        const query = document.getElementById('stop-search').value.toLowerCase();
+        const list = document.getElementById('public-stops-list');
+        const filtered = allAutoStops.filter(s => s.toLowerCase().includes(query));
+        list.innerHTML = filtered.map(s => {
+            const lines = getLinesForStop(s);
+            const det = db.stopDetails[s] || {nearby:"", isNz: false};
+            const linesStr = lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('<span class="spacer">   </span>');
+            return `<div class="app-card" style="display:block;"><div><b>${s}</b>${det.nearby ? `<div class="nearby-info">${det.nearby}</div>` : ''}</div><div class="stop-lines-row">${linesStr}</div></div>`;
+        }).join('');
+    }
+
+    function getLinesForStop(stopName) {
+        let lines = [];
+        db.lines.forEach(l => {
+            if(l.stops.some(s => s.name === stopName)) {
+                if(!lines.some(e => e.num === l.num)) lines.push({num: l.num, type: l.type});
+            }
+        });
+        return lines.sort((a,b) => a.num - b.num);
+    }
+
+    function openVariants(num) {
+        show('vars');
+        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
+        const list = document.getElementById('vars-list'); list.innerHTML = '';
+        db.lines.forEach((l, index) => {
+            if(String(l.num) === String(num)) {
+                const d = document.createElement('div'); d.className = "app-card";
+                d.innerHTML = `<b>Kierunek: ${l.dir}</b> <i class="fa-solid fa-arrow-right"></i>`;
+                d.onclick = () => renderTimetable(index);
+                list.appendChild(d);
+            }
+        });
+    }
+
+    function renderTimetable(idx) {
+        const line = db.lines[idx]; show('tt');
+        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
+        const body = document.getElementById('tt-body'); body.innerHTML = '';
+        let total = 0;
+        line.stops.forEach((stop, sIdx) => {
+            total += parseInt(stop.time) || 0;
+            const currentOffset = total;
+            const det = db.stopDetails[stop.name] || {nearby:"", isNz: stop.nz};
+            const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
+            card.innerHTML = `<div><b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}${det.nearby?`<div class="nearby-info">${det.nearby}</div>`:''}</div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            card.onclick = () => {
+                const g = document.getElementById(`g-${sIdx}`); g.style.display = g.style.display==='grid'?'none':'grid';
+                if(g.style.display==='grid') {
+                    if(!line.hours) { g.innerHTML = '<small>Brak godzin</small>'; return; }
+                    g.innerHTML = line.hours.split(',').map(h => {
+                        let p = h.trim().split(':'); if(p.length<2) return "";
+                        let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset);
+                        return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
+                    }).join('');
+                }
+            };
+            body.appendChild(card);
+        });
+    }
+
+    // --- FORMULARZE ADMIN ---
+    function openLineForm(idx) {
+        curIdx = idx;
+        const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:[]} : db.lines[idx];
+        document.getElementById('fl-num').value = l.num;
+        document.getElementById('fl-dir').value = l.dir;
+        document.getElementById('fl-type').value = l.type;
+        document.getElementById('fl-hours').value = l.hours;
+        const container = document.getElementById('fl-stops-list'); container.innerHTML = '';
+        (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
+        document.getElementById('form-line').style.display = 'block';
+    }
+
+    function saveLine() {
+        const stopElems = document.querySelectorAll('.stop-edit-item');
+        const stopsData = Array.from(stopElems).map(el => ({
+            name: el.querySelector('.edit-stop-name').value.trim(),
+            time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
+            nz: el.querySelector('.edit-stop-nz').checked
+        })).filter(s => s.name !== "");
+        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, hours: document.getElementById('fl-hours').value, stops: stopsData };
+        if(curIdx === -1) db.lines.push(data); else db.lines[curIdx] = data;
+        save(); closeForms();
+    }
+
+    function addStopRow(name = "", time = 2, nz = false) {
+        const div = document.createElement('div'); div.className = 'stop-edit-item';
+        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time"><label>NŻ<input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label><button onclick="this.parentElement.remove()">X</button>`;
+        document.getElementById('fl-stops-list').appendChild(div);
+    }
+
+    function convertBulk() {
+        const text = document.getElementById('fl-bulk').value;
+        text.split('\n').filter(s => s.trim() !== "").forEach((raw, i) => {
+            const info = cleanStopName(raw); addStopRow(info.name, (i === 0 ? 0 : 2), info.isNz);
+        });
+        document.getElementById('fl-bulk').value = "";
+    }
+
+    function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); }
+    function show(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.getElementById('s-'+id).classList.add('active-sec');
+        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+        if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
+    }
+    function setTab(t) {
+        document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none');
+        document.querySelectorAll('.adm-nav-main button').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-'+t).style.display='block';
+        document.getElementById('mt-'+t).classList.add('active');
+        if(t === 'p') renderAdminStops();
+    }
+    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
+    function closeForms() { document.querySelectorAll('[id^="form-"]').forEach(f => f.style.display='none'); }
 
     init();
 </script>

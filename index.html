@@ -15,6 +15,8 @@
         .section { display: none; }
         .active-sec { display: block; }
 
+        h2.type-title { font-size: 0.8rem; color: #666; text-transform: uppercase; margin: 15px 0 8px 5px; letter-spacing: 1px; font-weight: 900; }
+
         /* WIDOK PASAŻERA */
         .card { background: white; padding: 18px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 6px solid var(--mzk); font-weight: 900; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .card.tram { border-left-color: var(--red); }
@@ -48,7 +50,12 @@
 <header>MZK GORZÓW</header>
 
 <div class="container">
-    <div id="s-home" class="section active-sec"><div id="lines-list"></div></div>
+    <div id="s-home" class="section active-sec">
+        <div id="lines-bus-title" class="type-title" style="display:none;">Autobusy</div>
+        <div id="lines-bus"></div>
+        <div id="lines-tram-title" class="type-title" style="display:none;">Tramwaje</div>
+        <div id="lines-tram"></div>
+    </div>
     <div id="s-vars" class="section"></div>
     <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div></div>
     <div id="s-map" class="section"><iframe id="map-frame" style="width:100%;height:500px;border:none;border-radius:15px;background:#eee;"></iframe></div>
@@ -70,56 +77,52 @@
                 <button onclick="setTab('s')" class="adm-btn" style="background:#666">SYSTEM</button>
             </div>
 
-            <div id="tab-l">
+            <div id="tab-l" class="adm-tab">
                 <div class="adm-card">
                     <span class="adm-label">Zarządzanie Liniami</span>
-                    <span class="adm-hint">Możesz edytować istniejące trasy klikając ikonę ołówka lub dodać zupełnie nową linię.</span>
+                    <span class="adm-hint">Edytuj trasy lub dodaj nową linię/kierunek.</span>
                     <button onclick="openLineModal(-1)" class="adm-btn" style="background:#444">+ DODAJ NOWĄ LINIĘ</button>
                     <div id="adm-lines-list"></div>
                 </div>
             </div>
 
-            <div id="tab-p" style="display:none;">
+            <div id="tab-p" class="adm-tab" style="display:none;">
                 <div class="adm-card">
                     <span class="adm-label">Baza Przystanków</span>
-                    <span class="adm-hint">Edytuj aktualne przystanki, aby ustawić NŻ lub opis okolicy. Możesz też dodać nowy przystanek do bazy.</span>
+                    <span class="adm-hint">Ustaw status NŻ lub opis okolicy (Pobliże).</span>
                     <button onclick="openStopModal(-1)" class="adm-btn" style="background:#444">+ DODAJ NOWY PRZYSTANEK</button>
                     <div id="adm-stops-list"></div>
                 </div>
             </div>
 
-            <div id="tab-m" style="display:none;">
+            <div id="tab-m" class="adm-tab" style="display:none;">
                 <div class="adm-card">
-                    <span class="adm-label">Edycja Mapy Miasta</span>
-                    <span class="adm-hint">Wklej poniżej nowy link SRC z Google Maps. Aktualna mapa zostanie zastąpiona nową.</span>
+                    <span class="adm-label">Edycja Mapy</span>
                     <input type="text" id="cfg-map" placeholder="Link iframe src...">
-                    <button onclick="saveGlobalConfigs()" class="adm-btn" style="background:var(--mzk)">ZAPISZ NOWĄ MAPĘ</button>
+                    <button onclick="saveGlobalConfigs()" class="adm-btn" style="background:var(--mzk)">ZAPISZ MAPĘ</button>
                 </div>
             </div>
 
-            <div id="tab-i" style="display:none;">
+            <div id="tab-i" class="adm-tab" style="display:none;">
                 <div class="adm-card">
-                    <span class="adm-label">Komunikaty dla pasażerów</span>
-                    <span class="adm-hint">Wpisz nowe ogłoszenia lub edytuj aktualne informacje o utrudnieniach.</span>
+                    <span class="adm-label">Informacje</span>
                     <textarea id="cfg-info" style="height:250px;" placeholder="Wpisz treść..."></textarea>
-                    <button onclick="saveGlobalConfigs()" class="adm-btn" style="background:var(--mzk)">ZAPISZ TREŚĆ INFO</button>
+                    <button onclick="saveGlobalConfigs()" class="adm-btn" style="background:var(--mzk)">ZAPISZ INFO</button>
                 </div>
             </div>
 
-            <div id="tab-c" style="display:none;">
+            <div id="tab-c" class="adm-tab" style="display:none;">
                 <div class="adm-card">
-                    <span class="adm-label">Edycja Danych Kontaktowych</span>
-                    <span class="adm-hint">Zmień numery telefonów lub adresy. Wszystko co tu wpiszesz pojawi się w zakładce Kontakt.</span>
+                    <span class="adm-label">Kontakt</span>
                     <textarea id="cfg-contact" style="height:250px;" placeholder="Wpisz dane..."></textarea>
-                    <button onclick="saveGlobalConfigs()" class="adm-btn" style="background:var(--mzk)">ZAPISZ DANE KONTAKTU</button>
+                    <button onclick="saveGlobalConfigs()" class="adm-btn" style="background:var(--mzk)">ZAPISZ KONTAKT</button>
                 </div>
             </div>
 
-            <div id="tab-s" style="display:none;">
+            <div id="tab-s" class="adm-tab" style="display:none;">
                 <div class="adm-card">
-                    <span class="adm-label">Systemowa Kopia Danych</span>
-                    <span class="adm-hint">Pobierz plik z całą konfiguracją lub wgraj wcześniej zapisany plik bazy.</span>
-                    <button onclick="exportData()" class="adm-btn" style="background:#444">EKSPORTUJ WSZYSTKO (PLIK)</button>
+                    <span class="adm-label">Baza Danych</span>
+                    <button onclick="exportData()" class="adm-btn" style="background:#444">EKSPORTUJ DO PLIKU</button>
                     <input type="file" id="importFile" style="display:none" onchange="importData(event)">
                     <button onclick="document.getElementById('importFile').click()" class="adm-btn" style="background:var(--red)">IMPORTUJ Z PLIKU</button>
                 </div>
@@ -137,7 +140,7 @@
 </nav>
 
 <div id="mod-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h3>EDYCJA LINII / KIERUNKU</h3>
+    <h3>EDYCJA LINII</h3>
     <input type="text" id="ml-num" placeholder="Numer linii">
     <input type="text" id="ml-dir" placeholder="Kierunek">
     <select id="ml-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
@@ -145,28 +148,28 @@
     <textarea id="ml-rob" placeholder="Robocze: 05:00, 05:30..."></textarea>
     <textarea id="ml-sob" placeholder="Soboty..."></textarea>
     <textarea id="ml-nie" placeholder="Niedziele..."></textarea>
-    <label class="adm-label">TRASA (Przystanek | minuty):</label>
-    <textarea id="ml-bulk" style="height:150px;" placeholder="Nazwa | 0"></textarea>
-    <button onclick="saveLine()" class="adm-btn" style="background:var(--mzk)">ZAPISZ ZMIANY</button>
+    <label class="adm-label">TRASA (Nazwa | minuty):</label>
+    <textarea id="ml-bulk" style="height:150px;" placeholder="Przystanek | 0"></textarea>
+    <button onclick="saveLine()" class="adm-btn" style="background:var(--mzk)">ZAPISZ</button>
     <button onclick="closeModals()" style="color:red; background:none; border:none; width:100%; font-weight:800;">ANULUJ</button>
 </div>
 
 <div id="mod-stop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;">
     <h3>PRZYSTANEK</h3>
     <input type="text" id="ms-name" placeholder="Nazwa">
-    <label style="display:block; margin:15px 0;"><input type="checkbox" id="ms-nz"> NA ŻĄDANIE (NŻ)</label>
+    <label style="display:block; margin:15px 0;"><input type="checkbox" id="ms-nz"> NA ŻĄDANIE</label>
     <textarea id="ms-near" placeholder="Pobliże..."></textarea>
     <button onclick="saveStop()" class="adm-btn">ZAPISZ</button>
     <button onclick="closeModals()" style="color:red; background:none; border:none; width:100%; font-weight:800;">ANULUJ</button>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('MZK_FINAL_APP')) || { 
-        lines: [], stops: [], map: "", info: "Brak komunikatów.", contact: "Dane kontaktowe." 
+    let db = JSON.parse(localStorage.getItem('MZK_V8_DATA')) || { 
+        lines: [], stops: [], map: "", info: "Brak komunikatów.", contact: "Kontakt MZK" 
     };
     let activeIdx = -1;
 
-    function sync() { localStorage.setItem('MZK_FINAL_APP', JSON.stringify(db)); render(); }
+    function sync() { localStorage.setItem('MZK_V8_DATA', JSON.stringify(db)); render(); }
 
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
@@ -180,14 +183,25 @@
     }
 
     function render() {
-        const list = document.getElementById('lines-list'); list.innerHTML = '';
-        const unique = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
-        unique.forEach(n => {
-            const f = db.lines.find(x => x.num === n);
-            list.innerHTML += `<div class="card ${f.type==='tram'?'tram':''}" onclick="openVars('${n}')">LINIA ${n} <i class="fa-solid fa-chevron-right"></i></div>`;
+        const busCont = document.getElementById('lines-bus');
+        const tramCont = document.getElementById('lines-tram');
+        busCont.innerHTML = ''; tramCont.innerHTML = '';
+
+        const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
+        
+        let hasBus = false; let hasTram = false;
+
+        uniqueNums.forEach(n => {
+            const variant = db.lines.find(x => x.num === n);
+            const html = `<div class="card ${variant.type==='tram'?'tram':''}" onclick="openVars('${n}')">LINIA ${n} <i class="fa-solid fa-chevron-right"></i></div>`;
+            if(variant.type === 'tram') { tramCont.innerHTML += html; hasTram = true; }
+            else { busCont.innerHTML += html; hasBus = true; }
         });
 
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l,i) => `<div class="adm-card" style="display:flex; justify-content:space-between"><span>${l.num} -> ${l.dir}</span> <div><i class="fa-solid fa-pen" onclick="openLineModal(${i})" style="color:blue; margin-right:15px"></i><i class="fa-solid fa-trash" onclick="deleteLine(${i})" style="color:red"></i></div></div>`).join('');
+        document.getElementById('lines-bus-title').style.display = hasBus ? 'block' : 'none';
+        document.getElementById('lines-tram-title').style.display = hasTram ? 'block' : 'none';
+
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l,i) => `<div class="adm-card" style="display:flex; justify-content:space-between"><span><b>${l.num}</b> -> ${l.dir}</span> <div><i class="fa-solid fa-pen" onclick="openLineModal(${i})" style="color:blue; margin-right:15px"></i><i class="fa-solid fa-trash" onclick="deleteLine(${i})" style="color:red"></i></div></div>`).join('');
         document.getElementById('adm-stops-list').innerHTML = db.stops.map((s,i) => `<div class="adm-card" onclick="openStopModal(${i})">${s.name} ${s.nz?'<b>(NŻ)</b>':''}</div>`).join('');
 
         document.getElementById('cfg-map').value = db.map;
@@ -199,20 +213,23 @@
         db.map = document.getElementById('cfg-map').value;
         db.info = document.getElementById('cfg-info').value;
         db.contact = document.getElementById('cfg-contact').value;
-        sync(); alert("Zaktualizowano dane!");
+        sync(); alert("Zapisano!");
     }
 
     function openVars(num) {
-        show('vars'); const v = document.getElementById('s-vars');
-        v.innerHTML = `<h2>Wybierz kierunek Linii ${num}</h2>`;
-        db.lines.filter(l => l.num === num).forEach(l => {
-            v.innerHTML += `<div class="card" onclick="renderTT(${db.lines.indexOf(l)})">${l.dir}</div>`;
+        show('vars');
+        const v = document.getElementById('s-vars');
+        v.innerHTML = `<h2>Kierunki Linii ${num}</h2>`;
+        const filtered = db.lines.filter(l => l.num === num);
+        filtered.forEach(l => {
+            v.innerHTML += `<div class="card ${l.type==='tram'?'tram':''}" onclick="renderTT(${db.lines.indexOf(l)})">${l.dir}</div>`;
         });
         v.innerHTML += `<button onclick="show('home')" class="adm-btn" style="margin-top:20px; background:#444">POWRÓT</button>`;
     }
 
     function renderTT(idx) {
-        show('tt'); const l = db.lines[idx];
+        show('tt');
+        const l = db.lines[idx];
         document.getElementById('tt-head').innerHTML = `<div style="background:${l.type==='tram'?'var(--red)':'var(--mzk)'}; color:white; padding:20px; border-radius:15px; text-align:center"><h1>${l.num}</h1><p>${l.dir}</p></div>`;
         const b = document.getElementById('tt-body'); b.innerHTML = '';
         let acc = 0;
@@ -226,6 +243,7 @@
             div.onclick = () => { const g = document.getElementById('grid-'+si); g.style.display = g.style.display==='grid'?'none':'grid'; if(g.style.display==='grid') updateGrid(si,'rob',idx,acc); };
             b.appendChild(div);
         });
+        b.innerHTML += `<button onclick="openVars('${l.num}')" class="adm-btn" style="margin-top:20px; background:#444">POWRÓT</button>`;
     }
 
     function updateGrid(si, type, lIdx, off) {
@@ -274,7 +292,7 @@
     }
 
     function login() { if(document.getElementById('pass').value==='123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-ui').style.display='block'; } }
-    function setTab(id) { ['l','p','m','i','c','s'].forEach(t => document.getElementById('tab-'+t).style.display = (t===id?'block':'none')); }
+    function setTab(id) { document.querySelectorAll('.adm-tab').forEach(t => t.style.display = 'none'); document.getElementById('tab-'+id).style.display = 'block'; }
     function closeModals() { document.querySelectorAll('[id^="mod-"]').forEach(m => m.style.display='none'); }
     function deleteLine(i) { if(confirm("Usuń?")) { db.lines.splice(i,1); sync(); } }
     function exportData() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type:'text/plain'})); a.download='baza_mzk.txt'; a.click(); }

@@ -25,11 +25,12 @@
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
         
-        /* Nowe style dla linii przy przystankach */
-        .stop-lines-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .mini-line-tag { font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1); }
-        .mini-line-tag i { font-size: 0.65rem; color: var(--accent); }
-        .mini-line-tag.is-tram i { color: var(--danger); }
+        /* Styl dla listy linii pod przystankiem */
+        .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
+        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; }
+        .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
+        .stop-line-item.is-tram i { color: var(--danger); }
+        .spacer { white-space: pre; } /* Pozwala na wyświetlanie spacji */
 
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
@@ -54,7 +55,7 @@
         <div class="group-label">Autobusy</div><div id="lines-bus"></div>
     </div>
     <div id="s-stops" class="section">
-        <div class="group-label">Lista Przystanków</div>
+        <div class="group-label">Wszystkie Przystanki</div>
         <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
@@ -83,9 +84,9 @@
                 <button onclick="setTab('c')" id="mt-c">INFO</button>
                 <button onclick="setTab('s')" id="mt-s">KOPIA</button>
             </div>
-            <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj nową linię</button><div id="adm-lines-list"></div></div>
+            <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
             <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
-            <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj komunikat</button><div id="adm-news-list"></div></div>
+            <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
             <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportData()" class="main-btn">Eksportuj Baza.txt</button><input type="file" id="importFile" style="display:none" onchange="importData(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Baza.txt</button></div>
         </div>
@@ -101,13 +102,13 @@
 </nav>
 
 <div id="form-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h2>Zarządzaj Linią</h2>
-    <input type="text" id="fl-num" placeholder="Numer linii">
+    <h2>Edytuj Linię</h2>
+    <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="fl-hours" placeholder="Godziny odjazdu..."></textarea>
+    <textarea id="fl-hours" placeholder="Godziny odjazdów..."></textarea>
     <div id="fl-stops-list"></div>
-    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj przystanek</button>
+    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj Przystanek</button>
     <button onclick="saveLine()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -118,7 +119,7 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_db_final_v5');
+        const local = localStorage.getItem('mzk_db_final_v6');
         if(local) {
             db = JSON.parse(local);
             repairAllLines();
@@ -139,7 +140,7 @@
     }
 
     function save() { 
-        localStorage.setItem('mzk_db_final_v5', JSON.stringify(db)); 
+        localStorage.setItem('mzk_db_final_v6', JSON.stringify(db)); 
         extractStops(); 
         render(); 
     }
@@ -157,12 +158,8 @@
     function getLinesForStop(stopName) {
         let lines = [];
         db.lines.forEach(l => {
-            if(Array.isArray(l.stops)) {
-                if(l.stops.some(s => s.name.trim() === stopName.trim())) {
-                    if(!lines.some(existing => existing.num === l.num)) {
-                        lines.push({num: l.num, type: l.type});
-                    }
-                }
+            if(Array.isArray(l.stops) && l.stops.some(s => s.name.trim() === stopName.trim())) {
+                if(!lines.some(e => e.num === l.num)) lines.push({num: l.num, type: l.type});
             }
         });
         return lines.sort((a,b) => a.num - b.num);
@@ -177,7 +174,7 @@
         uniqueNums.forEach(num => {
             const l = db.lines.find(x => x.num === num);
             const div = document.createElement('div'); div.className = 'app-card';
-            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Kierunki</b></span><i class="fa-solid fa-chevron-right"></i>`;
+            div.innerHTML = `<span><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b> Wybierz kierunek</b></span><i class="fa-solid fa-chevron-right"></i>`;
             div.onclick = () => openVariants(num);
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
@@ -206,16 +203,12 @@
         show('tt');
         document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
         const body = document.getElementById('tt-body'); body.innerHTML = '';
-        
         let totalMinutes = 0;
         line.stops.forEach((stop, sIdx) => {
             totalMinutes += parseInt(stop.time) || 0;
             const currentOffset = totalMinutes;
-            const isNz = stop.nz || stop.name.toLowerCase().includes('nż.');
-
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
-            card.innerHTML = `<div><b>${stop.name} ${isNz ? '<span class="nz-badge">NŻ</span>' : ''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
-            
+            card.innerHTML = `<div><b>${stop.name} ${stop.name.toLowerCase().includes('nż.') ? '<span class="nz-badge">NŻ</span>' : ''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
             card.onclick = () => {
                 const g = document.getElementById(`g-${sIdx}`);
                 const isV = g.style.display === 'grid'; g.style.display = isV ? 'none' : 'grid';
@@ -232,6 +225,7 @@
         });
     }
 
+    // MODYFIKACJA: Dodanie linii pod nazwą z trzema spacjami odstępu
     function filterStops() {
         const query = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
@@ -239,16 +233,17 @@
         
         list.innerHTML = filtered.map(s => {
             const lines = getLinesForStop(s);
-            const lineTags = lines.map(ln => `
-                <div class="mini-line-tag ${ln.type==='tram'?'is-tram':''}">
-                    <i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}
-                </div>
-            `).join('');
+            // Tworzenie ciągu: Ikona Numer   Ikona Numer   Ikona Numer
+            const linesString = lines.map(ln => `
+                <span class="stop-line-item ${ln.type==='tram'?'is-tram':''}">
+                    <i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}
+                </span>
+            `).join('<span class="spacer">   </span>'); // Trzy spacje między elementami
 
             return `
                 <div class="app-card" style="display:block;">
                     <b>${s}</b>
-                    <div class="stop-lines-list">${lineTags}</div>
+                    <div class="stop-lines-row">${linesString}</div>
                 </div>
             `;
         }).join('');

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW (FIXED)</title>
+    <title>MZK GORZÓW - CLOUD</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     
@@ -26,27 +26,35 @@
         nav { position: fixed; bottom: 0; width: 100%; background: #161c24; display: flex; height: 85px; border-top: 1px solid #333; z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.7rem; cursor: pointer; }
         nav div.active { color: var(--accent); }
+        .nz-badge { background: var(--danger); font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: 5px; }
     </style>
 </head>
 <body>
 
-<header><b>MZK GORZÓW (ADMIN FIX)</b></header>
+<header><b>MZK GORZÓW - SYSTEM CHMURY</b></header>
 
 <div class="container">
     <div id="s-home" class="section active-sec">
-        <div id="lines-content" style="text-align:center; padding-top:50px;">Ładowanie chmury...</div>
+        <div id="lines-content" style="text-align:center; padding-top:50px;">Oczekiwanie na dane...</div>
     </div>
 
     <div id="s-adm" class="section">
         <div id="adm-auth" class="app-card" style="display:block;">
-            <input type="password" id="adm-pass" placeholder="Hasło (123)">
+            <p style="margin-bottom:10px; font-size:0.8rem; color:var(--text-sec);">Wprowadź hasło, aby zarządzać bazą:</p>
+            <input type="password" id="adm-pass" placeholder="Hasło">
             <button onclick="checkAuth()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-panel" style="display:none;">
-            <button onclick="openLineForm(-1)" class="main-btn">DODAJ NOWĄ LINIĘ</button>
-            <button onclick="document.getElementById('file-in').click()" class="main-btn" style="background:#800">WCZYTAJ BACKUP (TXT)</button>
-            <input type="file" id="file-in" style="display:none" onchange="handleImport(event)">
-            <div id="adm-lines-list" style="margin-top:20px;"></div>
+            <button onclick="openLineForm(-1)" class="main-btn">+ DODAJ NOWĄ LINIĘ</button>
+            
+            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; margin-bottom:20px;">
+                <p style="font-size:0.7rem; margin-bottom:10px; color:var(--accent)">IMPORT BACKUPU (TXT/JSON):</p>
+                <input type="file" id="file-in" style="display:none" onchange="handleImport(event)">
+                <button onclick="document.getElementById('file-in').click()" class="main-btn" style="background:#444">Wybierz plik backupu</button>
+            </div>
+
+            <div class="group-label" style="font-size:0.7rem; color:var(--text-sec); margin-bottom:10px;">ZARZĄDZAJ LINIAMI:</div>
+            <div id="adm-lines-list"></div>
         </div>
     </div>
 </div>
@@ -57,19 +65,27 @@
 </nav>
 
 <div id="form-line" class="overlay">
-    <h2>Edycja Linii</h2>
-    <input type="text" id="l-num" placeholder="Numer linii">
-    <input type="text" id="l-dir" placeholder="Kierunek">
-    <select id="l-cat"><option>Autobusy</option><option>Tramwaje</option></select>
-    <textarea id="l-hours" placeholder="Godziny: 05:00, 05:20..."></textarea>
+    <h2 id="modal-title">Dodaj Linię</h2>
+    <input type="text" id="l-num" placeholder="Numer (np. 124)">
+    <input type="text" id="l-dir" placeholder="Kierunek (np. Os. Staszica)">
+    <select id="l-cat">
+        <option value="Autobusy">Autobusy</option>
+        <option value="Tramwaje">Tramwaje</option>
+    </select>
+    <textarea id="l-hours" placeholder="Godziny odjazdów z pętli (np. 05:00, 05:20, 05:40)"></textarea>
     
-    <div id="l-stops-container"></div>
-    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj Przystanek</button>
-    <button onclick="saveLine()" class="main-btn">ZAPISZ DO CHMURY</button>
-    <button onclick="closeForm()" class="main-btn" style="background:none">Anuluj</button>
+    <div style="border-top:1px solid #333; padding-top:15px;">
+        <p style="font-size:0.8rem; color:var(--text-sec); margin-bottom:10px;">Lista przystanków i czasy przejazdu:</p>
+        <div id="l-stops-container"></div>
+        <button onclick="addStopRow()" class="main-btn" style="background:#333; font-size:0.8rem;">+ Dodaj przystanek</button>
+    </div>
+    
+    <button onclick="saveLine()" class="main-btn">ZAPISZ ZMIANY W CHMURZE</button>
+    <button onclick="closeForm()" class="main-btn" style="background:none; color:var(--danger)">Anuluj</button>
 </div>
 
 <script>
+    // KONFIGURACJA TWOJEGO FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M",
         authDomain: "mzk-by-facio.firebaseapp.com",
@@ -82,33 +98,57 @@
 
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_data');
-    let db = { lines: [] };
+    
+    let db = { lines: [], stopDetails: {}, contact: "MZK Gorzów" };
     let editingIdx = -1;
 
+    // Start aplikacji
     function init() {
         dbRef.on('value', (snap) => {
             const val = snap.val();
-            if(val) { db = val; render(); }
+            if(val) {
+                db = val;
+                if(!db.lines) db.lines = [];
+                renderAll();
+            }
         });
     }
 
-    function render() {
-        // Render na stronie głównej
-        document.getElementById('lines-content').innerHTML = db.lines.map(l => `<div class="app-card"><b>${l.num}</b> ${l.dir}</div>`).join('');
-        // Render w panelu admina
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `
+    function renderAll() {
+        // Widok użytkownika
+        const homeList = document.getElementById('lines-content');
+        if(db.lines.length === 0) {
+            homeList.innerHTML = "Baza jest pusta. Dodaj linie w panelu Admina.";
+        } else {
+            homeList.innerHTML = db.lines.map(l => `
+                <div class="app-card">
+                    <b>${l.num}</b>
+                    <span>${l.dir}</span>
+                    <i class="fa-solid fa-chevron-right" style="color:var(--accent)"></i>
+                </div>
+            `).join('');
+        }
+
+        // Widok admina
+        const admList = document.getElementById('adm-lines-list');
+        admList.innerHTML = db.lines.map((l, i) => `
             <div class="app-card">
                 <span><b>${l.num}</b> ${l.dir}</span>
-                <button onclick="openLineForm(${i})" style="background:var(--accent); color:white; border:none; padding:8px; border-radius:10px;">EDYTUJ</button>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="openLineForm(${i})" style="background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:10px; cursor:pointer;">EDYTUJ</button>
+                    <button onclick="deleteLine(${i})" style="background:var(--danger); color:white; border:none; padding:8px 12px; border-radius:10px; cursor:pointer;">X</button>
+                </div>
             </div>
         `).join('');
     }
 
     function checkAuth() {
         if(document.getElementById('adm-pass').value === '123') {
-            document.getElementById('adm-auth').style.display='none';
-            document.getElementById('adm-panel').style.display='block';
-        } else { alert('Błędne hasło'); }
+            document.getElementById('adm-auth').style.display = 'none';
+            document.getElementById('adm-panel').style.display = 'block';
+        } else {
+            alert("Hasło to 123");
+        }
     }
 
     function showSec(id) {
@@ -118,57 +158,106 @@
         document.getElementById('n-'+id).classList.add('active');
     }
 
-    function openLineForm(idx) {
+    // Obsługa Formularza
+    window.openLineForm = function(idx) {
         editingIdx = idx;
-        const l = idx === -1 ? {num:'', dir:'', hours:'', stops:[]} : db.lines[idx];
+        const modal = document.getElementById('form-line');
+        const l = idx === -1 ? {num:'', dir:'', hours:'', stops:[], category:'Autobusy'} : db.lines[idx];
+        
+        document.getElementById('modal-title').innerText = idx === -1 ? "Dodaj Nową Linię" : "Edytuj Linię " + l.num;
         document.getElementById('l-num').value = l.num;
         document.getElementById('l-dir').value = l.dir;
         document.getElementById('l-hours').value = l.hours;
+        document.getElementById('l-cat').value = l.category || 'Autobusy';
+        
         document.getElementById('l-stops-container').innerHTML = '';
-        (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
-        document.getElementById('form-line').style.display = 'block';
+        if(l.stops) {
+            l.stops.forEach(s => addStopRow(s.name, s.time, s.nz));
+        }
+        
+        modal.style.display = 'block';
     }
 
-    function addStopRow(name='', time=2, nz=false) {
+    window.addStopRow = function(name='', time=2, nz=false) {
         const div = document.createElement('div');
         div.className = 'stop-row';
         div.innerHTML = `
-            <input type="text" value="${name}" class="st-n">
+            <input type="text" value="${name}" class="st-n" placeholder="Nazwa">
             <input type="number" value="${time}" class="st-t">
-            <input type="checkbox" ${nz?'checked':''} class="st-nz">
-            <button onclick="this.parentElement.remove()">X</button>
+            <div style="display:flex; align-items:center; gap:5px; font-size:0.6rem;">
+                NŻ <input type="checkbox" ${nz?'checked':''} class="st-nz">
+            </div>
+            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); font-weight:bold;">X</button>
         `;
         document.getElementById('l-stops-container').appendChild(div);
     }
 
-    function saveLine() {
-        const stops = Array.from(document.querySelectorAll('.stop-row')).map(r => ({
-            name: r.querySelector('.st-n').value,
-            time: parseInt(r.querySelector('.st-t').value),
-            nz: r.querySelector('.st-nz').checked
+    window.saveLine = function() {
+        const stopRows = document.querySelectorAll('.stop-row');
+        const stopsData = Array.from(stopRows).map(row => ({
+            name: row.querySelector('.st-n').value,
+            time: parseInt(row.querySelector('.st-t').value) || 0,
+            nz: row.querySelector('.st-nz').checked
         }));
-        const data = {
+
+        const lineObj = {
             num: document.getElementById('l-num').value,
             dir: document.getElementById('l-dir').value,
-            category: document.getElementById('l-cat').value,
             hours: document.getElementById('l-hours').value,
-            stops: stops,
-            type: document.getElementById('l-cat').value === 'Tramwaje' ? 'tram' : 'bus'
+            category: document.getElementById('l-cat').value,
+            type: document.getElementById('l-cat').value === 'Tramwaje' ? 'tram' : 'bus',
+            stops: stopsData
         };
-        if(editingIdx === -1) db.lines.push(data); else db.lines[editingIdx] = data;
-        dbRef.set(db).then(() => { closeForm(); alert('Zapisano w Firebase!'); });
+
+        if(editingIdx === -1) {
+            db.lines.push(lineObj);
+        } else {
+            db.lines[editingIdx] = lineObj;
+        }
+
+        dbRef.set(db).then(() => {
+            closeForm();
+            alert("Zapisano pomyślnie!");
+        });
     }
 
-    function closeForm() { document.getElementById('form-line').style.display = 'none'; }
+    window.deleteLine = function(i) {
+        if(confirm("Czy na pewno chcesz usunąć tę linię?")) {
+            db.lines.splice(i, 1);
+            dbRef.set(db);
+        }
+    }
 
-    function handleImport(e) {
+    window.closeForm = function() {
+        document.getElementById('form-line').style.display = 'none';
+    }
+
+    // Inteligentny Import
+    window.handleImport = function(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+
         const reader = new FileReader();
         reader.onload = (ev) => {
-            db = JSON.parse(ev.target.result);
-            dbRef.set(db);
-            alert("Zaimportowano dane!");
+            try {
+                let importedData = JSON.parse(ev.target.result);
+                
+                // Sprawdzenie struktury - jeśli to goła lista linii, owiń ją w obiekt db
+                if(Array.isArray(importedData)) {
+                    db.lines = importedData;
+                } else if(importedData.lines) {
+                    db = importedData;
+                }
+
+                dbRef.set(db).then(() => {
+                    alert("Backup wczytany pomyślnie! Baza w chmurze została zaktualizowana.");
+                    renderAll();
+                });
+            } catch(err) {
+                alert("Błąd: Nieprawidłowy format pliku JSON.");
+            }
         };
-        reader.readAsText(e.target.files[0]);
+        reader.readAsText(file);
     }
 
     init();

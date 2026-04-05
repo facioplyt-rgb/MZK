@@ -17,16 +17,43 @@
         .active-sec { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* NOWE STYLE DLA SIATKI LINII */
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-bottom: 20px; justify-items: center; }
-        .line-card-mini { background: var(--surface); padding: 12px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; cursor: pointer; width: 100%; max-width: 100px; transition: transform 0.2s; }
-        .line-card-mini:active { transform: scale(0.95); }
+        /* POPRAWIONA SIATKA - KAFELKI SĄ TERAZ MAŁE */
+        .line-grid { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            justify-content: flex-start; 
+        }
+        .line-card-mini { 
+            background: var(--surface); 
+            padding: 8px; 
+            border-radius: 15px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            width: auto; /* Szerokość dopasowana do numeru */
+            min-width: 60px;
+            transition: transform 0.1s;
+        }
+        .line-card-mini:active { transform: scale(0.92); }
         
+        .line-badge { 
+            background: var(--accent); 
+            color: white; 
+            padding: 6px 12px; 
+            border-radius: 10px; 
+            font-weight: 800; 
+            font-size: 1.1rem; 
+            display: block;
+            text-align: center;
+        }
+        .tram-badge { background: var(--danger); }
+
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-        .line-badge { background: var(--accent); color: white; padding: 8px 16px; border-radius: 12px; font-weight: 800; min-width: 50px; text-align: center; font-size: 1.2rem; }
-        .tram-badge { background: var(--danger); }
-        
         .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
@@ -90,9 +117,9 @@
             <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
             <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
             <div id="tab-s" class="adm-tab" style="display:none;">
-                <button onclick="exportFullBackup()" class="main-btn">Eksportuj Pełny Backup</button>
+                <button onclick="exportFullBackup()" class="main-btn">Eksportuj Backup</button>
                 <input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)">
-                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Pełny Backup</button>
+                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Backup</button>
             </div>
         </div>
     </div>
@@ -132,15 +159,15 @@
         uniqueNums.forEach(num => {
             const l = db.lines.find(x => x.num === num);
             const div = document.createElement('div'); 
-            div.className = 'line-card-mini'; // Zastosowanie nowej klasy "wyskalowanej"
+            div.className = 'line-card-mini';
             div.innerHTML = `<span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span>`;
             div.onclick = () => openVariants(num);
             if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
 
-        // Pozostałe rendery (admin, przystanki) bez zmian
-        renderAdminStops();
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
+        if(document.getElementById('adm-lines-list')) {
+            document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
+        }
     }
 
     function openVariants(num) {
@@ -155,29 +182,6 @@
                 list.appendChild(d);
             }
         });
-    }
-
-    // --- FUNKCJE ADMINA I BACKUPU (Zachowane) ---
-    function renderAdminStops() {
-        const container = document.getElementById('adm-stops-list');
-        if(!container) return;
-        container.innerHTML = allAutoStops.map(s => {
-            const det = db.stopDetails[s] || {nearby:"", isNz: false};
-            return `<div class="adm-stop-card ${det.isNz?'is-nz':''}">
-                <i class="fa-solid fa-trash del-stop" onclick="deleteGlobalStop('${s}')"></i>
-                <input type="text" value="${s}" onblur="renameGlobalStop('${s}', this.value)">
-                <input type="text" placeholder="W pobliżu..." value="${det.nearby}" onchange="updateStopDetail('${s}', 'nearby', this.value)">
-            </div>`;
-        }).join('');
-    }
-
-    function exportFullBackup() {
-        const dataStr = JSON.stringify(db, null, 2);
-        const blob = new Blob([dataStr], {type:'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `mzk_backup.txt`;
-        a.click();
     }
 
     function show(id) {
@@ -197,7 +201,6 @@
     function setTab(t) {
         document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none');
         document.getElementById('tab-'+t).style.display='block';
-        if(t==='p') renderAdminStops();
     }
 
     init();

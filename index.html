@@ -163,10 +163,23 @@
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
+<div id="form-cat" class="overlay-form">
+    <h2>Edycja Kategorii</h2>
+    <div style="font-size:0.75rem; color:var(--text-sec); margin-bottom:5px; margin-left:5px;">Nazwa kategorii:</div>
+    <input type="text" id="fc-name" placeholder="Nazwa kategorii">
+    
+    <div style="font-size:0.75rem; color:var(--text-sec); margin-bottom:10px; margin-left:5px;">Przypisz linie do tej kategorii:</div>
+    <div id="fc-lines-list" style="margin-bottom:15px; max-height: 250px; overflow-y: auto; background: #1c252e; padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);"></div>
+    
+    <button onclick="saveCategoryEdit()" class="main-btn">Zapisz Kategorię</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
 <script>
     let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
     let curLineIdx = -1;
     let curNewsIdx = -1;
+    let curCatIdx = -1;
     let allAutoStops = [];
 
     function init() {
@@ -295,7 +308,10 @@
         list.innerHTML = db.lineCategories.map((c, i) => `
             <div style="display:flex; justify-content:space-between; align-items:center; background:#1c252e; padding:10px; border-radius:10px; margin-bottom:5px;">
                 <span style="font-weight:600; font-size:0.85rem;">${c}</span>
-                <button onclick="deleteCategory(${i})" style="color:var(--danger); background:none; border:none; font-weight:800; cursor:pointer;">USUŃ</button>
+                <div>
+                    <button onclick="openCatForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800; cursor:pointer; margin-right:10px;">EDYTUJ</button>
+                    <button onclick="deleteCategory(${i})" style="color:var(--danger); background:none; border:none; font-weight:800; cursor:pointer;">USUŃ</button>
+                </div>
             </div>
         `).join('');
     }
@@ -314,6 +330,50 @@
             db.lineCategories.splice(i, 1);
             save();
         }
+    }
+
+    function openCatForm(idx) {
+        curCatIdx = idx;
+        const catName = db.lineCategories[idx];
+        document.getElementById('fc-name').value = catName;
+        
+        let html = '';
+        db.lines.forEach((l, lIdx) => {
+            const isChecked = l.category === catName;
+            html += `<div style="display:flex; align-items:center; margin-bottom:12px;">
+                <input type="checkbox" id="chk-l-${lIdx}" ${isChecked ? 'checked' : ''} style="width:20px; height:20px; margin:0 10px 0 0; cursor:pointer;">
+                <label for="chk-l-${lIdx}" style="cursor:pointer; font-size:0.9rem;"><b>${l.num}</b> - ${l.dir}</label>
+            </div>`;
+        });
+        
+        document.getElementById('fc-lines-list').innerHTML = html || '<div style="color:var(--text-sec); text-align:center;">Brak linii w bazie.</div>';
+        document.getElementById('form-cat').style.display = 'block';
+    }
+
+    function saveCategoryEdit() {
+        const newName = document.getElementById('fc-name').value.trim();
+        if(!newName) return alert("Wpisz nazwę kategorii!");
+        
+        const oldName = db.lineCategories[curCatIdx];
+        
+        if(newName !== oldName && db.lineCategories.includes(newName)) {
+            return alert("Kategoria o takiej nazwie już istnieje!");
+        }
+
+        db.lineCategories[curCatIdx] = newName;
+
+        db.lines.forEach((l, lIdx) => {
+            const chk = document.getElementById(`chk-l-${lIdx}`);
+            if(chk) {
+                if(chk.checked) {
+                    l.category = newName;
+                } else if(l.category === oldName || l.category === newName) {
+                    l.category = ""; 
+                }
+            }
+        });
+
+        save(); closeForms();
     }
 
     function openNewsForm(idx) {

@@ -9,19 +9,7 @@
     <style>
         :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f4f7f6; --white: #ffffff; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--dark); padding-bottom: 100px; }
-        a<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW by Facio</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
-    <style>
-        :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f4f7f6; --white: #ffffff; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--dark); padding-bottom: 100px; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--dark); padding-bottom: 90px; }
         
         header { background: var(--mzk); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--yellow); position: sticky; top: 0; z-index: 1000; }
         header h1 { font-weight: 900; font-size: 1.2rem; }
@@ -32,7 +20,7 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* LINIE */
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-top: 10px; }
+        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; }
         .line-btn { background: var(--white); border-radius: 12px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 900; color: var(--mzk); border-bottom: 4px solid #ddd; cursor: pointer; }
         .line-btn.tram { color: var(--red); }
 
@@ -41,287 +29,25 @@
         /* ROZKŁAD */
         .timetable { background: white; border-radius: 12px; overflow: hidden; margin-top: 15px; border: 1px solid #ddd; }
         .tt-header { background: #333; color: white; padding: 10px; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; display: flex; text-align: center; }
-        .tt-row { display: flex; padding: 10px 0; border-bottom: 1px solid #eee; min-height: 60px; }
-        .tt-col { flex: 1; text-align: center; font-weight: 600; font-size: 0.85rem; padding: 5px; border-right: 1px solid #eee; }
+        .tt-row { display: flex; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .tt-col { flex: 1; text-align: center; padding: 5px; border-right: 1px solid #eee; }
         .tt-col:last-child { border-right: none; }
-        .hour-block { margin: 2px; display: inline-block; background: #f0f0f0; padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.8rem; }
+        .hour-block { margin: 2px; display: inline-block; background: #f0f0f0; padding: 4px 6px; border-radius: 4px; border: 1px solid #ccc; font-size: 0.8rem; font-weight: 600; }
 
         /* ADMIN */
         .btn-adm { background: var(--dark); color: white; padding: 12px; border: none; border-radius: 8px; width: 100%; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
-        .btn-backup { background: #555; color: white; padding: 8px; border: none; border-radius: 6px; width: 48%; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
-        .input-group { background: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
-        input, textarea, select { width: 100%; padding: 10px; margin: 5px 0 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 0.9rem; }
+        .adm-nav { display: flex; gap: 5px; margin-bottom: 15px; }
+        .adm-nav button { flex: 1; padding: 10px; border: none; border-radius: 5px; font-weight: 800; font-size: 0.7rem; background: #ddd; }
+        .adm-nav button.active { background: var(--mzk); color: white; }
         
-        /* NAV */
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; height: 70px; border-top: 1px solid #eee; z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; cursor: pointer; font-size: 0.7rem; font-weight: 700; }
-        nav div.active { color: var(--mzk); }
-    </style>
-</head>
-<body>
-
-<header><h1>MZK GORZÓW</h1></header>
-
-<div class="container">
-    <div id="s-home" class="section active-sec">
-        <h3 style="margin-bottom: 10px; font-weight: 800; border-left: 4px solid var(--mzk); padding-left: 10px;">LINIE KOMUNIKACYJNE</h3>
-        <div id="main-grid" class="line-grid"></div>
-    </div>
-
-    <div id="s-variants" class="section">
-        <button onclick="show('home')" style="border:none; background:none; font-weight:800; color:var(--red); padding:10px 0; cursor:pointer;">← POWRÓT</button>
-        <h2 id="var-title" style="margin-bottom:15px; font-weight:900;"></h2>
-        <div id="variants-list"></div>
-    </div>
-
-    <div id="s-timetable" class="section">
-        <button onclick="show('variants')" style="border:none; background:none; font-weight:800; color:var(--red); padding:10px 0; cursor:pointer;">← KIERUNKI</button>
-        <div id="tt-display"></div>
-    </div>
-
-    <div id="s-adm" class="section">
-        <div id="adm-login">
-            <input type="password" id="adm-pass" placeholder="Hasło panelu">
-            <button onclick="login()" class="btn-adm" style="background:var(--mzk)">ZALOGUJ SIĘ</button>
-        </div>
-        <div id="adm-dash" style="display:none;">
-            <div style="display:flex; justify-content: space-between; margin-bottom: 20px;">
-                <button onclick="exportData()" class="btn-backup"><i class="fa-solid fa-download"></i> EKSPORT DO PLIKU</button>
-                <button onclick="document.getElementById('importFile').click()" class="btn-backup"><i class="fa-solid fa-upload"></i> IMPORT Z PLIKU</button>
-                <input type="file" id="importFile" style="display:none" onchange="importData(event)">
-            </div>
-            
-            <button onclick="openEditor()" class="btn-adm">+ DODAJ NOWĄ LINIĘ / WARIANT</button>
-            <div id="adm-lines-list"></div>
-        </div>
-    </div>
-</div>
-
-<nav>
-    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>LINIE</span></div>
-    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock-open"></i><span>PANEL</span></div>
-</nav>
-
-<div id="m-editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:3000; display:none; padding:15px; overflow-y:auto;">
-    <h2 id="ed-title" style="font-weight:900">EDAKTOR</h2>
-    <div class="input-group">
-        <input type="text" id="ed-num" placeholder="Numer linii (np. 124)">
-        <input type="text" id="ed-dir" placeholder="Kierunek (np. Piaski)">
-        <select id="ed-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    </div>
-    <div class="input-group">
-        <label style="font-size:0.7rem; font-weight:900;">PRZYSTANKI (jeden w linii):</label>
-        <textarea id="ed-stops" style="height:100px;"></textarea>
-    </div>
-    <div class="input-group">
-        <label style="font-size:0.7rem; font-weight:900;">DNI ROBOCZE (np. 06:15, 07:20):</label>
-        <textarea id="ed-h-work"></textarea>
-        <label style="font-size:0.7rem; font-weight:900;">SOBOTY:</label>
-        <textarea id="ed-h-sat"></textarea>
-        <label style="font-size:0.7rem; font-weight:900;">NIEDZIELE:</label>
-        <textarea id="ed-h-sun"></textarea>
-    </div>
-    <button onclick="saveLine()" class="btn-adm" style="background:var(--mzk)">ZAPISZ ZMIANY</button>
-    <button onclick="document.getElementById('m-editor').style.display='none'" style="width:100%; border:none; background:none; padding:10px;">ANULUJ</button>
-</div>
-
-<script>
-    // Klucz bazy danych
-    const DB_NAME = 'MZK_FACIO_SYSTEM_STORAGE';
-    let db = { lines: [] };
-
-    // Inicjalizacja bazy
-    function init() {
-        const saved = localStorage.getItem(DB_NAME);
-        if(saved) {
-            db = JSON.parse(saved);
-        }
-        renderHome();
-    }
-
-    function save() {
-        localStorage.setItem(DB_NAME, JSON.stringify(db));
-        renderHome();
-        renderAdm();
-    }
-
-    // --- FUNKCJE BACKUPU ---
-    function exportData() {
-        const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `mzk_backup_${new Date().toLocaleDateString()}.json`;
-        a.click();
-    }
-
-    function importData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if(imported.lines) {
-                    db = imported;
-                    save();
-                    alert("Dane zostały pomyślnie zaimportowane!");
-                }
-            } catch(err) {
-                alert("Błąd pliku! Upewnij się, że to poprawny backup.");
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    // --- WIDOKI ---
-    function show(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.getElementById('s-'+id).classList.add('active-sec');
-        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
-    }
-
-    function renderHome() {
-        const grid = document.getElementById('main-grid');
-        grid.innerHTML = '';
-        const unique = [...new Set(db.lines.map(l => l.num))].sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
-        unique.forEach(num => {
-            const line = db.lines.find(l => l.num === num);
-            grid.innerHTML += `<div class="line-btn ${line.type==='tram'?'tram':''}" onclick="viewVariants('${num}')">${num}</div>`;
-        });
-    }
-
-    function viewVariants(num) {
-        show('variants');
-        document.getElementById('var-title').innerText = `LINIA ${num}`;
-        const list = document.getElementById('variants-list');
-        list.innerHTML = '';
-        db.lines.filter(l => l.num === num).forEach((l, idx) => {
-            const globalIdx = db.lines.indexOf(l);
-            list.innerHTML += `<div class="variant-card" onclick="viewTimetable(${globalIdx})"><span>➔ ${l.dir}</span><i class="fa-solid fa-angle-right"></i></div>`;
-        });
-    }
-
-    function viewTimetable(idx) {
-        show('timetable');
-        const l = db.lines[idx];
-        const disp = document.getElementById('tt-display');
-        const fmt = (s) => s ? s.split(',').map(h => `<span class="hour-block">${h.trim()}</span>`).join('') : '---';
-
-        disp.innerHTML = `
-            <div style="background:var(--mzk); color:white; padding:15px; border-radius:12px; margin-bottom:15px;">
-                <h1 style="font-size:2.5rem; line-height:1;">${l.num}</h1>
-                <p style="font-weight:800; text-transform:uppercase; font-size:0.8rem; margin-top:5px;">KIERUNEK: ${l.dir}</p>
-            </div>
-            <div class="timetable">
-                <div class="tt-header"><div style="flex:1">Robocze</div><div style="flex:1">Soboty</div><div style="flex:1">Niedziele</div></div>
-                <div class="tt-row">
-                    <div class="tt-col">${fmt(l.h_work)}</div>
-                    <div class="tt-col">${fmt(l.h_sat)}</div>
-                    <div class="tt-col">${fmt(l.h_sun)}</div>
-                </div>
-            </div>
-            <h4 style="margin:20px 0 10px; font-weight:900; color:#444;">TRASA:</h4>
-            ${l.stops.map((s, i) => `<div style="padding:12px; background:white; margin-bottom:5px; border-radius:8px; font-size:0.9rem; font-weight:600; border-left:3px solid #ccc;">${s}</div>`).join('')}
-        `;
-    }
-
-    // --- ADMIN ---
-    let editingIndex = null;
-    function login() { if(document.getElementById('adm-pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; renderAdm(); } }
-
-    function renderAdm() {
-        const list = document.getElementById('adm-lines-list');
-        list.innerHTML = '';
-        db.lines.forEach((l, i) => {
-            list.innerHTML += `<div class="input-group" style="display:flex; justify-content:space-between; align-items:center;">
-                <div><b>[${l.num}]</b> ${l.dir}</div>
-                <div>
-                    <button onclick="editLine(${i})" style="color:var(--mzk); border:none; background:none; font-weight:800; padding:5px;">EDYTUJ</button>
-                    <button onclick="deleteLine(${i})" style="color:red; border:none; background:none; font-weight:800; padding:5px;">USUŃ</button>
-                </div>
-            </div>`;
-        });
-    }
-
-    function openEditor() {
-        editingIndex = null;
-        document.getElementById('ed-title').innerText = "DODAJ LINIĘ";
-        ['ed-num', 'ed-dir', 'ed-stops', 'ed-h-work', 'ed-h-sat', 'ed-h-sun'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('m-editor').style.display = 'block';
-    }
-
-    function editLine(i) {
-        editingIndex = i;
-        const l = db.lines[i];
-        document.getElementById('ed-title').innerText = "EDYTUJ LINIĘ";
-        document.getElementById('ed-num').value = l.num;
-        document.getElementById('ed-dir').value = l.dir;
-        document.getElementById('ed-type').value = l.type;
-        document.getElementById('ed-stops').value = l.stops.join('\n');
-        document.getElementById('ed-h-work').value = l.h_work;
-        document.getElementById('ed-h-sat').value = l.h_sat;
-        document.getElementById('ed-h-sun').value = l.h_sun;
-        document.getElementById('m-editor').style.display = 'block';
-    }
-
-    function saveLine() {
-        const line = {
-            num: document.getElementById('ed-num').value,
-            dir: document.getElementById('ed-dir').value,
-            type: document.getElementById('ed-type').value,
-            stops: document.getElementById('ed-stops').value.split('\n').filter(s => s.trim() !== ""),
-            h_work: document.getElementById('ed-h-work').value,
-            h_sat: document.getElementById('ed-h-sat').value,
-            h_sun: document.getElementById('ed-h-sun').value
-        };
-        if(editingIndex !== null) db.lines[editingIndex] = line;
-        else db.lines.push(line);
-        save();
-        document.getElementById('m-editor').style.display = 'none';
-    }
-
-    function deleteLine(i) { if(confirm("Na pewno usunąć?")) { db.lines.splice(i, 1); save(); } }
-
-    init();
-</script>
-</body>
-</html>
-        header { background: var(--mzk); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--yellow); position: sticky; top: 0; z-index: 1000; }
-        header h1 { font-weight: 900; font-size: 1.2rem; }
-
-        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-        .section { display: none; animation: fadeIn 0.2s; }
-        .active-sec { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* SIATKA LINII */
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; margin-top: 10px; }
-        .line-btn { background: var(--white); border-radius: 12px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 900; color: var(--mzk); border-bottom: 4px solid #ddd; cursor: pointer; }
-        .line-btn.tram { color: var(--red); }
-
-        /* WYBÓR WARIANTU */
-        .variant-card { background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--mzk); cursor: pointer; font-weight: 700; }
-
-        /* ROZKŁAD */
-        .timetable { background: white; border-radius: 15px; overflow: hidden; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .tt-header { background: #eee; padding: 10px; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; display: flex; justify-content: space-around; border-bottom: 1px solid #ddd; }
-        .tt-row { display: flex; padding: 15px 5px; border-bottom: 1px solid #f0f0f0; }
-        .tt-col { flex: 1; text-align: center; font-weight: 600; font-size: 0.9rem; }
-        .hour-block { margin: 2px; display: inline-block; background: #f9f9f9; padding: 4px 6px; border-radius: 4px; border: 1px solid #eee; }
-
-        /* ADMIN */
-        .btn-adm { background: var(--dark); color: white; padding: 12px; border: none; border-radius: 8px; width: 100%; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
-        .input-group { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ddd; }
+        .input-group { background: white; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ddd; }
         input, textarea, select { width: 100%; padding: 10px; margin: 5px 0 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; }
-        .day-label { font-size: 0.7rem; font-weight: 900; color: var(--mzk); display: block; margin-top: 5px; }
 
         /* NAV */
-        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; height: 70px; border-top: 1px solid #eee; z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; cursor: pointer; font-size: 0.7rem; font-weight: 700; }
+        nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; height: 75px; border-top: 1px solid #eee; z-index: 2000; }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; cursor: pointer; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
         nav div.active { color: var(--mzk); }
-        nav i { font-size: 1.2rem; margin-bottom: 4px; }
+        nav i { font-size: 1.3rem; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -330,8 +56,13 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec">
-        <h3 style="margin-bottom: 10px;">WYBIERZ LINIĘ</h3>
+        <h3 style="margin-bottom:15px; border-left:4px solid var(--mzk); padding-left:10px;">LINIE</h3>
         <div id="main-grid" class="line-grid"></div>
+    </div>
+
+    <div id="s-info" class="section">
+        <h3 style="margin-bottom:15px;">KOMUNIKATY</h3>
+        <div id="info-display"></div>
     </div>
 
     <div id="s-variants" class="section">
@@ -348,52 +79,74 @@
     <div id="s-adm" class="section">
         <div id="adm-login">
             <input type="password" id="adm-pass" placeholder="Hasło">
-            <button onclick="login()" class="btn-adm" style="background:var(--mzk)">WEJDŹ</button>
+            <button onclick="login()" class="btn-adm" style="background:var(--mzk)">ZALOGUJ</button>
         </div>
         <div id="adm-dash" style="display:none;">
-            <button onclick="openEditor()" class="btn-adm">+ NOWA LINIA / WARIANT</button>
-            <div id="adm-lines-list"></div>
+            <div class="adm-nav">
+                <button onclick="setAdm('l')" id="ab-l" class="active">LINIE</button>
+                <button onclick="setAdm('i')" id="ab-i">INFO</button>
+                <button onclick="setAdm('m')" id="ab-m">MAPA/BACKUP</button>
+            </div>
+
+            <div id="ad-l">
+                <button onclick="openEditor()" class="btn-adm">+ DODAJ LINIĘ / WARIANT</button>
+                <div id="adm-lines-list"></div>
+            </div>
+
+            <div id="ad-i" style="display:none;">
+                <button onclick="addInfo()" class="btn-adm">+ DODAJ KOMUNIKAT</button>
+                <div id="adm-info-list"></div>
+            </div>
+
+            <div id="ad-m" style="display:none;">
+                <div class="input-group">
+                    <label>Link do mapy:</label>
+                    <input type="text" id="adm-map-url">
+                    <button onclick="saveMap()" class="btn-adm">ZAPISZ MAPĘ</button>
+                </div>
+                <hr style="margin:20px 0;">
+                <button onclick="exportData()" class="btn-adm" style="background:#555">EKSPORTUJ BACKUP (.JSON)</button>
+                <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+                <button onclick="document.getElementById('importFile').click()" class="btn-adm" style="background:#555">IMPORTUJ BACKUP</button>
+            </div>
         </div>
     </div>
 </div>
 
 <nav>
-    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i>LINIE</div>
-    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i>ADMIN</div>
+    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
+    <div onclick="show('info')" id="n-info"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
+    <div onclick="goMap()"><i class="fa-solid fa-map-location-dot"></i><span>Mapa</span></div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Panel</span></div>
 </nav>
 
 <div id="m-editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:3000; display:none; padding:15px; overflow-y:auto;">
-    <h2 id="ed-title" style="font-weight:900">EDAKTOR LINII</h2>
+    <h2 id="ed-title" style="font-weight:900">EDAKTOR</h2>
     <div class="input-group">
-        <input type="text" id="ed-num" placeholder="Numer linii (np. 124)">
-        <input type="text" id="ed-dir" placeholder="Kierunek (np. Os. Staszica)">
+        <input type="text" id="ed-num" placeholder="Nr linii">
+        <input type="text" id="ed-dir" placeholder="Kierunek">
         <select id="ed-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     </div>
-    
     <div class="input-group">
-        <span class="day-label">PRZYSTANKI (jeden pod drugim)</span>
-        <textarea id="ed-stops" placeholder="Piaski&#10;Dworzec&#10;Arsenal" style="height:80px;"></textarea>
+        <label>PRZYSTANKI (jeden pod drugim):</label>
+        <textarea id="ed-stops" style="height:80px;"></textarea>
     </div>
-
     <div class="input-group">
-        <span class="day-label">GODZINY: DNI ROBOCZE (np. 06:15, 07:20)</span>
-        <textarea id="ed-h-work" placeholder="05:10, 06:20..."></textarea>
-        <span class="day-label">GODZINY: SOBOTY</span>
-        <textarea id="ed-h-sat" placeholder="07:00, 08:30..."></textarea>
-        <span class="day-label">GODZINY: NIEDZIELE/ŚWIĘTA</span>
-        <textarea id="ed-h-sun" placeholder="09:15, 11:00..."></textarea>
+        <label>GODZINY: ROBOCZE / SOBOTY / NIEDZIELE</label>
+        <textarea id="ed-h-work" placeholder="Robocze (np. 06:05, 07:10)"></textarea>
+        <textarea id="ed-h-sat" placeholder="Soboty"></textarea>
+        <textarea id="ed-h-sun" placeholder="Niedziele"></textarea>
     </div>
-
-    <button onclick="saveLine()" class="btn-adm" style="background:var(--mzk)">ZAPISZ WSZYSTKO</button>
-    <button onclick="document.getElementById('m-editor').style.display='none'" style="width:100%; border:none; background:none; padding:10px;">ANULUJ</button>
+    <button onclick="saveLine()" class="btn-adm" style="background:var(--mzk)">ZAPISZ</button>
+    <button onclick="document.getElementById('m-editor').style.display='none'" style="width:100%; border:none; background:none;">ANULUJ</button>
 </div>
 
 <script>
-    const KEY = 'MZK_GORZOW_STABLE_V3';
-    let db = JSON.parse(localStorage.getItem(KEY)) || { lines: [] };
-    let editingIndex = null;
+    const KEY = 'MZK_GORZOW_ULTIMATE_DATA';
+    let db = JSON.parse(localStorage.getItem(KEY)) || { lines: [], info: [], map: "" };
+    let editingIdx = null;
 
-    function save() { localStorage.setItem(KEY, JSON.stringify(db)); renderHome(); renderAdm(); }
+    function save() { localStorage.setItem(KEY, JSON.stringify(db)); renderHome(); renderInfo(); renderAdm(); }
 
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
@@ -402,134 +155,79 @@
         if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
     }
 
-    // --- LOGIKA GŁÓWNA ---
+    // GŁÓWNE
     function renderHome() {
-        const grid = document.getElementById('main-grid');
-        grid.innerHTML = '';
-        
-        // Unikalne numery linii
-        const uniqueLines = [...new Set(db.lines.map(l => l.num))].sort();
-        
-        uniqueLines.forEach(num => {
-            const sample = db.lines.find(l => l.num === num);
-            grid.innerHTML += `<div class="line-btn ${sample.type==='tram'?'tram':''}" onclick="viewVariants('${num}')">${num}</div>`;
+        const grid = document.getElementById('main-grid'); grid.innerHTML = '';
+        const unique = [...new Set(db.lines.map(l => l.num))].sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+        unique.forEach(n => {
+            const l = db.lines.find(x => x.num === n);
+            grid.innerHTML += `<div class="line-btn ${l.type==='tram'?'tram':''}" onclick="viewVariants('${n}')">${n}</div>`;
         });
     }
 
     function viewVariants(num) {
         show('variants');
         document.getElementById('var-title').innerText = `LINIA ${num}`;
-        const list = document.getElementById('variants-list');
-        list.innerHTML = '';
-        
-        db.lines.filter(l => l.num === num).forEach((l, idx) => {
-            // Szukamy globalnego indeksu
-            const globalIdx = db.lines.indexOf(l);
-            list.innerHTML += `<div class="variant-card" onclick="viewTimetable(${globalIdx})">
-                <span>➔ ${l.dir}</span>
-                <i class="fa-solid fa-chevron-right"></i>
-            </div>`;
+        const list = document.getElementById('variants-list'); list.innerHTML = '';
+        db.lines.filter(l => l.num === num).forEach(l => {
+            list.innerHTML += `<div class="variant-card" onclick="viewTT(${db.lines.indexOf(l)})">➔ ${l.dir} <i class="fa-solid fa-chevron-right"></i></div>`;
         });
     }
 
-    function viewTimetable(idx) {
+    function viewTT(idx) {
         show('timetable');
         const l = db.lines[idx];
-        const disp = document.getElementById('tt-display');
-        
-        const formatH = (str) => str.split(',').map(h => `<span class="hour-block">${h.trim()}</span>`).join('');
-
-        disp.innerHTML = `
-            <h2 style="font-weight:900; color:var(--mzk)">${l.num}</h2>
-            <p style="font-weight:700; margin-bottom:15px;">Kierunek: ${l.dir}</p>
-            
+        const fmt = (s) => s ? s.split(',').map(h => `<span class="hour-block">${h.trim()}</span>`).join('') : '---';
+        document.getElementById('tt-display').innerHTML = `
+            <h2 style="font-weight:900;">${l.num} ➔ ${l.dir}</h2>
             <div class="timetable">
-                <div class="tt-header"><div>Robocze</div><div>Soboty</div><div>Niedziele</div></div>
+                <div class="tt-header"><div style="flex:1">Robocze</div><div style="flex:1">Soboty</div><div style="flex:1">Niedziele</div></div>
                 <div class="tt-row">
-                    <div class="tt-col">${formatH(l.h_work)}</div>
-                    <div class="tt-col">${formatH(l.h_sat)}</div>
-                    <div class="tt-col">${formatH(l.h_sun)}</div>
+                    <div class="tt-col">${fmt(l.h_work)}</div>
+                    <div class="tt-col">${fmt(l.h_sat)}</div>
+                    <div class="tt-col">${fmt(l.h_sun)}</div>
                 </div>
             </div>
-            
-            <h3 style="margin: 20px 0 10px;">PRZYSTANKI:</h3>
-            ${l.stops.map((s, i) => `<div style="padding:10px; background:white; border-bottom:1px solid #eee; font-weight:600;">${i+1}. ${s}</div>`).join('')}
+            <h4 style="margin:15px 0 5px;">TRASA:</h4>
+            ${l.stops.map(s => `<div style="padding:10px; background:white; margin-bottom:4px; border-radius:5px; font-size:0.85rem;">${s}</div>`).join('')}
         `;
     }
 
-    // --- ADMIN ---
-    function login() { 
-        if(document.getElementById('adm-pass').value === '123') { 
-            document.getElementById('adm-login').style.display='none'; 
-            document.getElementById('adm-dash').style.display='block'; 
-            renderAdm(); 
-        } 
+    function renderInfo() {
+        const d = document.getElementById('info-display'); d.innerHTML = '';
+        db.info.forEach(i => d.innerHTML += `<div style="background:white; padding:15px; border-radius:10px; margin-bottom:10px; border-left:5px solid var(--yellow); font-weight:700;">${i}</div>`);
+    }
+
+    function goMap() { if(db.map) window.open(db.map, '_blank'); else alert("Brak linku do mapy"); }
+
+    // ADMIN
+    function login() { if(document.getElementById('adm-pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; document.getElementById('adm-map-url').value = db.map; renderAdm(); } }
+    
+    function setAdm(s) {
+        ['l','i','m'].forEach(x => document.getElementById('ad-'+x).style.display = (x===s?'block':'none'));
+        ['l','i','m'].forEach(x => document.getElementById('ab-'+x).classList.toggle('active', x===s));
     }
 
     function renderAdm() {
-        const list = document.getElementById('adm-lines-list');
-        list.innerHTML = '';
-        db.lines.forEach((l, i) => {
-            list.innerHTML += `
-                <div class="input-group" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><b>${l.num}</b> <small>${l.dir}</small></div>
-                    <div>
-                        <button onclick="editLine(${i})" style="color:blue; border:none; background:none; font-weight:800; margin-right:10px;">EDYTUJ</button>
-                        <button onclick="deleteLine(${i})" style="color:red; border:none; background:none; font-weight:800;">USUŃ</button>
-                    </div>
-                </div>`;
-        });
+        const ll = document.getElementById('adm-lines-list'); ll.innerHTML = '';
+        db.lines.forEach((l, i) => ll.innerHTML += `<div class="input-group" style="display:flex; justify-content:space-between;"><span><b>${l.num}</b> ${l.dir}</span><div><button onclick="editLine(${i})" style="color:blue; border:none; background:none; font-weight:800; margin-right:10px;">EDYTUJ</button><button onclick="deleteLine(${i})" style="color:red; border:none; background:none; font-weight:800;">USUŃ</button></div></div>`);
+        
+        const il = document.getElementById('adm-info-list'); il.innerHTML = '';
+        db.info.forEach((inf, i) => il.innerHTML += `<div class="input-group" style="display:flex; justify-content:space-between;"><span>${inf.substring(0,20)}...</span><button onclick="db.info.splice(${i},1); save();" style="color:red; border:none; background:none;">USUŃ</button></div>`);
     }
 
-    function openEditor() {
-        editingIndex = null;
-        document.getElementById('ed-title').innerText = "NOWY WARIANT";
-        ['ed-num', 'ed-dir', 'ed-stops', 'ed-h-work', 'ed-h-sat', 'ed-h-sun'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('m-editor').style.display = 'block';
-    }
+    function openEditor() { editingIdx = null; document.getElementById('ed-title').innerText="NOWA LINIA"; ['ed-num','ed-dir','ed-stops','ed-h-work','ed-h-sat','ed-h-sun'].forEach(id => document.getElementById(id).value = ''); document.getElementById('m-editor').style.display='block'; }
+    function editLine(i) { editingIdx = i; const l = db.lines[i]; document.getElementById('ed-title').innerText="EDYTUJ"; document.getElementById('ed-num').value=l.num; document.getElementById('ed-dir').value=l.dir; document.getElementById('ed-type').value=l.type; document.getElementById('ed-stops').value=l.stops.join('\n'); document.getElementById('ed-h-work').value=l.h_work; document.getElementById('ed-h-sat').value=l.h_sat; document.getElementById('ed-h-sun').value=l.h_sun; document.getElementById('m-editor').style.display='block'; }
+    function saveLine() { const l = { num: document.getElementById('ed-num').value, dir: document.getElementById('ed-dir').value, type: document.getElementById('ed-type').value, stops: document.getElementById('ed-stops').value.split('\n').filter(x=>x.trim()), h_work: document.getElementById('ed-h-work').value, h_sat: document.getElementById('ed-h-sat').value, h_sun: document.getElementById('ed-h-sun').value }; if(editingIdx !== null) db.lines[editingIdx] = l; else db.lines.push(l); save(); document.getElementById('m-editor').style.display='none'; }
+    function deleteLine(i) { if(confirm("Usunąć?")) { db.lines.splice(i,1); save(); } }
+    function addInfo() { const t = prompt("Treść komunikatu:"); if(t) { db.info.push(t); save(); } }
+    function saveMap() { db.map = document.getElementById('adm-map-url').value; save(); alert("Zapisano mapę"); }
 
-    function editLine(i) {
-        editingIndex = i;
-        const l = db.lines[i];
-        document.getElementById('ed-title').innerText = "EDYCJA WARIANTU";
-        document.getElementById('ed-num').value = l.num;
-        document.getElementById('ed-dir').value = l.dir;
-        document.getElementById('ed-type').value = l.type;
-        document.getElementById('ed-stops').value = l.stops.join('\n');
-        document.getElementById('ed-h-work').value = l.h_work;
-        document.getElementById('ed-h-sat').value = l.h_sat;
-        document.getElementById('ed-h-sun').value = l.h_sun;
-        document.getElementById('m-editor').style.display = 'block';
-    }
+    // BACKUP
+    function exportData() { const blob = new Blob([JSON.stringify(db)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='mzk_backup.json'; a.click(); }
+    function importData(e) { const reader = new FileReader(); reader.onload = (x) => { db = JSON.parse(x.target.result); save(); alert("Zaimportowano!"); }; reader.readAsText(e.target.files[0]); }
 
-    function saveLine() {
-        const data = {
-            num: document.getElementById('ed-num').value,
-            dir: document.getElementById('ed-dir').value,
-            type: document.getElementById('ed-type').value,
-            stops: document.getElementById('ed-stops').value.split('\n').filter(s => s.trim() !== ""),
-            h_work: document.getElementById('ed-h-work').value,
-            h_sat: document.getElementById('ed-h-sat').value,
-            h_sun: document.getElementById('ed-h-sun').value
-        };
-
-        if(editingIndex !== null) db.lines[editingIndex] = data;
-        else db.lines.push(data);
-
-        save();
-        document.getElementById('m-editor').style.display = 'none';
-        renderAdm();
-    }
-
-    function deleteLine(i) {
-        if(confirm("Usunąć ten wariant?")) {
-            db.lines.splice(i, 1);
-            save();
-            renderAdm();
-        }
-    }
-
-    renderHome();
+    renderHome(); renderInfo();
 </script>
 </body>
 </html>

@@ -7,52 +7,52 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; }
+        :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; --warn: #feca05; --info: #1890ff; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
         header { background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(15px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
-        .brand { font-size: 1.4rem; font-weight: 800; letter-spacing: 1px; }
+        .brand { font-size: 1.4rem; font-weight: 800; color: var(--text); letter-spacing: 1px; }
         .container { max-width: 550px; margin: 0 auto; padding: 15px; }
         .section { display: none; }
         .active-sec { display: block; animation: fadeIn 0.2s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; }
+        .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         
-        /* GRID LINII */
+        /* Menu Główne - Siatka */
         .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; }
-        .line-square { background: var(--surface); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; cursor: pointer; border-bottom: 4px solid transparent; }
-        .line-square.bus { border-bottom-color: var(--accent); }
-        .line-square.tram { border-bottom-color: var(--danger); }
+        .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .line-square.bus { border-bottom: 4px solid var(--accent); }
+        .line-square.tram { border-bottom: 4px solid var(--danger); }
 
-        /* LISTA PRZYSTANKÓW */
-        .stop-row { background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; cursor: pointer; border: 1px solid rgba(255,255,255,0.03); }
-        .stop-time-badge { min-width: 60px; text-align: center; background: rgba(0,171,85,0.1); color: var(--accent); padding: 8px; border-radius: 12px; font-weight: 800; }
-        .stop-info { flex: 1; }
-        .stop-name { font-weight: 600; font-size: 1rem; }
-        .stop-sub { font-size: 0.7rem; color: var(--text-sec); margin-top: 2px; }
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 4px; border-radius: 4px; margin-left: 5px; }
+        /* Karty i Listy */
+        .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); cursor: pointer; position: relative; }
+        .stop-row { display: flex; align-items: center; gap: 15px; }
+        .time-badge { background: rgba(0,171,85,0.1); color: var(--accent); padding: 8px 12px; border-radius: 12px; font-weight: 800; min-width: 65px; text-align: center; }
+        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; }
 
-        /* TABELA ROZKŁADU */
-        .tt-box { width: 100%; margin: 15px 0; background: #0b0f19; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-        .tt-line { display: grid; grid-template-columns: 50px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .tt-line.head { background: #1c252e; font-size: 0.6rem; font-weight: 800; color: var(--text-sec); text-align: center; }
-        .tt-c { padding: 12px 2px; font-size: 0.85rem; text-align: center; }
-        .tt-c.h { font-weight: 800; color: var(--accent); background: rgba(0,171,85,0.05); border-right: 1px solid rgba(255,255,255,0.05); }
-        .today { background: rgba(0,171,85,0.15) !important; color: var(--accent); }
+        /* Tabela Rozkładu w Detalach */
+        .tt-container { width: 100%; margin-top: 15px; background: #0b0f19; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
+        .tt-row { display: grid; grid-template-columns: 45px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .tt-row.header { background: #1c252e; font-size: 0.55rem; font-weight: 800; color: var(--text-sec); text-align: center; }
+        .tt-cell { padding: 10px 4px; font-size: 0.8rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.03); }
+        .tt-cell.hour { font-weight: 800; color: var(--accent); background: rgba(0,171,85,0.05); }
+        .today-hl { background: rgba(0,171,85,0.15) !important; color: var(--accent); }
 
-        /* NAVI */
-        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 80px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; }
+        /* Chipsy przesiadek */
+        .stop-chip { display: inline-flex; align-items: center; gap: 5px; background: #1c252e; padding: 6px 12px; border-radius: 10px; margin: 4px; font-size: 0.8rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); }
+        .stop-chip.bus { color: var(--accent); } .stop-chip.tram { color: var(--danger); }
+
+        /* Nawigacja Dolna */
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
 
-        .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-        .app-card { background: var(--surface); padding: 15px; border-radius: 18px; margin-bottom: 10px; }
+        .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         input, textarea, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
-        .form-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-        .chip { display: inline-block; background: #1c252e; padding: 5px 10px; border-radius: 8px; margin: 3px; font-size: 0.75rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); }
-        .chip.bus { color: var(--accent); } .chip.tram { color: var(--danger); }
+        .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
+        .adm-tab { display: none; }
     </style>
 </head>
 <body>
@@ -63,65 +63,79 @@
     <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
         <div class="group-label">Szukaj Przystanku</div>
-        <input type="text" id="stop-q" placeholder="Wpisz nazwę..." oninput="renderStopSearch()">
-        <div id="stop-search-results"></div>
+        <input type="text" id="stop-search" placeholder="Nazwa..." oninput="renderStopsList()">
+        <div id="public-stops-list"></div>
     </div>
-    <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="news-list"></div></div>
-    <div id="s-info" class="section"><div class="group-label">Kontakt</div><div id="info-cont" class="app-card"></div></div>
-
-    <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="navTo('home')" class="main-btn" style="background:#333">Wróć</button></div>
-    <div id="s-route" class="section"><div id="route-head"></div><div id="route-list"></div><button onclick="navTo('vars')" class="main-btn" style="background:#333">Wróć</button></div>
-    <div id="s-details" class="section"><div id="det-head"></div><div id="det-table"></div><div id="det-extra"></div><button id="det-back" class="main-btn" style="background:#333">Wróć do trasy</button></div>
+    <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
+    <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; cursor:default;"></div></div>
+    
+    <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    <div id="s-route" class="section"><div id="route-head"></div><div id="route-list"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
+    <div id="s-details" class="section"><div id="det-head"></div><div id="det-tt"></div><div id="det-info"></div><button id="det-back-btn" class="main-btn" style="background:#333">Wróć</button></div>
 
     <div id="s-adm" class="section">
-        <div id="adm-login" style="text-align:center;" class="app-card">
-            <input type="password" id="adm-pass" placeholder="Hasło">
-            <button onclick="doLogin()" class="main-btn">Zaloguj</button>
+        <div id="adm-login" class="app-card" style="display:block; text-align:center;">
+            <input type="password" id="pass" placeholder="Hasło">
+            <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
-        <div id="adm-panel" style="display:none;">
-            <button onclick="openForm(-1)" class="main-btn">Dodaj Linię</button>
-            <button onclick="exportDB()" class="main-btn" style="background:#444">Eksportuj</button>
-            <input type="file" id="imp-file" style="display:none" onchange="importDB(event)">
-            <button onclick="document.getElementById('imp-file').click()" class="main-btn" style="background:#444">Importuj</button>
-            <div id="adm-lines-list"></div>
+        <div id="adm-ui" style="display:none;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:5px; margin-bottom:15px;">
+                <button onclick="setTab('l')" class="main-btn" style="padding:10px; font-size:0.6rem;">LINIE</button>
+                <button onclick="setTab('n')" class="main-btn" style="padding:10px; font-size:0.6rem;">NEWS</button>
+                <button onclick="setTab('c')" class="main-btn" style="padding:10px; font-size:0.6rem;">INFO</button>
+                <button onclick="setTab('s')" class="main-btn" style="padding:10px; font-size:0.6rem;">KOPIA</button>
+            </div>
+            <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
+            <div id="tab-n" class="adm-tab"><button onclick="openNewsForm()" class="main-btn">Dodaj News</button><div id="adm-news-list"></div></div>
+            <div id="tab-c" class="adm-tab"><textarea id="edit-contact" style="height:200px;"></textarea><button onclick="saveContact()" class="main-btn">Zapisz Info</button></div>
+            <div id="tab-s" class="adm-tab"><button onclick="exportDB()" class="main-btn">Eksportuj Plik</button><input type="file" id="importFile" style="display:none" onchange="importDB(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn">Importuj Plik</button></div>
         </div>
     </div>
 </div>
 
 <nav>
-    <div onclick="navTo('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
-    <div onclick="navTo('stops')" id="n-stops"><i class="fa-solid fa-map-pin"></i><span>Przystanki</span></div>
-    <div onclick="navTo('news')" id="n-news"><i class="fa-solid fa-bell"></i><span>News</span></div>
-    <div onclick="navTo('info')" id="n-info"><i class="fa-solid fa-info-circle"></i><span>Info</span></div>
-    <div onclick="navTo('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Admin</span></div>
+    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
+    <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-map-pin"></i><span>Przystanki</span></div>
+    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bell"></i><span>News</span></div>
+    <div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-info-circle"></i><span>Info</span></div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Admin</span></div>
 </nav>
 
-<div id="editor" class="form-overlay">
+<div id="form-line" class="overlay-form">
     <h2>Edycja Linii</h2>
-    <input type="text" id="f-num" placeholder="Numer">
-    <input type="text" id="f-dir" placeholder="Kierunek">
-    <select id="f-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="f-h" placeholder="Robocze (godziny po przecinku)"></textarea>
-    <textarea id="f-h-sat" placeholder="Soboty"></textarea>
-    <textarea id="f-h-sun" placeholder="Nd/Św"></textarea>
-    <div id="f-stops"></div>
-    <button onclick="addStopInput()" class="main-btn" style="background:#444">+ Przystanek</button>
-    <button onclick="saveData()" class="main-btn">ZAPISZ</button>
-    <button onclick="closeEditor()" class="main-btn" style="background:none">Anuluj</button>
+    <input type="text" id="fl-num" placeholder="Numer">
+    <input type="text" id="fl-dir" placeholder="Kierunek">
+    <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
+    <textarea id="fl-hours" placeholder="Dni Robocze (po przecinku)"></textarea>
+    <textarea id="fl-hours-sat" placeholder="Soboty"></textarea>
+    <textarea id="fl-hours-sun" placeholder="Nd / Św"></textarea>
+    <div id="fl-stops-list"></div>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
+<div id="form-news" class="overlay-form">
+    <h2>Dodaj Komunikat</h2>
+    <input type="text" id="fn-title" placeholder="Tytuł">
+    <textarea id="fn-content" placeholder="Treść"></textarea>
+    <button onclick="saveNews()" class="main-btn">Dodaj</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
 <script>
-    const DB_VER = 'mzk_stable_v15';
-    let db = { lines: [], news: [], info: "MZK Gorzów", stopsDetails: {} };
-    let editIdx = -1;
+    const DB_KEY = 'mzk_final_v16';
+    let db = { lines: [], news: [], contact: "Dane kontaktowe MZK...", stopDetails: {} };
+    let curIdx = -1;
 
     function init() {
-        const saved = localStorage.getItem(DB_VER);
-        if(saved) db = JSON.parse(saved);
-        renderHome();
+        const local = localStorage.getItem(DB_KEY);
+        if(local) db = JSON.parse(local);
+        render();
+        renderStopsList();
     }
 
-    function sync() { localStorage.setItem(DB_VER, JSON.stringify(db)); renderHome(); }
+    function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); render(); renderStopsList(); }
 
     function getDayType() {
         const d = new Date();
@@ -130,47 +144,47 @@
         return 'work';
     }
 
-    function parseH(str, offset) {
+    function parseHours(str, offset) {
         if(!str) return {};
-        let res = {};
+        let groups = {};
         str.split(',').forEach(h => {
             let p = h.trim().split(':');
             if(p.length < 2) return;
             let d = new Date();
             d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
-            let hh = d.getHours().toString().padStart(2,'0');
-            let mm = d.getMinutes().toString().padStart(2,'0');
-            if(!res[hh]) res[hh] = [];
-            res[hh].push(mm);
+            let hr = d.getHours().toString().padStart(2, '0');
+            let min = d.getMinutes().toString().padStart(2, '0');
+            if(!groups[hr]) groups[hr] = [];
+            groups[hr].push(min);
         });
-        return res;
+        return groups;
     }
 
-    function getNext(str, off) {
-        const groups = parseH(str, off);
+    function getNextArrival(str, offset) {
+        const grouped = parseHours(str, offset);
         const now = new Date();
-        let times = [];
-        Object.keys(groups).forEach(h => groups[h].forEach(m => times.push(h+":"+m)));
-        times.sort();
-        for(let t of times) {
-            let [h,m] = t.split(':');
-            let d = new Date(); d.setHours(h,m,0);
+        let allTimes = [];
+        for(let hr in grouped) { grouped[hr].forEach(m => allTimes.push(hr+":"+m)); }
+        allTimes.sort();
+        for(let t of allTimes) {
+            let [h, m] = t.split(':');
+            let d = new Date(); d.setHours(h, m, 0);
             if(d > now) return { time: t, diff: Math.floor((d-now)/60000) };
         }
         return null;
     }
 
-    function getNextOther(stopName, curNum) {
+    function getOtherLine(stopName, myNum) {
         let best = null;
         const dt = getDayType();
         db.lines.forEach(l => {
-            if(l.num === curNum) return;
+            if(l.num === myNum) return;
             let off = 0;
             l.stops.forEach(s => {
                 off += parseInt(s.time);
                 if(s.name === stopName) {
-                    const hStr = dt==='work'?l.h:(dt==='sat'?l.hSat:l.hSun);
-                    const nxt = getNext(hStr, off);
+                    const hStr = dt==='work'?l.hours:(dt==='sat'?l.hoursSat:l.hoursSun);
+                    const nxt = getNextArrival(hStr, off);
                     if(nxt && (!best || nxt.diff < best.diff)) best = { diff: nxt.diff, num: l.num };
                 }
             });
@@ -178,38 +192,42 @@
         return best;
     }
 
-    function renderHome() {
-        const h = document.getElementById('s-home');
-        h.innerHTML = '<div class="group-label">Linie</div>';
-        const g = document.createElement('div'); g.className = 'lines-grid';
-        let seen = new Set();
+    // --- RENDERY ---
+    function render() {
+        const sHome = document.getElementById('s-home');
+        sHome.innerHTML = '<div class="group-label">Linie</div>';
+        const grid = document.createElement('div'); grid.className = 'lines-grid';
+        let unique = new Set();
         db.lines.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).forEach(l => {
-            if(!seen.has(l.num)) {
-                seen.add(l.num);
-                const d = document.createElement('div'); d.className = `line-square ${l.type}`; d.innerText = l.num;
-                d.onclick = () => openVars(l.num); g.appendChild(d);
+            if(!unique.has(l.num)) {
+                unique.add(l.num);
+                const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = l.num;
+                div.onclick = () => openVariants(l.num); grid.appendChild(div);
             }
         });
-        h.appendChild(g);
-        document.getElementById('info-cont').innerText = db.info;
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l,i)=>`<div class="app-card"><b>${l.num}</b> ${l.dir} <button onclick="openForm(${i})" style="float:right; color:var(--accent); background:none; border:none;">EDYTUJ</button></div>`).join('');
+        sHome.appendChild(grid);
+
+        document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card" style="display:block;"><small>${n.date}</small><h4>${n.title}</h4><p>${n.content}</p></div>`).join('');
+        document.getElementById('contact-display').innerText = db.contact;
+        document.getElementById('edit-contact').value = db.contact;
+
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card" style="display:block;"><b>${l.num}</b> ${l.dir} <button onclick="openLineForm(${i})" style="float:right; background:none; border:none; color:var(--accent); font-weight:800;">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card" style="display:block;"><b>${n.title}</b> <button onclick="deleteNews(${i})" style="float:right; background:none; border:none; color:var(--danger);">USUŃ</button></div>`).join('');
     }
 
-    function openVars(num) {
-        navTo('vars');
-        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
-        const l = document.getElementById('vars-list'); l.innerHTML = '';
-        db.lines.forEach((line, i) => {
-            if(line.num == num) {
-                const d = document.createElement('div'); d.className = 'app-card'; d.innerHTML = `<b>${line.dir}</b>`;
-                d.onclick = () => openRoute(i); l.appendChild(d);
-            }
-        });
+    function openVariants(num) {
+        show('vars');
+        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div><h2>Wybierz kierunek</h2>`;
+        const list = document.getElementById('vars-list'); list.innerHTML = '';
+        db.lines.forEach((l, idx) => { if(l.num == num) {
+            const d = document.createElement('div'); d.className = 'app-card'; d.innerHTML = `<b>${l.dir}</b>`;
+            d.onclick = () => openRoute(idx); list.appendChild(d);
+        }});
     }
 
-    function openRoute(idx) {
-        navTo('route');
-        const line = db.lines[idx];
+    function openRoute(lineIdx) {
+        show('route');
+        const line = db.lines[lineIdx];
         const dt = getDayType();
         document.getElementById('route-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
         const list = document.getElementById('route-list'); list.innerHTML = '';
@@ -217,48 +235,78 @@
         line.stops.forEach(s => {
             totalOff += parseInt(s.time);
             const curOff = totalOff;
-            const hStr = dt==='work'?line.h:(dt==='sat'?line.hSat:line.hSun);
-            const nxt = getNext(hStr, curOff);
-            const other = getNextOther(s.name, line.num);
+            const hStr = dt==='work'?line.hours:(dt==='sat'?line.hoursSat:line.hoursSun);
+            const nxt = getNextArrival(hStr, curOff);
+            const other = getOtherLine(s.name, line.num);
 
-            const d = document.createElement('div'); d.className = 'stop-row';
-            d.innerHTML = `<div class="stop-time-badge">${nxt?nxt.time:'--:--'}</div><div class="stop-info"><div class="stop-name">${s.name}${s.nz?'<span class="nz-badge">NŻ</span>':''}</div><div class="stop-sub">${nxt?'Za '+nxt.diff+' min':'Koniec kursów'}${other?' • Inna ('+other.num+') za '+other.diff+' min':''}</div></div><i class="fa-solid fa-chevron-right" style="opacity:0.2"></i>`;
-            d.onclick = () => openDetails(s.name, idx, curOff);
-            list.appendChild(d);
+            const div = document.createElement('div'); div.className = 'app-card';
+            div.innerHTML = `
+                <div class="stop-row">
+                    <div class="time-badge">${nxt ? nxt.time : '--:--'}</div>
+                    <div style="flex:1">
+                        <b>${s.name}</b>${s.nz ? '<span class="nz-badge">NŻ</span>' : ''}
+                        <div style="font-size:0.7rem; color:var(--text-sec); margin-top:3px;">
+                            ${nxt ? 'Za '+nxt.diff+' min' : 'Brak kursów'}
+                            ${other ? ' • Inna linia ('+other.num+') za '+other.diff+' min' : ''}
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="opacity:0.2"></i>
+                </div>
+            `;
+            div.onclick = () => openDetails(s.name, lineIdx, curOff);
+            list.appendChild(div);
         });
     }
 
     function openDetails(stopName, lineIdx, off) {
-        navTo('details');
+        show('details');
         const line = db.lines[lineIdx];
         const dt = getDayType();
-        document.getElementById('det-head').innerHTML = `<div class="group-label">${stopName}</div><h1>Linia ${line.num}</h1>`;
-        const gW = parseH(line.h, off); const gSa = parseH(line.hSat, off); const gSu = parseH(line.hSun, off);
-        const hours = [...new Set([...Object.keys(gW),...Object.keys(gSa),...Object.keys(gSu)])].sort();
-        document.getElementById('det-table').innerHTML = `<div class="tt-box"><div class="tt-line head"><div class="tt-c">G</div><div class="tt-c ${dt==='work'?'today':''}">Roboczy</div><div class="tt-c ${dt==='sat'?'today':''}">Sobota</div><div class="tt-c ${dt==='sun'?'today':''}">Nd/Św</div></div>${hours.map(h=>`<div class="tt-line"><div class="tt-c h">${h}</div><div class="tt-c ${dt==='work'?'today':''}">${(gW[h]||[]).join(' ')}</div><div class="tt-c ${dt==='sat'?'today':''}">${(gSa[h]||[]).join(' ')}</div><div class="tt-c ${dt==='sun'?'today':''}">${(gSu[h]||[]).join(' ')}</div></div>`).join('')}</div>`;
+        document.getElementById('det-head').innerHTML = `<div class="group-label">Przystanek: ${stopName}</div><h1>Linia ${line.num}</h1>`;
         
-        let inni = []; db.lines.forEach(l=>{if(l.num!==line.num && l.stops.some(st=>st.name===stopName)) if(!inni.some(e=>e.num===l.num)) inni.push(l);});
-        document.getElementById('det-extra').innerHTML = `<div class="group-label">Przesiadki</div><div>${inni.map(p=>`<span class="chip ${p.type}">${p.num}</span>`).join('')}</div>`;
-        document.getElementById('det-back').onclick = () => openRoute(lineIdx);
+        const gW = parseHours(line.hours, off); const gSa = parseHours(line.hoursSat, off); const gSu = parseHours(line.hoursSun, off);
+        const hours = [...new Set([...Object.keys(gW), ...Object.keys(gSa), ...Object.keys(gSu)])].sort();
+
+        document.getElementById('det-tt').innerHTML = `
+            <div class="tt-container">
+                <div class="tt-row header"><div class="tt-cell">Godz</div><div class="tt-cell ${dt==='work'?'today-hl':''}">Roboczy</div><div class="tt-cell ${dt==='sat'?'today-hl':''}">Sobota</div><div class="tt-cell ${dt==='sun'?'today-hl':''}">Nd / Św</div></div>
+                ${hours.map(h => `
+                    <div class="tt-row">
+                        <div class="tt-cell hour">${h}</div>
+                        <div class="tt-cell ${dt==='work'?'today-hl':''}">${(gW[h]||[]).join(' ')}</div>
+                        <div class="tt-cell ${dt==='sat'?'today-hl':''}">${(gSa[h]||[]).join(' ')}</div>
+                        <div class="tt-cell ${dt==='sun'?'today-hl':''}">${(gSu[h]||[]).join(' ')}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        let others = [];
+        db.lines.forEach(l => { if(l.num !== line.num && l.stops.some(st => st.name === stopName)) { if(!others.some(e=>e.num===l.num)) others.push(l); } });
+        document.getElementById('det-info').innerHTML = `<div class="group-label">Wszystkie linie na tym przystanku</div><div>${others.map(o => `<span class="stop-chip ${o.type}">${o.num}</span>`).join('')}</div>`;
+        document.getElementById('det-back-btn').onclick = () => openRoute(lineIdx);
     }
 
-    function renderStopSearch() {
-        const q = document.getElementById('stop-q').value.toLowerCase();
-        const res = document.getElementById('stop-search-results'); res.innerHTML = '';
-        let all = new Set(); db.lines.forEach(l=>l.stops.forEach(s=>all.add(s.name)));
-        [...all].sort().filter(s=>s.toLowerCase().includes(q)).forEach(name=>{
+    function renderStopsList() {
+        const q = document.getElementById('stop-search').value.toLowerCase();
+        const list = document.getElementById('public-stops-list'); list.innerHTML = '';
+        let all = new Set(); db.lines.forEach(l => l.stops.forEach(s => all.add(s.name)));
+        [...all].sort().filter(s => s.toLowerCase().includes(q)).forEach(name => {
             const d = document.createElement('div'); d.className = 'app-card'; d.innerHTML = `<b>${name}</b>`;
             d.onclick = () => {
-                navTo('details'); document.getElementById('det-head').innerHTML = `<h1>${name}</h1>`; document.getElementById('det-table').innerHTML = '';
-                let lines = []; db.lines.forEach(l=>{if(l.stops.some(s=>s.name===name)) if(!lines.some(e=>e.num===l.num)) lines.push(l);});
-                document.getElementById('det-extra').innerHTML = `<div class="group-label">Linie tutaj</div>${lines.map(p=>`<span class="chip ${p.type}">${p.num}</span>`).join('')}`;
-                document.getElementById('det-back').onclick = () => navTo('stops');
+                show('details');
+                document.getElementById('det-head').innerHTML = `<h1>${name}</h1>`;
+                document.getElementById('det-tt').innerHTML = '';
+                let lines = []; db.lines.forEach(l => { if(l.stops.some(s=>s.name===name)) if(!lines.some(e=>e.num===l.num)) lines.push(l); });
+                document.getElementById('det-info').innerHTML = `<div class="group-label">Linie tutaj</div>${lines.map(l=>`<span class="stop-chip ${l.type}">${l.num}</span>`).join('')}`;
+                document.getElementById('det-back-btn').onclick = () => show('stops');
             };
-            res.appendChild(d);
+            list.appendChild(d);
         });
     }
 
-    function navTo(id) {
+    // --- SYSTEM ---
+    function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
@@ -267,43 +315,53 @@
         window.scrollTo(0,0);
     }
 
-    function doLogin() { if(document.getElementById('adm-pass').value==='123') document.getElementById('adm-panel').style.display='block'; }
-    function openForm(idx) {
-        editIdx = idx;
-        const l = idx === -1 ? {num:"", dir:"", type:"bus", h:"", hSat:"", hSun:"", stops:[]} : db.lines[idx];
-        document.getElementById('f-num').value = l.num; document.getElementById('f-dir').value = l.dir;
-        document.getElementById('f-type').value = l.type; document.getElementById('f-h').value = l.h;
-        document.getElementById('f-h-sat').value = l.hSat||""; document.getElementById('f-h-sun').value = l.hSun||"";
-        document.getElementById('f-stops').innerHTML = ''; l.stops.forEach(s => addStopInput(s.name, s.time, s.nz));
-        document.getElementById('editor').style.display = 'block';
+    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
+    function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
+    function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
+
+    // --- FUNKCJE ADMINA (NIC NIE USUNIĘTE) ---
+    function openLineForm(idx) {
+        curIdx = idx;
+        const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", hoursSat:"", hoursSun:"", stops:[]} : db.lines[idx];
+        document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir;
+        document.getElementById('fl-type').value = l.type; document.getElementById('fl-hours').value = l.hours;
+        document.getElementById('fl-hours-sat').value = l.hoursSat||""; document.getElementById('fl-hours-sun').value = l.hoursSun||"";
+        document.getElementById('fl-stops-list').innerHTML = '';
+        l.stops.forEach(s => addStopRow(s.name, s.time, s.nz));
+        document.getElementById('form-line').style.display = 'block';
     }
 
-    function addStopInput(n="", t=2, z=false) {
-        const d = document.createElement('div'); d.className = 'f-stop-row';
-        d.style.display = 'grid'; d.style.gridTemplateColumns = '1fr 60px 40px 40px'; d.style.gap = '5px'; d.style.marginBottom = '8px';
-        d.innerHTML = `<input type="text" value="${n}" class="in-n" placeholder="Nazwa"><input type="number" value="${t}" class="in-t"><input type="checkbox" ${z?'checked':''} class="in-z"><button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:8px;">X</button>`;
-        document.getElementById('f-stops').appendChild(d);
+    function addStopRow(n="", t=2, z=false) {
+        const d = document.createElement('div'); d.className='f-stop-row';
+        d.style.display='grid'; d.style.gridTemplateColumns='1fr 60px 40px 40px'; d.style.gap='5px'; d.style.marginBottom='8px';
+        d.innerHTML=`<input type="text" value="${n}" class="in-n"><input type="number" value="${t}" class="in-t"><input type="checkbox" ${z?'checked':''} class="in-z"><button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:8px;">X</button>`;
+        document.getElementById('fl-stops-list').appendChild(d);
     }
 
-    function saveData() {
+    function saveLine() {
         const stops = Array.from(document.querySelectorAll('.f-stop-row')).map(r => ({
-            name: r.querySelector('.in-n').value,
-            time: r.querySelector('.in-t').value,
-            nz: r.querySelector('.in-z').checked
+            name: r.querySelector('.in-n').value, time: r.querySelector('.in-t').value, nz: r.querySelector('.in-z').checked
         }));
         const data = {
-            num: document.getElementById('f-num').value, dir: document.getElementById('f-dir').value,
-            type: document.getElementById('f-type').value, h: document.getElementById('f-h').value,
-            hSat: document.getElementById('f-h-sat').value, hSun: document.getElementById('f-h-sun').value,
+            num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value,
+            type: document.getElementById('fl-type').value, hours: document.getElementById('fl-hours').value,
+            hoursSat: document.getElementById('fl-hours-sat').value, hoursSun: document.getElementById('fl-hours-sun').value,
             stops: stops
         };
-        if(editIdx === -1) db.lines.push(data); else db.lines[editIdx] = data;
-        sync(); closeEditor();
+        if(curIdx === -1) db.lines.push(data); else db.lines[curIdx] = data;
+        save(); closeForms();
     }
 
-    function closeEditor() { document.getElementById('editor').style.display = 'none'; }
-    function exportDB() { const b = new Blob([JSON.stringify(db)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'mzk.json'; a.click(); }
-    function importDB(e) { const r = new FileReader(); r.onload = (x) => { db = JSON.parse(x.target.result); sync(); location.reload(); }; r.readAsText(e.target.files[0]); }
+    function openNewsForm() { document.getElementById('form-news').style.display='block'; }
+    function saveNews() {
+        db.news.unshift({ title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value, date: new Date().toLocaleDateString() });
+        save(); closeForms();
+    }
+    function deleteNews(i) { db.news.splice(i,1); save(); }
+    function saveContact() { db.contact = document.getElementById('edit-contact').value; save(); alert("Zapisano!"); }
+    
+    function exportDB() { const b = new Blob([JSON.stringify(db)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'mzk_backup.json'; a.click(); }
+    function importDB(e) { const r = new FileReader(); r.onload = (x) => { db = JSON.parse(x.target.result); save(); location.reload(); }; r.readAsText(e.target.files[0]); }
 
     init();
 </script>

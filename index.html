@@ -23,17 +23,19 @@
         .line-square.bus { border-bottom: 4px solid var(--accent); }
         .line-square.tram { border-bottom: 4px solid var(--danger); }
         
-        .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
-        .nearby-info { color: var(--warn); font-size: 0.75rem; margin-top: 3px; font-weight: 400; opacity: 0.9; }
-
-        /* NOWY STYL ROZKŁADU */
+        .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); cursor: pointer; }
+        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; }
+        
+        /* ROZKŁAD - TABELA */
         .tt-container { width: 100%; display: none; margin-top: 15px; background: #0b0f19; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
         .tt-row { display: grid; grid-template-columns: 45px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .tt-row.header { background: #1c252e; font-size: 0.6rem; font-weight: 800; color: var(--text-sec); text-transform: uppercase; text-align: center; }
+        .tt-row.header { background: #1c252e; font-size: 0.55rem; font-weight: 800; color: var(--text-sec); text-transform: uppercase; text-align: center; }
         .tt-cell { padding: 10px 4px; font-size: 0.8rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 3px; }
         .tt-cell.hour { font-weight: 800; color: var(--accent); background: rgba(0,171,85,0.05); }
-        .today-hl { background: rgba(0,171,85,0.1); }
+        .today-hl { background: rgba(0,171,85,0.15) !important; color: var(--accent); font-weight: 600; }
+
+        /* NAJBLIŻSZY ODJAZD */
+        .live-next { background: rgba(254, 202, 5, 0.1); border: 1px solid var(--warn); color: var(--warn); padding: 8px; border-radius: 10px; font-size: 0.75rem; margin-top: 10px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
@@ -43,12 +45,12 @@
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
         
+        .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
+        .day-label { font-size: 0.7rem; color: var(--accent); font-weight: 800; margin: 10px 0 5px 5px; text-transform: uppercase; }
+        
         .adm-nav-main { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
-        
-        .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-        .day-label { font-size: 0.7rem; color: var(--accent); font-weight: 800; margin: 10px 0 5px 5px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -58,16 +60,12 @@
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
-        <div class="group-label">Wyszukiwarka Przystanków</div>
-        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
+        <div class="group-label">Szukaj Przystanku</div>
+        <input type="text" id="stop-search" placeholder="Nazwa przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
-    <div id="s-news" class="section">
-        <div class="group-label">Komunikaty i Zmiany</div>
-        <div id="public-news-list"></div>
-    </div>
-    <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
-    
+    <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
+    <div id="s-contact" class="section"><div class="group-label">Info</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
 
@@ -83,17 +81,13 @@
                 <button onclick="setTab('n')" id="mt-n">NEWS</button>
                 <button onclick="setTab('c')" id="mt-c">INFO</button>
                 <button onclick="setTab('s')" id="mt-s">KOPIA</button>
-                <button onclick="setTab('z')" id="mt-z">ZAAW</button>
             </div>
-            <div id="tab-l" class="adm-tab">
-                <button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button>
-                <div id="adm-lines-list"></div>
+            <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
+            <div id="tab-s" class="adm-tab" style="display:none;">
+                <button onclick="exportFullBackup()" class="main-btn">Eksportuj Backup</button>
+                <input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)">
+                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Backup</button>
             </div>
-            <div id="tab-p" class="adm-tab" style="display:none;"><div class="group-label">Zarządzaj Bazą Przystanków</div><div id="adm-stops-list"></div></div>
-            <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
-            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj Pełny Backup</button><input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Pełny Backup</button></div>
-            <div id="tab-z" class="adm-tab" style="display:none;"><div class="group-label">Ustawienia Zaawansowane</div><div id="adm-cats-list"></div></div>
         </div>
     </div>
 </div>
@@ -111,45 +105,35 @@
     <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    
-    <div class="day-label">Dni Robocze</div>
-    <textarea id="fl-hours" placeholder="Godziny (np. 08:10, 08:40)"></textarea>
-    
-    <div class="day-label">Soboty</div>
-    <textarea id="fl-hours-sat" placeholder="Godziny w soboty..."></textarea>
-    
-    <div class="day-label">Niedziele i Święta</div>
-    <textarea id="fl-hours-sun" placeholder="Godziny w niedziele..."></textarea>
-
+    <div class="day-label">Robocze</div><textarea id="fl-hours"></textarea>
+    <div class="day-label">Soboty</div><textarea id="fl-hours-sat"></textarea>
+    <div class="day-label">Niedziele/Święta</div><textarea id="fl-hours-sun"></textarea>
     <div id="fl-stops-list"></div>
-    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj Przystanek</button>
-    <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
 <script>
-    // ZACHOWUJĘ TWOJĄ NAZWĘ BACKUPU
     const DB_KEY = 'mzk_full_backup_v12';
     let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
     let curLineIdx = -1;
-    let allAutoStops = [];
 
     function init() {
         const local = localStorage.getItem(DB_KEY);
         if(local) db = JSON.parse(local);
-        extractStops();
         render();
     }
 
-    function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); extractStops(); render(); }
+    function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); render(); }
 
-    function extractStops() { 
-        let sSet = new Set(); 
-        db.lines.forEach(l => { if(Array.isArray(l.stops)) l.stops.forEach(s => { if(s.name) sSet.add(s.name); }); }); 
-        allAutoStops = [...sSet].sort(); 
+    function getDayType() {
+        const d = new Date();
+        if(d.getDay() === 0) return 'sun';
+        if(d.getDay() === 6) return 'sat';
+        return 'work';
     }
 
-    // LOGIKA GRUPOWANIA GODZIN DLA ŁADNEGO WYGLĄDU
     function getGroupedHours(hoursStr, offset = 0) {
         if(!hoursStr) return {};
         let groups = {};
@@ -161,7 +145,7 @@
             let hr = d.getHours().toString().padStart(2, '0');
             let min = d.getMinutes().toString().padStart(2, '0');
             if(!groups[hr]) groups[hr] = [];
-            groups[hr].push(min);
+            groups[hr].push({min, full: `${hr}:${min}`});
         });
         return groups;
     }
@@ -172,37 +156,34 @@
         document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
         const body = document.getElementById('tt-body');
         body.innerHTML = '';
-        
-        const now = new Date();
-        const dayType = now.getDay() === 6 ? 'sat' : (now.getDay() === 0 ? 'sun' : 'work');
+        const dayType = getDayType();
 
         let totalOffset = 0;
         line.stops.forEach((stop, sIdx) => {
             totalOffset += parseInt(stop.time) || 0;
             const currentOffset = totalOffset;
-            const det = db.stopDetails[stop.name] || {nearby:"", isNz: stop.nz};
-            
             const card = document.createElement('div');
             card.className = 'app-card';
             card.style.display = 'block';
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <b>${stop.name} ${det.isNz?'<span class="nz-badge">NŻ</span>':''}</b>
-                    <i class="fa-solid fa-chevron-down" style="font-size:0.7rem; opacity:0.3;"></i>
+                    <b>${stop.name} ${stop.nz?'<span class="nz-badge">NŻ</span>':''}</b>
+                    <i class="fa-solid fa-chevron-down" style="opacity:0.3;"></i>
                 </div>
-                ${det.nearby ? `<div class="nearby-info">${det.nearby}</div>` : ''}
+                <div id="live-${sIdx}"></div>
                 <div id="tt-res-${sIdx}" class="tt-container">
                     <div class="tt-row header">
                         <div class="tt-cell">Godz</div>
                         <div class="tt-cell ${dayType==='work'?'today-hl':''}">Roboczy</div>
                         <div class="tt-cell ${dayType==='sat'?'today-hl':''}">Sobota</div>
-                        <div class="tt-cell ${dayType==='sun'?'today-hl':''}">Nd / Św</div>
+                        <div class="tt-cell ${dayType==='sun'?'today-hl':''}">Nd/Św</div>
                     </div>
                 </div>
             `;
 
             card.onclick = () => {
                 const res = document.getElementById(`tt-res-${sIdx}`);
+                const live = document.getElementById(`live-${sIdx}`);
                 const isHidden = res.style.display === 'none' || res.style.display === '';
                 res.style.display = isHidden ? 'block' : 'none';
                 
@@ -212,14 +193,29 @@
                     const gSun = getGroupedHours(line.hoursSun, currentOffset);
                     const allHours = [...new Set([...Object.keys(gWork), ...Object.keys(gSat), ...Object.keys(gSun)])].sort();
                     
-                    let html = res.innerHTML; // nagłówek
+                    // Znajdź najbliższy odjazd
+                    const currentGroups = dayType==='work' ? gWork : (dayType==='sat' ? gSat : gSun);
+                    const now = new Date();
+                    let nextTime = null;
+                    Object.values(currentGroups).flat().forEach(t => {
+                        const [th, tm] = t.full.split(':');
+                        const d = new Date(); d.setHours(th, tm, 0);
+                        if(d > now && (!nextTime || d < nextTime)) nextTime = d;
+                    });
+
+                    if(nextTime) {
+                        const diff = Math.floor((nextTime - now) / 60000);
+                        live.innerHTML = `<div class="live-next"><i class="fa-solid fa-clock"></i> Najbliższy: ${nextTime.getHours()}:${nextTime.getMinutes().toString().padStart(2,'0')} (za ${diff} min)</div>`;
+                    }
+
+                    let html = res.innerHTML;
                     allHours.forEach(h => {
                         html += `
                             <div class="tt-row">
                                 <div class="tt-cell hour">${h}</div>
-                                <div class="tt-cell ${dayType==='work'?'today-hl':''}">${(gWork[h]||[]).join(' ')}</div>
-                                <div class="tt-cell ${dayType==='sat'?'today-hl':''}">${(gSat[h]||[]).join(' ')}</div>
-                                <div class="tt-cell ${dayType==='sun'?'today-hl':''}">${(gSun[h]||[]).join(' ')}</div>
+                                <div class="tt-cell ${dayType==='work'?'today-hl':''}">${(gWork[h]||[]).map(m=>m.min).join(' ')}</div>
+                                <div class="tt-cell ${dayType==='sat'?'today-hl':''}">${(gSat[h]||[]).map(m=>m.min).join(' ')}</div>
+                                <div class="tt-cell ${dayType==='sun'?'today-hl':''}">${(gSun[h]||[]).map(m=>m.min).join(' ')}</div>
                             </div>`;
                     });
                     res.innerHTML = html;
@@ -250,12 +246,9 @@
             nz: el.querySelector('.edit-stop-nz').checked
         })).filter(s => s.name !== "");
         const data = { 
-            num: document.getElementById('fl-num').value, 
-            dir: document.getElementById('fl-dir').value, 
-            type: document.getElementById('fl-type').value, 
-            hours: document.getElementById('fl-hours').value,
-            hoursSat: document.getElementById('fl-hours-sat').value,
-            hoursSun: document.getElementById('fl-hours-sun').value,
+            num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, 
+            type: document.getElementById('fl-type').value, hours: document.getElementById('fl-hours').value,
+            hoursSat: document.getElementById('fl-hours-sat').value, hoursSun: document.getElementById('fl-hours-sun').value,
             stops: stops 
         };
         if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
@@ -265,33 +258,44 @@
     function addStopRow(name = "", time = 2, nz = false) {
         const div = document.createElement('div'); div.className = 'stop-edit-item';
         div.style.cssText = "display:grid; grid-template-columns: 1fr 60px 40px 40px; gap:5px; margin-bottom:8px;";
-        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name" placeholder="Nazwa"><input type="number" value="${time}" class="edit-stop-time"><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"><button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:8px;">X</button>`;
+        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time"><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"><button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:8px;">X</button>`;
         document.getElementById('fl-stops-list').appendChild(div);
     }
 
-    // Pozostałe funkcje (Home, News, Login) - bez zmian
+    function exportFullBackup() {
+        const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = "mzk_backup.json"; a.click();
+    }
+
+    function importFullBackup(e) {
+        const reader = new FileReader();
+        reader.onload = (ev) => { db = JSON.parse(ev.target.result); save(); location.reload(); };
+        reader.readAsText(e.target.files[0]);
+    }
+
     function render() {
         const sHome = document.getElementById('s-home'); sHome.innerHTML = '<div class="group-label">Linie</div>';
         const grid = document.createElement('div'); grid.className = 'lines-grid';
-        db.lines.forEach((l, i) => {
-            const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = l.num;
-            div.onclick = () => openVariants(l.num); grid.appendChild(div);
+        let uniqueNums = [...new Set(db.lines.map(l => l.num))];
+        uniqueNums.forEach(num => {
+            const l = db.lines.find(x => x.num === num);
+            const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = num;
+            div.onclick = () => openVariants(num); grid.appendChild(div);
         });
         sHome.appendChild(grid);
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><b>${l.num}</b> ${l.dir} <button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><b>${l.num}</b> ${l.dir} <button onclick="openLineForm(${i})" style="float:right; color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
     }
 
     function openVariants(num) {
         show('vars');
         document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
         const list = document.getElementById('vars-list'); list.innerHTML = '';
-        db.lines.forEach((l, index) => {
-            if(String(l.num) === String(num)) {
-                const d = document.createElement('div'); d.className = "app-card";
-                d.innerHTML = `<b>Do: ${l.dir}</b> <i class="fa-solid fa-arrow-right"></i>`;
-                d.onclick = () => renderTimetable(index);
-                list.appendChild(d);
-            }
+        db.lines.filter(l => l.num == num).forEach(l => {
+            const d = document.createElement('div'); d.className = "app-card";
+            d.innerHTML = `<b>Kierunek: ${l.dir}</b>`;
+            d.onclick = () => renderTimetable(db.lines.indexOf(l));
+            list.appendChild(d);
         });
     }
 

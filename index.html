@@ -3,107 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK GORZÓW - SYSTEM FACIO V9</title>
+    <title>MZK GORZÓW - SYSTEM FACIO V10</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --mzk-green: #008744; --mzk-yellow: #feca05; --bg: #f4f7f6; --dark: #1a1a1a; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--dark); overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
         
-        header { background: var(--mzk-green); color: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--mzk-yellow); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        header { background: var(--mzk-green); color: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--mzk-yellow); }
         nav { display: flex; justify-content: center; gap: 10px; background: #fff; padding: 10px; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 1000; }
-        nav button { background: #eee; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        nav button { background: #eee; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
         nav button.active { background: var(--mzk-green); color: white; }
 
-        .container { max-width: 900px; margin: auto; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; padding: 20px; }
         .section { display: none; }
         .section.active { display: block; }
 
         /* SIATKA LINII */
         .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 15px; }
-        .line-box { background: white; border: 2px solid #ddd; border-radius: 15px; padding: 25px 5px; text-align: center; font-weight: 900; font-size: 1.6rem; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .line-box:hover { border-color: var(--mzk-green); transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .line-box { background: white; border: 2px solid #ddd; border-radius: 12px; padding: 20px 5px; text-align: center; font-weight: 900; font-size: 1.6rem; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .line-box:hover { border-color: var(--mzk-green); transform: translateY(-3px); }
 
-        /* POZIOMA LINIA TRASY */
-        .route-timeline { display: flex; overflow-x: auto; padding: 50px 30px; background: white; border-radius: 20px; gap: 0; align-items: center; border: 1px solid #eee; margin-top: 20px; }
-        .timeline-stop { position: relative; flex: 0 0 160px; text-align: center; cursor: pointer; padding-bottom: 20px; }
-        .timeline-stop::before { content: ''; position: absolute; top: 30px; left: 0; width: 100%; height: 5px; background: var(--mzk-green); z-index: 1; }
-        .timeline-stop .dot { width: 20px; height: 20px; background: white; border: 5px solid var(--mzk-green); border-radius: 50%; position: relative; z-index: 2; margin: 15px auto; transition: 0.3s; }
-        .timeline-stop:hover .dot { background: var(--mzk-yellow); transform: scale(1.4); }
-        .stop-label { font-size: 0.9rem; font-weight: 800; display: block; padding: 0 5px; line-height: 1.2; }
-        .time-diff { font-size: 0.75rem; color: var(--mzk-green); font-weight: 900; position: absolute; top: 0; width: 100%; }
+        /* POZIOMA LINIA TRASY - FIX */
+        .route-wrapper { background: white; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .route-timeline { display: flex; overflow-x: auto; padding: 60px 40px; gap: 0; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .timeline-stop { position: relative; flex: 0 0 180px; text-align: center; cursor: pointer; min-height: 100px; }
+        
+        /* LINIA ŁĄCZĄCA */
+        .timeline-stop::before { content: ''; position: absolute; top: 30px; left: 0; width: 100%; height: 6px; background: var(--mzk-green); z-index: 1; }
+        .timeline-stop:first-child::before { width: 50%; left: 50%; }
+        .timeline-stop:last-child::before { width: 50%; }
+        
+        .timeline-stop .dot { width: 22px; height: 22px; background: white; border: 5px solid var(--mzk-green); border-radius: 50%; position: relative; z-index: 2; margin: 15px auto; transition: 0.3s; box-shadow: 0 0 0 4px white; }
+        .timeline-stop:hover .dot { background: var(--mzk-yellow); transform: scale(1.3); }
+        
+        .stop-label { font-size: 0.9rem; font-weight: 800; display: block; padding: 0 10px; color: #333; }
+        .time-tag { font-size: 0.75rem; color: #007bff; font-weight: 900; position: absolute; bottom: -5px; width: 100%; left: 0; }
+        .diff-tag { font-size: 0.7rem; color: #666; position: absolute; top: 0; width: 100%; left: 0; }
 
-        /* TABLICZKA PRZYSTANKOWA */
-        .tt-card { background: white; border: 3px solid var(--dark); border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .tt-header { background: var(--dark); color: white; padding: 20px; text-align: center; }
-        .tt-title { background: var(--mzk-yellow); padding: 15px; text-align: center; font-weight: 900; border-bottom: 3px solid var(--dark); font-size: 1.2rem; }
-        .tt-grid { display: grid; grid-template-columns: 60px 1fr 1fr 1fr; border-top: 1px solid #333; }
-        .tt-col-head { background: #e0e0e0; padding: 10px 5px; font-size: 0.75rem; font-weight: 900; text-align: center; border-bottom: 3px solid var(--dark); border-right: 1px solid #aaa; text-transform: uppercase; }
-        .tt-hour { background: #f0f0f0; font-weight: 900; text-align: center; padding: 12px 0; border-right: 3px solid var(--dark); border-bottom: 1px solid #ccc; font-size: 1.3rem; }
-        .tt-mins { padding: 12px 8px; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; font-size: 1.1rem; font-weight: 600; display: flex; gap: 8px; flex-wrap: wrap; align-content: center; }
-        .marker { color: #d00; font-size: 0.8rem; vertical-align: super; font-weight: 900; }
+        /* TABLICZKA */
+        .tt-card { background: white; border: 3px solid var(--dark); border-radius: 15px; overflow: hidden; }
+        .tt-header { background: var(--dark); color: white; padding: 15px; text-align: center; }
+        .tt-title { background: var(--mzk-yellow); padding: 10px; text-align: center; font-weight: 900; border-bottom: 3px solid var(--dark); }
+        .tt-grid { display: grid; grid-template-columns: 60px 1fr 1fr 1fr; }
+        .tt-col-head { background: #e0e0e0; padding: 10px 5px; font-size: 0.7rem; font-weight: 900; text-align: center; border-bottom: 3px solid var(--dark); border-right: 1px solid #999; }
+        .tt-hour { background: #f0f0f0; font-weight: 900; text-align: center; padding: 12px 0; border-right: 3px solid var(--dark); border-bottom: 1px solid #ccc; font-size: 1.2rem; }
+        .tt-mins { padding: 10px; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; font-size: 1.1rem; font-weight: 600; display: flex; gap: 8px; flex-wrap: wrap; }
+        .marker { color: red; font-size: 0.7rem; vertical-align: super; font-weight: 900; }
 
-        /* ADMIN / EDYTOR */
-        .edit-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); }
-        .day-group { background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #eee; }
-        .day-group label { font-weight: 900; color: var(--mzk-green); font-size: 0.85rem; text-transform: uppercase; }
-        textarea { width: 100%; height: 70px; margin-top: 8px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Inter'; font-size: 0.9rem; resize: vertical; }
-        input[type="text"], input[type="number"] { padding: 12px; border: 1px solid #ccc; border-radius: 8px; width: 100%; box-sizing: border-box; }
-        .btn { padding: 14px 25px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        /* EDYTOR */
+        .edit-box { background: white; padding: 20px; border-radius: 15px; }
+        textarea { width: 100%; height: 60px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; margin-bottom: 10px; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
         .btn-green { background: var(--mzk-green); color: white; }
-        .btn-green:hover { background: #006b36; }
-        .btn-blue { background: #007bff; color: white; width: 100%; margin-top: 10px; }
-        .btn-red { background: #e74c3c; color: white; }
     </style>
 </head>
 <body>
 
-<header><h1>MZK GORZÓW • SYSTEM FACIO V9</h1></header>
+<header><h1>MZK GORZÓW • SYSTEM ROZKŁADÓW</h1></header>
 
 <nav>
     <button id="nav-pax" class="active" onclick="showSec('pax-sec')">PASAŻER</button>
-    <button id="nav-adm" onclick="showSec('adm-sec')">ADMIN (FACIO)</button>
+    <button id="nav-adm" onclick="showSec('adm-sec')">PANEL FACIO</button>
 </nav>
 
 <div class="container">
     <div id="pax-sec" class="section active">
-        <h2 style="text-align:center; font-weight:900; margin-bottom:30px;">Wybierz numer linii:</h2>
+        <h2 style="text-align:center; font-weight:900;">Wybierz linię:</h2>
         <div id="pax-grid" class="line-grid"></div>
     </div>
 
     <div id="route-sec" class="section">
-        <button class="btn btn-green" onclick="showSec('pax-sec')">← Powrót do listy</button>
-        <h2 id="route-line-name" style="margin-top:25px; font-weight:900; color:var(--mzk-green);"></h2>
-        <div style="background:#fff3cd; padding:10px; border-radius:10px; font-size:0.85rem; margin-bottom:15px; text-align:center;">
-            Przesuń listę w bok i kliknij przystanek, by zobaczyć tabliczkę:
+        <button class="btn btn-green" onclick="showSec('pax-sec')">← POWRÓT</button>
+        <h2 id="route-line-name" style="margin-top:20px; font-weight:900;"></h2>
+        <p style="font-size:0.9rem; color:#666;">Przesuń w bok i kliknij przystanek:</p>
+        <div class="route-wrapper">
+            <div id="route-timeline" class="route-timeline"></div>
         </div>
-        <div id="route-timeline" class="route-timeline"></div>
     </div>
 
     <div id="tt-sec" class="section">
-        <button id="back-to-route" class="btn btn-green" style="margin-bottom:20px;">← Powrót do trasy</button>
+        <button id="back-to-route" class="btn btn-green" style="margin-bottom:20px;">← POWRÓT DO TRASY</button>
         <div class="tt-card">
-            <div class="tt-header"><h1 id="tt-line-num" style="margin:0; font-size:4rem; letter-spacing:-2px;">--</h1></div>
-            <div class="tt-title"><span id="tt-stop-name">---</span><br><small style="color:#555; font-weight:600;">Kierunek: <span id="tt-dir">---</span></small></div>
+            <div class="tt-header"><h1 id="tt-line-num" style="margin:0; font-size:3.5rem; letter-spacing:-2px;">--</h1></div>
+            <div class="tt-title"><span id="tt-stop-name">---</span><br><small>Kierunek: <span id="tt-dir">---</span></small></div>
             <div class="tt-grid">
-                <div class="tt-col-head" style="background:#ddd">Godz.</div>
+                <div class="tt-col-head">Godz.</div>
                 <div class="tt-col-head">Dni Robocze</div>
                 <div class="tt-col-head">Soboty</div>
-                <div class="tt-col-head">Niedziele i Święta</div>
+                <div class="tt-col-head">Niedziele</div>
             </div>
             <div id="tt-body"></div>
         </div>
     </div>
 
     <div id="adm-sec" class="section">
-        <div id="login-box" style="max-width:380px; margin:60px auto; text-align:center; padding:40px; background:white; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.1);">
-            <h2 style="font-weight:900; color:var(--mzk-green);">Panel Facio</h2>
-            <input type="text" id="user" placeholder="Login" style="margin-bottom:10px;">
-            <input type="password" id="pass" placeholder="Hasło" style="margin-bottom:20px;">
-            <button class="btn btn-green" onclick="login()" style="width:100%">Zaloguj do systemu</button>
+        <div id="login-box" style="max-width:350px; margin:50px auto; text-align:center; padding:30px; background:white; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+            <h2 style="color:var(--mzk-green); font-weight:900;">Autoryzacja Facio</h2>
+            <input type="text" id="user" placeholder="Login" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ccc;">
+            <input type="password" id="pass" placeholder="Hasło" style="width:100%; padding:10px; margin-bottom:20px; border-radius:8px; border:1px solid #ccc;">
+            <button class="btn btn-green" onclick="login()" style="width:100%">ZALOGUJ</button>
         </div>
         <div id="adm-dash" style="display:none">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <h3 style="font-weight:900;">Twoje Linie MZK:</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h3>Twoje Linie:</h3>
                 <button class="btn btn-green" onclick="openEd('new')">+ NOWA LINIA</button>
             </div>
             <div id="adm-grid" class="line-grid"></div>
@@ -112,56 +114,41 @@
 </div>
 
 <div id="editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:2000; display:none; overflow-y:auto;">
-    <div style="background:var(--dark); color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100;">
-        <h2 id="ed-title" style="margin:0; font-weight:900;">Konfiguracja Linii</h2>
-        <button class="btn btn-red" onclick="closeEd()">ZAMKNIJ BEZ ZAPISU X</button>
+    <div style="background:var(--dark); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0;">
+        <h2 id="ed-title" style="margin:0">Konfigurator Facio</h2>
+        <button class="btn" style="background:#ff4d4d; color:white;" onclick="closeEd()">ZAMKNIJ X</button>
     </div>
     <div class="container">
-        <div class="edit-card">
-            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:15px; margin-bottom:20px;">
-                <div>
-                    <label style="font-weight:700; font-size:0.8rem;">Numer:</label>
-                    <input type="number" id="inp-num" placeholder="np. 124">
-                </div>
-                <div>
-                    <label style="font-weight:700; font-size:0.8rem;">Kierunek (Pętla docelowa):</label>
-                    <input type="text" id="inp-dir" placeholder="np. PIASKI / LONDYŃSKA">
-                </div>
+        <div class="edit-box">
+            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px; margin-bottom:20px;">
+                <input type="number" id="inp-num" placeholder="Nr linii">
+                <input type="text" id="inp-dir" placeholder="Kierunek końcowy">
             </div>
             
-            <div class="day-group">
-                <label>Odjazdy: Dni Robocze</label>
-                <textarea id="inp-rob" placeholder="05:10, 05:30s, 06:00, 06:15..."></textarea>
-            </div>
+            <label><b>Dni Robocze (odjazdy z pętli):</b></label>
+            <textarea id="inp-rob" placeholder="05:10, 05:30..."></textarea>
             
-            <div class="day-group">
-                <label>Odjazdy: Soboty</label>
-                <textarea id="inp-sob" placeholder="07:00, 07:40, 08:20..."></textarea>
-            </div>
+            <label><b>Soboty:</b></label>
+            <textarea id="inp-sob" placeholder="07:00, 08:00..."></textarea>
             
-            <div class="day-group">
-                <label>Odjazdy: Niedziele i Święta</label>
-                <textarea id="inp-nie" placeholder="08:30, 09:30, 10:30..."></textarea>
+            <label><b>Niedziele:</b></label>
+            <textarea id="inp-nie" placeholder="09:00, 10:00..."></textarea>
+
+            <div style="background:#f0f7ff; padding:15px; border-radius:10px; margin:20px 0; border: 2px dashed #007bff;">
+                <label><b>Wklej przystanki jeden pod drugim:</b></label>
+                <textarea id="bulk" placeholder="Katedra&#10;Piaski&#10;Wieprzyce"></textarea>
+                <button class="btn" style="background:#007bff; color:white; width:100%" onclick="processBulk()">GENERUJ LISTĘ</button>
             </div>
 
-            <div style="background:#e3f2fd; padding:20px; border-radius:15px; border:2px dashed #007bff; margin:25px 0;">
-                <label style="font-weight:900; color:#0056b3;">SZYBKIE DODAWANIE TRASY (Z Notatnika):</label>
-                <p style="font-size:0.75rem; color:#666; margin:5px 0 10px 0;">Wklej nazwy przystanków jedna pod drugą.</p>
-                <textarea id="bulk" placeholder="Katedra&#10;Arsenał&#10;Rondo Santockie"></textarea>
-                <button class="btn btn-blue" onclick="processBulk()">GENERUJ LISTĘ PRZYSTANKÓW</button>
-            </div>
-
-            <h3 style="border-bottom:2px solid #eee; padding-bottom:10px; margin-top:30px;">Lista Przystanków i Czasy Przejazdu:</h3>
             <div id="ed-stops-list"></div>
-            
-            <button class="btn btn-green" style="width:100%; height:70px; margin-top:30px; font-size:1.4rem; box-shadow:0 10px 20px rgba(0,135,68,0.3);" onclick="saveLine()">ZAPISZ ROZKŁAD W BAZIE</button>
-            <button class="btn btn-red" style="width:100%; margin-top:15px;" onclick="delLine()">USUŃ CAŁĄ LINIĘ</button>
+            <button class="btn btn-green" style="width:100%; height:60px; margin-top:20px; font-size:1.2rem;" onclick="saveLine()">ZAPISZ ROZKŁAD</button>
+            <button class="btn" style="width:100%; margin-top:10px; color:red;" onclick="delLine()">USUŃ LINIĘ</button>
         </div>
     </div>
 </div>
 
 <script>
-    const DB_KEY = 'MZK_FINAL_DATA_V9';
+    const DB_KEY = 'MZK_FACIO_V10_DATA';
     let db = JSON.parse(localStorage.getItem(DB_KEY)) || { lines: {} };
 
     function login() {
@@ -169,61 +156,55 @@
             document.getElementById('login-box').style.display='none';
             document.getElementById('adm-dash').style.display='block';
             renderGrids();
-        } else alert("Błąd logowania!");
+        } else alert("Błąd!");
     }
 
     function showSec(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        if(id === 'pax-sec') document.getElementById('nav-pax').classList.add('active');
-        if(id === 'adm-sec') document.getElementById('nav-adm').classList.add('active');
+        if(id==='pax-sec') document.getElementById('nav-pax').classList.add('active');
     }
 
-    // --- LOGIKA ADMINISTRATORA ---
-    let curLineNum = null;
+    // --- ADMIN ---
+    let curLine = null;
     function openEd(n) {
-        curLineNum = n; 
-        document.getElementById('editor').style.display='block';
+        curLine = n; document.getElementById('editor').style.display='block';
         document.getElementById('ed-stops-list').innerHTML = '';
         if(n === 'new') {
-            document.getElementById('ed-title').innerText = "Nowa Linia";
             ['inp-num','inp-dir','inp-rob','inp-sob','inp-nie'].forEach(i => document.getElementById(i).value = '');
         } else {
-            document.getElementById('ed-title').innerText = "Edycja Linii " + n;
             const l = db.lines[n];
             document.getElementById('inp-num').value = n;
             document.getElementById('inp-dir').value = l.dir;
-            document.getElementById('inp-rob').value = l.rob.join(', ');
-            document.getElementById('inp-sob').value = l.sob.join(', ');
-            document.getElementById('inp-nie').value = l.nie.join(', ');
-            l.stops.forEach(s => addStopRow(s));
+            document.getElementById('inp-rob').value = (l.rob || []).join(', ');
+            document.getElementById('inp-sob').value = (l.sob || []).join(', ');
+            document.getElementById('inp-nie').value = (l.nie || []).join(', ');
+            (l.stops || []).forEach(s => addStopRow(s));
         }
     }
 
     function closeEd() { document.getElementById('editor').style.display='none'; renderGrids(); }
 
-    function processBulk() {
-        const lines = document.getElementById('bulk').value.split('\n').filter(n=>n.trim()!=='');
-        lines.forEach(n => addStopRow({name: n.trim(), adj: 0}));
-        document.getElementById('bulk').value = '';
-    }
-
     function addStopRow(data) {
         const id = 's'+Math.random().toString(36).substr(2,7);
         document.getElementById('ed-stops-list').insertAdjacentHTML('beforeend', `
-            <div style="display:grid; grid-template-columns: 2fr 1fr 60px; gap:10px; margin-bottom:8px; align-items:center;" id="${id}">
-                <input type="text" class="s-name" value="${data.name}" placeholder="Nazwa">
-                <input type="number" class="s-adj" value="${data.adj}" placeholder="+min">
-                <button onclick="this.parentElement.remove()" style="color:white; background:#ff4d4d; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;">X</button>
+            <div style="display:grid; grid-template-columns: 2fr 1fr 50px; gap:10px; margin-bottom:5px;" id="${id}">
+                <input type="text" class="s-name" value="${data.name || ''}" placeholder="Przystanek" style="padding:8px; border-radius:5px; border:1px solid #ccc;">
+                <input type="number" class="s-adj" value="${data.adj || 0}" placeholder="+min" style="padding:8px; border-radius:5px; border:1px solid #ccc;">
+                <button onclick="this.parentElement.remove()" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">X</button>
             </div>`);
     }
 
+    function processBulk() {
+        document.getElementById('bulk').value.split('\n').filter(n=>n.trim()!=='').forEach(n => addStopRow({name: n.trim(), adj: 0}));
+        document.getElementById('bulk').value = '';
+    }
+
     function saveLine() {
-        const num = document.getElementById('inp-num').value;
-        if(!num) { alert("Podaj numer linii!"); return; }
-        
-        db.lines[num] = {
+        const n = document.getElementById('inp-num').value;
+        if(!n) return;
+        db.lines[n] = {
             dir: document.getElementById('inp-dir').value.toUpperCase(),
             rob: document.getElementById('inp-rob').value.split(',').map(s=>s.trim()).filter(s=>s!==''),
             sob: document.getElementById('inp-sob').value.split(',').map(s=>s.trim()).filter(s=>s!==''),
@@ -233,86 +214,82 @@
                 adj: parseInt(el.querySelector('.s-adj').value) || 0
             }))
         };
-        
         localStorage.setItem(DB_KEY, JSON.stringify(db));
-        alert("Zapisano pomyślnie!");
         closeEd();
     }
 
-    function delLine() { if(confirm("Czy na pewno chcesz usunąć tę linię?")) { delete db.lines[curLineNum]; localStorage.setItem(DB_KEY, JSON.stringify(db)); closeEd(); } }
+    function delLine() { if(confirm("Usunąć?")) { delete db.lines[curLine]; localStorage.setItem(DB_KEY, JSON.stringify(db)); closeEd(); } }
 
-    // --- LOGIKA PASAŻERA ---
+    // --- PASAŻER ---
     function renderGrids() {
         const pGrid = document.getElementById('pax-grid');
         const aGrid = document.getElementById('adm-grid');
         pGrid.innerHTML = ''; aGrid.innerHTML = '';
-        
         Object.keys(db.lines).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(n => {
-            const boxHtml = `<div class="line-box" onclick="showRoute('${n}')">${n}<br><small style="font-size:0.6rem; color:#888; font-weight:400;">➔ ${db.lines[n].dir}</small></div>`;
-            const admHtml = `<div class="line-box" onclick="openEd('${n}')">${n}</div>`;
-            pGrid.innerHTML += boxHtml;
-            aGrid.innerHTML += admHtml;
+            const l = db.lines[n];
+            pGrid.innerHTML += `<div class="line-box" onclick="showRoute('${n}')">${n}<br><small style="font-size:0.6rem; color:#888;">➔ ${l.dir}</small></div>`;
+            aGrid.innerHTML += `<div class="line-box" onclick="openEd('${n}')">${n}</div>`;
         });
     }
 
     function showRoute(n) {
         const l = db.lines[n];
+        if(!l || !l.stops) return;
         showSec('route-sec');
         document.getElementById('route-line-name').innerText = "Linia " + n + " ➔ " + l.dir;
         const timeline = document.getElementById('route-timeline');
         timeline.innerHTML = '';
-        let totalTime = 0;
+        let cumulative = 0;
         
         l.stops.forEach((s, idx) => {
-            totalTime += s.adj;
-            timeline.innerHTML += `
-                <div class="timeline-stop" onclick="showTT('${n}', ${idx})">
-                    <span class="time-diff">${idx === 0 ? 'START' : '+'+s.adj+' min'}</span>
-                    <div class="dot"></div>
-                    <span class="stop-label">${s.name}</span>
-                    <span style="font-size:0.75rem; font-weight:900; color:#007bff;">${totalTime} min</span>
-                </div>`;
+            cumulative += (parseInt(s.adj) || 0);
+            const stopEl = document.createElement('div');
+            stopEl.className = 'timeline-stop';
+            stopEl.onclick = () => showTT(n, idx);
+            stopEl.innerHTML = `
+                <span class="diff-tag">${idx === 0 ? 'START' : '+'+s.adj+' min'}</span>
+                <div class="dot"></div>
+                <span class="stop-label">${s.name}</span>
+                <span class="time-tag">${cumulative} min</span>
+            `;
+            timeline.appendChild(stopEl);
         });
     }
 
-    function showTT(n, stopIdx) {
+    function showTT(n, sIdx) {
         const l = db.lines[n];
-        const stop = l.stops[stopIdx];
+        const stop = l.stops[sIdx];
         showSec('tt-sec');
         document.getElementById('tt-line-num').innerText = n;
         document.getElementById('tt-stop-name').innerText = stop.name;
         document.getElementById('tt-dir').innerText = l.dir;
         document.getElementById('back-to-route').onclick = () => showRoute(n);
 
-        let cumulativeShift = 0;
-        for(let i=0; i<=stopIdx; i++) cumulativeShift += l.stops[i].adj;
+        let totalAdj = 0;
+        for(let i=0; i<=sIdx; i++) totalAdj += (parseInt(l.stops[i].adj) || 0);
 
         const body = document.getElementById('tt-body');
         body.innerHTML = '';
-
         let hours = {};
 
-        const parseTimeAndAdd = (timeList, type) => {
-            timeList.forEach(st => {
+        const addTimes = (list, type) => {
+            if(!list) return;
+            list.forEach(st => {
                 let match = st.match(/\d{2}:\d{2}/);
                 if(!match) return;
                 let t = match[0];
                 let mark = st.replace(t, '');
                 let [h, m] = t.split(':').map(Number);
-                let dateObj = new Date(2026, 0, 1, h, m + cumulativeShift);
-                let finalH = dateObj.getHours();
-                let finalM = dateObj.getMinutes().toString().padStart(2, '0');
-                
-                if(!hours[finalH]) hours[finalH] = {rob:[], sob:[], nie:[]};
-                hours[finalH][type].push(finalM + `<span class="marker">${mark}</span>`);
+                let d = new Date(2026, 0, 1, h, m + totalAdj);
+                let fH = d.getHours(), fM = d.getMinutes().toString().padStart(2,'0');
+                if(!hours[fH]) hours[fH] = {rob:[], sob:[], nie:[]};
+                hours[fH][type].push(fM + `<span class="marker">${mark}</span>`);
             });
         };
 
-        parseTimeAndAdd(l.rob, 'rob');
-        parseTimeAndAdd(l.sob, 'sob');
-        parseTimeAndAdd(l.nie, 'nie');
+        addTimes(l.rob, 'rob'); addTimes(l.sob, 'sob'); addTimes(l.nie, 'nie');
 
-        Object.keys(hours).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(h => {
+        Object.keys(hours).sort((a,b)=>a-b).forEach(h => {
             body.innerHTML += `
                 <div class="tt-grid">
                     <div class="tt-hour">${h.toString().padStart(2,'0')}</div>

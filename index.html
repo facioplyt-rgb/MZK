@@ -38,8 +38,12 @@
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-right: 5px; margin-bottom: 5px; }
         .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
         .stop-line-item.is-tram i { color: var(--danger); }
-        .transfer-live { color: var(--warn); font-weight: 700; font-size: 0.7rem; margin-left: 4px; }
-        .spacer { white-space: pre; }
+        
+        /* STYLE DLA LIVE */
+        .live-badge { color: var(--warn); font-weight: 800; font-size: 0.85rem; white-space: nowrap; }
+        .arrows-anim { display: inline-block; animation: moveArrows 1s infinite linear; color: var(--warn); font-weight: 900; margin-right: 4px; }
+        @keyframes moveArrows { 0% { opacity: 0.2; transform: translateX(-2px); } 50% { opacity: 1; } 100% { opacity: 0.2; transform: translateX(2px); } }
+
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
@@ -56,7 +60,6 @@
         .stop-edit-item input { margin: 0; padding: 10px 5px; font-size: 0.85rem; height: 40px; background: #0b0f19; border: 1px solid #333; color: white; }
         .bulk-area { background: #000; border: 1px dashed var(--accent); padding: 10px; border-radius: 10px; margin-bottom: 15px; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-        .live-badge { color: var(--warn); font-weight: 800; font-size: 0.8rem; }
     </style>
 </head>
 <body>
@@ -91,7 +94,7 @@
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
             <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj Backup</button><input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Backup</button></div>
-            <div id="tab-z" class="adm-tab" style="display:none;"><div class="group-label">Ustawienia Kategorii</div><div id="adm-cats-list"></div><div style="display:flex; gap:10px;"><input type="text" id="new-cat-name" placeholder="Nowa kategoria..."><button onclick="addCategory()">Dodaj</button></div></div>
+            <div id="tab-z" class="adm-tab" style="display:none;"><div class="group-label">Kategorie</div><div id="adm-cats-list"></div><div style="display:flex; gap:10px;"><input type="text" id="new-cat-name" placeholder="Nowa..."><button onclick="addCategory()">Dodaj</button></div></div>
         </div>
     </div>
 </div>
@@ -109,12 +112,12 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-hours" placeholder="Robocze (np. 08:00, 08:30)"></textarea>
+    <textarea id="fl-hours" placeholder="Robocze"></textarea>
     <textarea id="fl-hours-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-hours-sun" placeholder="Niedziele"></textarea>
-    <div class="bulk-area"><textarea id="fl-bulk" placeholder="Lista przystanków..."></textarea><button onclick="convertBulk()" class="main-btn">Konwertuj ↓</button></div>
+    <div class="bulk-area"><textarea id="fl-bulk" placeholder="Przystanki..."></textarea><button onclick="convertBulk()" class="main-btn">Konwertuj</button></div>
     <div id="fl-stops-list"></div>
-    <button onclick="addStopRow()" class="main-btn">+ Dodaj ręcznie</button>
+    <button onclick="addStopRow()" class="main-btn">+ Dodaj</button>
     <button onclick="saveLine()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -168,7 +171,17 @@
         db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><span>Do: <b>${l.dir}</b></span><i class="fa-solid fa-chevron-right"></i></div>`; });
     }
 
-    // GŁÓWNA FUNKCJA ROZKŁADU Z PRZESIADKAMI LIVE
+    // FUNKCJA FORMATUJĄCA CZAS LIVE (DOKŁADNIE WG WYTYCZNYCH)
+    function getLiveLabel(diff, targetDate) {
+        if (diff <= 0) return `<span class="live-badge"><span class="arrows-anim">>>></span> TERAZ</span>`;
+        if (diff < 60) return `<span class="live-badge">za ${diff} min</span>`;
+        
+        const hours = diff / 60;
+        if (Number.isInteger(hours)) return `<span class="live-badge">za ${hours}h</span>`;
+        
+        return `<span class="live-badge">${targetDate.getHours().toString().padStart(2,'0')}:${targetDate.getMinutes().toString().padStart(2,'0')}</span>`;
+    }
+
     function renderTimetable(idx) {
         curLineIdx = idx; const line = db.lines[idx]; show('tt');
         const now = new Date(); const day = now.getDay();
@@ -182,7 +195,6 @@
             total += parseInt(stop.time) || 0; const currentOffset = total;
             const det = db.stopDetails[stop.name] || {nearby:"", isNz: stop.nz};
             
-            // Czas odjazdu dla głównej linii
             let mainSource = (type === 'work') ? line.hours : (type === 'sat' ? (line.hoursSat || line.hours) : (line.hoursSun || line.hours));
             let mainLive = "";
             if(mainSource) {
@@ -190,14 +202,13 @@
                 let next = times.find(d => d > now);
                 if(next) {
                     let diff = Math.floor((next - now) / 60000);
-                    mainLive = diff <= 2 ? `<span class="live-badge">TERAZ</span>` : `<span class="live-badge">za ${diff} min</span>`;
+                    mainLive = getLiveLabel(diff, next);
                 }
             }
 
-            // SZUKANIE PRZESIADEK
             let transfers = [];
             db.lines.forEach(l => {
-                if(l.num === line.num && l.dir === line.dir) return; // pomin aktualną linię
+                if(l.num === line.num && l.dir === line.dir) return;
                 let sPos = l.stops.findIndex(st => st.name === stop.name);
                 if(sPos !== -1) {
                     let tTotal = 0; for(let i=0; i<=sPos; i++) tTotal += parseInt(l.stops[i].time || 0);
@@ -207,7 +218,7 @@
                         let tNext = tTimes.find(d => d > now);
                         if(tNext) {
                             let tDiff = Math.floor((tNext - now) / 60000);
-                            if(tDiff < 60) transfers.push(`<span class="stop-line-item ${l.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${l.type==='tram'?'tram':'bus'}"></i>${l.num}<span class="transfer-live">${tDiff}m</span></span>`);
+                            transfers.push(`<span class="stop-line-item ${l.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${l.type==='tram'?'tram':'bus'}"></i>${l.num}<span style="color:var(--warn); font-size:0.7rem; margin-left:3px;">${tDiff}m</span></span>`);
                         }
                     }
                 }
@@ -216,11 +227,8 @@
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}
-                        <div class="stop-lines-row">${transfers.join('')}</div>
-                    </div>
-                    <div>${mainLive}</div>
+                    <div><b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}<div class="stop-lines-row">${transfers.join('')}</div></div>
+                    <div style="text-align:right">${mainLive}</div>
                 </div>
                 <div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
             

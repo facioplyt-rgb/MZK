@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK GORZÓW - PANEL FACIO</title>
+    <title>MZK GORZÓW - SYSTEM FACIO V4</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --mzk-green: #008744; --mzk-yellow: #feca05; --bg: #f4f7f6; }
@@ -20,7 +20,7 @@
 
         /* GRID */
         .cat-title { font-weight: 900; text-transform: uppercase; font-size: 0.8rem; color: #666; margin: 25px 0 10px; border-left: 4px solid var(--mzk-yellow); padding-left: 10px; }
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
+        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 10px; }
         .line-box { 
             background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px 0; 
             text-align: center; font-weight: 900; font-size: 1.2rem; color: #ccc; cursor: pointer; transition: 0.2s;
@@ -37,23 +37,28 @@
         .editor-header { background: #222; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 2100; }
         
         .stop-row { background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid var(--mzk-green); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .stop-grid { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 10px; }
+        .stop-grid { display: grid; grid-template-columns: 2fr 2fr 1fr 0.5fr; gap: 10px; align-items: center; }
         
-        .bulk-area { background: #fffde7; padding: 15px; border-radius: 10px; border: 2px dashed #feca05; margin-bottom: 20px; }
-        
+        /* NOWOŚĆ: WKLEJANIE Z NOTATNIKA */
+        .bulk-box { background: #e3f2fd; padding: 15px; border-radius: 10px; border: 2px dashed #2196f3; margin: 20px 0; }
+        .bulk-box textarea { height: 100px; background: white; border: 1px solid #90caf9; }
+
         input, select, textarea { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; }
         .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-green { background: var(--mzk-green); color: white; }
         .btn-red { background: #e74c3c; color: white; }
+        .btn-blue { background: #2196f3; color: white; width: 100%; margin-top: 5px; }
+
+        .line-info-banner { background: #333; color: white; padding: 5px 15px; border-radius: 4px; font-size: 0.8rem; margin-bottom: 10px; display: inline-block; }
     </style>
 </head>
 <body>
 
-<header><h1>MZK GORZÓW - SYSTEM FACIO</h1></header>
+<header><h1>MZK GORZÓW - PANEL FACIO</h1></header>
 
-<nav id="main-nav">
+<nav>
     <button id="nav-lines" class="active" onclick="showSection('lines-sec')">WIDOK PASAŻERA</button>
-    <button id="nav-admin" onclick="showSection('admin-sec')">PANEL ADMINA (FACIO)</button>
+    <button id="nav-admin" onclick="showSection('admin-sec')">ADMIN PANEL (FACIO)</button>
 </nav>
 
 <div class="container">
@@ -65,15 +70,15 @@
     <div id="admin-sec" class="section">
         <div id="login-form" class="login-card">
             <h3>Autoryzacja Facio</h3>
-            <input type="text" id="adm-user" placeholder="Login">
-            <input type="password" id="adm-pass" placeholder="Hasło">
+            <input type="text" id="adm-user" placeholder="Login (Facio)">
+            <input type="password" id="adm-pass" placeholder="Hasło (Admin123)">
             <button class="btn btn-green" style="width:100%" onclick="tryLogin()">WEJDŹ DO SYSTEMU</button>
         </div>
 
         <div id="admin-dashboard" style="display:none">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3>Wybierz linię do konfiguracji:</h3>
-                <button class="btn btn-green" onclick="openEditor('new')">+ NOWA LINIA</button>
+                <h3>Wybierz linię do edycji:</h3>
+                <button class="btn btn-green" onclick="openEditor('new')">+ DODAJ NOWĄ LINIĘ</button>
             </div>
             <div id="grid-admin"></div>
         </div>
@@ -82,52 +87,53 @@
 
 <div id="editor-layer" class="editor-overlay">
     <div class="editor-header">
-        <h2 id="edit-title">Tryb Edycji</h2>
-        <button class="btn btn-red" onclick="closeEditor()">ANULUJ I WYJDŹ X</button>
+        <h2 id="edit-title">Konfiguracja Linii</h2>
+        <button class="btn btn-red" onclick="closeEditor()">ZAMKNIJ BEZ ZAPISU X</button>
     </div>
     
     <div class="container">
         <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
-            <div style="display:grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div>
                     <label><b>Numer Linii:</b></label>
-                    <input type="number" id="inp-num" placeholder="np. 124">
+                    <input type="number" id="inp-num" placeholder="np. 104">
                 </div>
                 <div>
-                    <label><b>Wariant Trasy:</b></label>
+                    <label><b>Wariant (np. Kierunek):</b></label>
                     <select id="sel-variant" onchange="loadVariantData(this.value)"></select>
                 </div>
             </div>
 
-            <input type="text" id="inp-target" placeholder="Kierunek docelowy (DUŻYMI LITERAMI)">
-            <input type="text" id="inp-variant-name" placeholder="Opis wariantu (np. przez Piaski)">
-            <textarea id="inp-starts" rows="3" placeholder="Godziny z pętli (np. 05:20, 05:40s, 06:10w)"></textarea>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                <input type="text" id="inp-from" placeholder="Z przystanku (Pętla A)">
+                <input type="text" id="inp-to" placeholder="Do przystanku (Pętla B)">
+            </div>
+            
+            <input type="text" id="inp-variant-desc" placeholder="Dodatkowy opis wariantu (np. przez Most Lubuski)">
+            <textarea id="inp-starts" rows="2" placeholder="Odjazdy (np. 07:15, 07:45s, 08:20w)"></textarea>
 
-            <div class="bulk-area">
-                <h4><center>⚡ SZYBKIE WKLEJANIE TRASY ⚡</center></h4>
-                <p style="font-size:0.8rem; color:#666; text-align:center;">Wklej listę przystanków oddzielonych Enterem i kliknij "Generuj Pola"</p>
-                <textarea id="bulk-stops" rows="5" placeholder="Przystanek 1&#10;Przystanek 2&#10;Przystanek 3"></textarea>
-                <button class="btn" style="width:100%; background:var(--mzk-yellow); color:#000;" onclick="processBulkStops()">GENERUJ POLA EDYCJI DLA TRASY</button>
+            <div class="bulk-box">
+                <label><b>📋 Wklej przystanki z notatnika (oddzielone Enterem):</b></label>
+                <textarea id="bulk-paste" placeholder="Katedra&#10;Jagiełły&#10;Piaski"></textarea>
+                <button class="btn btn-blue" onclick="processBulk()">GENERUJ LISTĘ PRZYSTANKÓW</button>
             </div>
 
-            <h4>Lista Przystanków (Edycja szczegółowa):</h4>
+            <h4>Trasa i czasy przejazdu:</h4>
             <div id="stops-list"></div>
-            <button class="btn" onclick="addStopRow()" style="width:100%; background:#eee; margin-top:10px;">+ Dodaj pojedynczy przystanek</button>
+            <button class="btn" onclick="addStopRow()" style="width:100%; background:#eee; margin-top:10px;">+ Dodaj kolejny przystanek ręcznie</button>
 
-            <button class="btn btn-green" style="width:100%; height:70px; font-size:1.4rem; margin-top:30px; border:4px solid #fff;" onclick="saveLine()">ZAPISZ WSZYSTKO W BAZIE</button>
-            <button class="btn btn-red" style="width:100%; margin-top:10px;" onclick="deleteEntireLine()">USUŃ TĘ LINIĘ Z SYSTEMU</button>
+            <button class="btn btn-green" style="width:100%; height:60px; font-size:1.3rem; margin-top:30px;" onclick="saveLine()">ZAPISZ LINIĘ W BAZIE</button>
+            <button class="btn btn-red" style="width:100%; margin-top:10px;" onclick="deleteLine()">USUŃ CAŁĄ LINIĘ</button>
         </div>
     </div>
 </div>
 
 <script>
-    const DB_KEY = 'MZK_SYSTEM_FACIO_FINAL';
+    const DB_KEY = 'MZK_DATABASE_FACIO_V4';
     let db = JSON.parse(localStorage.getItem(DB_KEY)) || { lines: {}, globalStops: {} };
 
     function tryLogin() {
-        const u = document.getElementById('adm-user').value;
-        const p = document.getElementById('adm-pass').value;
-        if(u === 'Facio' && p === 'Admin123') {
+        if(document.getElementById('adm-user').value === 'Facio' && document.getElementById('adm-pass').value === 'Admin123') {
             document.getElementById('login-form').style.display = 'none';
             document.getElementById('admin-dashboard').style.display = 'block';
             renderGrids();
@@ -148,22 +154,17 @@
         const sel = document.getElementById('sel-variant');
         sel.innerHTML = '<option value="new">-- NOWY WARIANT --</option>';
         if(db.lines[num]) {
-            db.lines[num].forEach((v, i) => sel.innerHTML += `<option value="${i}">${v.target} (${v.variant})</option>`);
+            db.lines[num].forEach((v, i) => sel.innerHTML += `<option value="${i}">${v.from} -> ${v.to}</option>`);
         }
     }
 
-    // MASOWE PRZETWARZANIE PRZYSTANKÓW
-    function processBulkStops() {
-        const text = document.getElementById('bulk-stops').value;
-        if(!text.trim()) return;
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l !== '');
-        
-        const cont = document.getElementById('stops-list');
-        // Jeśli chcesz dopisać do istniejących, nie czyść. Jeśli chcesz zastąpić - odkomentuj linię niżej:
-        // cont.innerHTML = ''; 
-
-        lines.forEach(name => addStopRow({name: name, adj: 0}));
-        document.getElementById('bulk-stops').value = ''; // wyczyść po przetworzeniu
+    // FUNKCJA: WKLEJANIE Z NOTATNIKA
+    function processBulk() {
+        const raw = document.getElementById('bulk-paste').value;
+        if(!raw.trim()) return;
+        const names = raw.split('\n').map(n => n.trim()).filter(n => n !== '');
+        names.forEach(name => addStopRow({name: name, adj: 0}));
+        document.getElementById('bulk-paste').value = '';
     }
 
     function addStopRow(data = {name:'', adj:0}) {
@@ -174,11 +175,12 @@
         const html = `
             <div class="stop-row" id="${id}">
                 <div class="stop-grid">
-                    <input type="text" class="s-name" placeholder="Nazwa" value="${data.name}" oninput="syncG(this)">
-                    <input type="text" class="s-sub" placeholder="Miejsce (pobliżu...)" value="${g.sub}" oninput="updateG(this)">
-                    <input type="text" class="s-trans" placeholder="Przesiadki" value="${g.trans}" oninput="updateG(this)">
+                    <input type="text" class="s-name" placeholder="Przystanek" value="${data.name}" oninput="syncG(this)">
+                    <input type="text" class="s-sub" placeholder="Miejsce (Global)" value="${g.sub}" oninput="updateG(this)">
+                    <input type="text" class="s-trans" placeholder="Linie" value="${g.trans}" oninput="updateG(this)">
                     <input type="number" class="s-adj" placeholder="+min" value="${data.adj}">
                 </div>
+                <button class="btn-red" style="padding:2px; font-size:10px; border:none; cursor:pointer;" onclick="document.getElementById('${id}').remove()">USUŃ</button>
             </div>`;
         cont.insertAdjacentHTML('beforeend', html);
     }
@@ -199,15 +201,14 @@
 
     function loadVariantData(idx) {
         if(idx === 'new') {
-            document.getElementById('inp-target').value = '';
-            document.getElementById('inp-variant-name').value = '';
-            document.getElementById('inp-starts').value = '';
-            document.getElementById('stops-list').innerHTML = '';
-            return;
+            document.getElementById('inp-from').value = ''; document.getElementById('inp-to').value = '';
+            document.getElementById('inp-variant-desc').value = ''; document.getElementById('inp-starts').value = '';
+            document.getElementById('stops-list').innerHTML = ''; return;
         }
         const v = db.lines[currentLine][idx];
-        document.getElementById('inp-target').value = v.target;
-        document.getElementById('inp-variant-name').value = v.variant;
+        document.getElementById('inp-from').value = v.from;
+        document.getElementById('inp-to').value = v.to;
+        document.getElementById('inp-variant-desc').value = v.variant;
         document.getElementById('inp-starts').value = v.starts.join(', ');
         document.getElementById('stops-list').innerHTML = '';
         v.stops.forEach(s => addStopRow(s));
@@ -219,8 +220,9 @@
         if(!num) return alert("Brak numeru!");
 
         const vData = {
-            target: document.getElementById('inp-target').value.toUpperCase(),
-            variant: document.getElementById('inp-variant-name').value || 'Podstawowy',
+            from: document.getElementById('inp-from').value.toUpperCase(),
+            to: document.getElementById('inp-to').value.toUpperCase(),
+            variant: document.getElementById('inp-variant-desc').value,
             starts: document.getElementById('inp-starts').value.split(',').map(s=>s.trim()),
             stops: Array.from(document.querySelectorAll('.s-name')).map((el, i) => ({
                 name: el.value,
@@ -244,23 +246,24 @@
         pGrid.innerHTML = ''; aGrid.innerHTML = '';
 
         const cats = [
-            { t: "Tramwaje", min: 1, max: 15 },
+            { t: "Tramwaje (1-15)", min: 1, max: 15 },
             { t: "Magistrala (100-119)", min: 100, max: 119 },
-            { t: "Autobusy", min: 120, max: 210 }
+            { t: "Autobusy", min: 120, max: 200 }
         ];
 
         cats.forEach(c => {
             let htmlP = `<div class="cat-title">${c.t}</div><div class="line-grid">`;
             let htmlA = `<div class="cat-title">${c.t}</div><div class="line-grid">`;
-            let fP = false;
+            let f = false;
             for(let i=c.min; i<=c.max; i++) {
                 if(q && !i.toString().includes(q)) continue;
                 const active = db.lines[i] ? 'line-active' : '';
-                htmlP += `<div class="line-box ${active}" onclick="alert('Tu byłby rozkład linii ${i}')">${i}</div>`;
+                const info = db.lines[i] ? `<br><small style="font-size:8px; color:#666;">${db.lines[i][0].from}-${db.lines[i][0].to}</small>` : '';
+                htmlP += `<div class="line-box ${active}" onclick="alert('Linia ${i}')">${i}${info}</div>`;
                 htmlA += `<div class="line-box ${active}" onclick="openEditor(${i})">${i}</div>`;
-                fP = true;
+                f = true;
             }
-            if(fP) { pGrid.innerHTML += htmlP + "</div>"; aGrid.innerHTML += htmlA + "</div>"; }
+            if(f) { pGrid.innerHTML += htmlP + "</div>"; aGrid.innerHTML += htmlA + "</div>"; }
         });
     }
 
@@ -271,9 +274,7 @@
         document.getElementById('nav-' + id.split('-')[0]).classList.add('active');
     }
 
-    function deleteEntireLine() {
-        if(confirm("Usunąć LINIĘ z bazy?")) { delete db.lines[currentLine]; localStorage.setItem(DB_KEY, JSON.stringify(db)); closeEditor(); }
-    }
+    function deleteLine() { if(confirm("Usuń?")) { delete db.lines[currentLine]; localStorage.setItem(DB_KEY, JSON.stringify(db)); closeEditor(); } }
 
     renderGrids();
 </script>

@@ -25,10 +25,10 @@
         
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         
-        /* STYLE PRZYSTANKÓW W EDYCJI */
+        /* STYLE EDYCJI - PRZESUWANIE */
         .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 40px 1fr 60px 45px 40px; gap: 8px; align-items: center; }
         .move-btns { display: flex; flex-direction: column; gap: 2px; }
-        .move-btns button { padding: 2px; font-size: 0.7rem; background: #333; border: none; color: white; border-radius: 4px; cursor: pointer; }
+        .move-btns button { padding: 2px; font-size: 0.6rem; background: #333; border: none; color: white; border-radius: 4px; }
 
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; gap: 8px; }
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; }
@@ -48,9 +48,6 @@
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-        .adm-nav-main { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 15px; }
-        .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
-        .adm-nav-main button.active { background: var(--accent); color: white; }
     </style>
 </head>
 <body>
@@ -60,12 +57,11 @@
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
-        <div class="group-label">Wyszukiwarka Przystanków</div>
         <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
     <div id="s-news" class="section"><div id="public-news-list"></div></div>
-    <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
+    <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block;"></div></div>
     
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
@@ -76,20 +72,8 @@
             <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none;">
-            <div class="adm-nav-main">
-                <button onclick="setTab('l')" id="mt-l" class="active">LINIE</button>
-                <button onclick="setTab('p')" id="mt-p">PRZYST</button>
-                <button onclick="setTab('n')" id="mt-n">NEWS</button>
-                <button onclick="setTab('c')" id="mt-c">INFO</button>
-                <button onclick="setTab('s')" id="mt-s">KOPIA</button>
-                <button onclick="setTab('z')" id="mt-z">ZAAW</button>
-            </div>
             <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
-            <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
-            <div id="tab-n" class="adm-tab" style="display:none;"><div id="adm-news-list"></div></div>
-            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj Backup</button></div>
-            <div id="tab-z" class="adm-tab" style="display:none;"><div id="adm-cats-list"></div></div>
+            <button onclick="exportFullBackup()" class="main-btn" style="background:#555">Kopia Zapasowa</button>
         </div>
     </div>
 </div>
@@ -108,9 +92,9 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-hours" placeholder="Godziny (np. 08:10, 08:40)"></textarea>
+    <textarea id="fl-hours" placeholder="Godziny odjazdów (np. 08:10, 08:40)"></textarea>
     <div id="fl-stops-list"></div>
-    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj przystanek</button>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj</button>
     <button onclick="saveLine()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -121,13 +105,13 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_full_backup_v12');
+        const local = localStorage.getItem('mzk_v12_final');
         if(local) db = JSON.parse(local);
         extractStops(); render();
-        setInterval(() => { if(document.getElementById('s-tt').classList.contains('active-sec')) renderTimetable(curLineIdx); }, 30000);
+        setInterval(() => { if(document.getElementById('s-tt').classList.contains('active-sec')) renderTimetable(curLineIdx); }, 15000);
     }
 
-    function save() { localStorage.setItem('mzk_full_backup_v12', JSON.stringify(db)); extractStops(); render(); }
+    function save() { localStorage.setItem('mzk_v12_final', JSON.stringify(db)); extractStops(); render(); }
     function extractStops() { let sSet = new Set(); db.lines.forEach(l => l.stops.forEach(s => { if(s.name) sSet.add(s.name); })); allAutoStops = [...sSet].sort(); }
 
     function getLiveLabel(diff, targetDate) {
@@ -153,8 +137,6 @@
             }
         });
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
-        document.getElementById('contact-display').innerText = db.contact;
-        filterStops();
     }
 
     function openVariants(num) {
@@ -164,30 +146,43 @@
     }
 
     function renderTimetable(idx) {
+        if(idx === -1) return;
         curLineIdx = idx; const line = db.lines[idx]; show('tt');
         const now = new Date();
         document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
         const body = document.getElementById('tt-body'); body.innerHTML = '';
-        let total = 0;
+        
+        let cumulativeMinutes = 0; // Reset dla każdego renderowania wariantu
 
         line.stops.forEach((stop, sIdx) => {
-            total += parseInt(stop.time) || 0; const currentOffset = total;
-            const det = db.stopDetails[stop.name] || {nearby:"", isNz: stop.nz};
+            cumulativeMinutes += parseInt(stop.time) || 0; 
+            const currentStopOffset = cumulativeMinutes; 
+            const det = db.stopDetails[stop.name] || {isNz: stop.nz};
+
             let mainLive = "";
             if(line.hours) {
-                let times = line.hours.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return null; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset, 0); return d; }).filter(t => t);
+                let times = line.hours.split(',').map(h => {
+                    let p = h.trim().split(':'); if(p.length<2) return null;
+                    let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentStopOffset, 0, 0);
+                    return d;
+                }).filter(t => t);
                 let next = times.find(d => d > now);
                 if(next) mainLive = getLiveLabel(Math.floor((next - now)/60000), next);
             }
 
+            // Przesiadki
             let transfers = [];
             db.lines.forEach(l => {
-                if(l.num === line.num && l.dir === line.dir) return;
+                if(l === line) return;
                 let sPos = l.stops.findIndex(st => st.name === stop.name);
                 if(sPos !== -1) {
-                    let tTotal = 0; for(let i=0; i<=sPos; i++) tTotal += parseInt(l.stops[i].time || 0);
+                    let tOffset = 0; for(let i=0; i<=sPos; i++) tOffset += parseInt(l.stops[i].time || 0);
                     if(l.hours) {
-                        let tTimes = l.hours.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return null; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + tTotal, 0); return d; }).filter(t => t);
+                        let tTimes = l.hours.split(',').map(h => {
+                            let p = h.trim().split(':'); if(p.length<2) return null;
+                            let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + tOffset, 0, 0);
+                            return d;
+                        }).filter(t => t);
                         let tNext = tTimes.find(d => d > now);
                         if(tNext) transfers.push(`<span class="stop-line-item ${l.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${l.type==='tram'?'tram':'bus'}"></i>${l.num}<span class="trans-time">${Math.floor((tNext-now)/60000)}m</span></span>`);
                     }
@@ -195,60 +190,67 @@
             });
 
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
-            card.innerHTML = `<div style="display:flex; justify-content:space-between;"><div><b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}<div class="stop-lines-row">${transfers.join('')}</div></div><div>${mainLive}</div></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
-            card.onclick = (e) => { if(!e.target.closest('.stop-lines-row')){ const g = document.getElementById(`g-${sIdx}`); g.style.display = g.style.display==='grid'?'none':'grid'; if(g.style.display==='grid' && line.hours) g.innerHTML = line.hours.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return ""; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset); return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`; }).join(''); } };
+            card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}<div class="stop-lines-row">${transfers.join('')}</div></div><div style="text-align:right">${mainLive}</div></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            card.onclick = (e) => { 
+                if(e.target.closest('.stop-lines-row')) return;
+                const g = document.getElementById(`g-${sIdx}`); 
+                g.style.display = g.style.display==='grid'?'none':'grid'; 
+                if(g.style.display==='grid' && line.hours) {
+                    g.innerHTML = line.hours.split(',').map(h => {
+                        let p = h.trim().split(':'); let d = new Date(); 
+                        d.setHours(parseInt(p[0]), parseInt(p[1]) + currentStopOffset);
+                        return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
+                    }).join('');
+                }
+            };
             body.appendChild(card);
         });
     }
 
-    // FUNKCJE PRZESUWANIA PRZYSTANKÓW
-    function moveStop(btn, dir) {
+    // PRZESUWANIE PRZYSTANKÓW
+    function moveRow(btn, dir) {
         const row = btn.closest('.stop-edit-item');
-        if (dir === -1 && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
-        if (dir === 1 && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
-    }
-
-    function openLineForm(idx) {
-        curLineIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", category:"Autobusy", stops:[]} : db.lines[idx];
-        document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; document.getElementById('fl-type').value = l.type;
-        document.getElementById('fl-hours').value = l.hours; document.getElementById('fl-cat').innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category === c ? 'selected' : ''}>${c}</option>`).join('');
-        document.getElementById('fl-stops-list').innerHTML = ''; (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
-        document.getElementById('form-line').style.display = 'block';
+        if(dir === -1 && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+        else if(dir === 1 && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
     }
 
     function addStopRow(name = "", time = 2, nz = false) {
         const div = document.createElement('div'); div.className = 'stop-edit-item';
-        div.innerHTML = `
-            <div class="move-btns"><button onclick="moveStop(this, -1)">▲</button><button onclick="moveStop(this, 1)">▼</button></div>
-            <input type="text" value="${name}" class="st-name" placeholder="Nazwa">
-            <input type="number" value="${time}" class="st-time">
-            <label>NŻ<input type="checkbox" ${nz?'checked':''} class="st-nz"></label>
-            <button onclick="this.parentElement.remove()">X</button>`;
+        div.innerHTML = `<div class="move-btns"><button onclick="moveRow(this,-1)">▲</button><button onclick="moveRow(this,1)">▼</button></div><input type="text" value="${name}" class="st-n"><input type="number" value="${time}" class="st-t"><label><input type="checkbox" ${nz?'checked':''} class="st-nz">NŻ</label><button onclick="this.parentElement.remove()">X</button>`;
         document.getElementById('fl-stops-list').appendChild(div);
-    }
-
-    function saveLine() {
-        const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({ name: el.querySelector('.st-name').value.trim(), time: parseInt(el.querySelector('.st-time').value) || 0, nz: el.querySelector('.st-nz').checked })).filter(s => s.name);
-        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hours: document.getElementById('fl-hours').value, stops };
-        if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
-        save(); closeForms();
     }
 
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list'); list.innerHTML = '';
         allAutoStops.filter(s => s.toLowerCase().includes(q)).forEach(s => {
-            const lines = []; db.lines.forEach(l => { if(l.stops.some(st => st.name === s)) if(!lines.some(e => e.num === l.num)) lines.push({num: l.num, type: l.type}); });
-            const det = db.stopDetails[s] || {isNz: false};
+            const lines = [];
+            db.lines.forEach(l => { if(l.stops.some(st => st.name === s)) { if(!lines.some(e => e.num === l.num)) lines.push({num: l.num, type: l.type}); } });
             const lStr = lines.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('');
-            list.innerHTML += `<div class="app-card" style="display:block;"><b>${s}</b>${det.isNz?' (NŻ)':''}<div class="stop-lines-row">${lStr}</div></div>`;
+            list.innerHTML += `<div class="app-card" style="display:block;"><b>${s}</b><div class="stop-lines-row">${lStr}</div></div>`;
         });
     }
 
+    function openLineForm(idx) {
+        curLineIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", category:"Autobusy", stops:[]} : db.lines[idx];
+        document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir;
+        document.getElementById('fl-type').value = l.type; document.getElementById('fl-hours').value = l.hours;
+        document.getElementById('fl-cat').innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
+        document.getElementById('fl-stops-list').innerHTML = ''; (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
+        document.getElementById('form-line').style.display = 'block';
+    }
+
+    function saveLine() {
+        const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({ name: el.querySelector('.st-n').value, time: parseInt(el.querySelector('.st-t').value) || 0, nz: el.querySelector('.st-nz').checked }));
+        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hours: document.getElementById('fl-hours').value, stops };
+        if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
+        save(); closeForms();
+    }
+
     function show(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); document.getElementById('s-'+id).classList.add('active-sec'); document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active'); }
-    function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
+    function exportFullBackup() { const b = new Blob([JSON.stringify(db)], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `mzk_backup.txt`; a.click(); }
 
     init();
 </script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - CZYSTA BAZA</title>
+    <title>MZK GORZÓW - CZYSTA INSTALACJA</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -17,6 +17,7 @@
         .active-sec { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* MAŁE KAFELKI */
         .line-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: flex-start; }
         .line-card-mini { 
             background: var(--surface); 
@@ -29,16 +30,13 @@
             cursor: pointer; 
             width: auto; 
             min-width: 65px;
-            transition: transform 0.1s;
         }
-        .line-card-mini:active { transform: scale(0.95); }
         .line-badge { background: var(--accent); color: white; padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 1.1rem; min-width: 45px; text-align: center; }
         .tram-badge { background: var(--danger); }
 
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         
-        .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
@@ -50,7 +48,7 @@
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
 
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-        textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
+        textarea, input { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
         .adm-nav-main { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
@@ -62,25 +60,26 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec">
-        <div class="group-label">Tramwaje</div>
-        <div id="lines-tram" class="line-grid"></div>
-        <div class="group-label">Autobusy</div>
-        <div id="lines-bus" class="line-grid"></div>
-        <div id="empty-msg" style="text-align:center; color:var(--text-sec); margin-top:50px;">
-            <i class="fa-solid fa-database" style="font-size:3rem; opacity:0.2; margin-bottom:15px;"></i><br>
-            Baza danych jest pusta.<br>Wgraj backup w panelu Admina.
+        <div id="lines-content">
+            <div class="group-label">Tramwaje</div><div id="lines-tram" class="line-grid"></div>
+            <div class="group-label">Autobusy</div><div id="lines-bus" class="line-grid"></div>
+        </div>
+        <div id="empty-msg" style="display:none; text-align:center; color:var(--text-sec); margin-top:60px; padding:20px;">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size:3rem; color:var(--accent); margin-bottom:20px;"></i><br>
+            <b style="color:white; font-size:1.2rem;">System wyczyszczony</b><br><br>
+            Przejdź do zakładki <b>Admin</b> i wgraj swój plik backupu, aby przywrócić rozkłady.
         </div>
     </div>
 
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button></div>
     <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button></div>
-    <div id="s-stops" class="section"><div class="group-label">Przystanki</div><input type="text" id="stop-search" class="search-box" placeholder="Szukaj..." oninput="filterStops()"><div id="public-stops-list"></div></div>
+    <div id="s-stops" class="section"><div class="group-label">Przystanki</div><div id="public-stops-list"></div></div>
     <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
     <div id="s-contact" class="section"><div class="group-label">Info</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
 
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
-            <input type="password" id="pass" placeholder="Hasło: 123" style="text-align:center;">
+            <input type="password" id="pass" placeholder="Hasło (123)" style="text-align:center;">
             <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none;">
@@ -91,12 +90,12 @@
                 <button onclick="setTab('s')" id="mt-s">KOPIA</button>
             </div>
             <div id="tab-l" class="adm-tab"><div id="adm-lines-list"></div></div>
-            <div id="tab-n" class="adm-tab" style="display:none;"><textarea id="news-input" placeholder="Treść..."></textarea><button onclick="addNews()" class="main-btn">Dodaj</button><div id="adm-news-list"></div></div>
+            <div id="tab-n" class="adm-tab" style="display:none;"><textarea id="news-input" placeholder="Treść newsa..."></textarea><button onclick="addNews()" class="main-btn">Dodaj</button></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:150px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
             <div id="tab-s" class="adm-tab" style="display:none;">
-                <button onclick="exportFullBackup()" class="main-btn">Eksportuj (.txt)</button>
+                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:var(--accent)">Wgraj Backup (.txt)</button>
                 <input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)">
-                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj BACKUP</button>
+                <p style="font-size:0.7rem; color:var(--text-sec); text-align:center; margin-top:10px;">Wybierz swój plik z liniami, aby zasilić bazę.</p>
             </div>
         </div>
     </div>
@@ -111,20 +110,22 @@
 </nav>
 
 <script>
-    // BAZA STARTUJE PUSTA
     let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {} };
-    let allAutoStops = [];
 
     function init() {
-        // WYŁĄCZYŁEM AUTOMATYCZNE ŁADOWANIE STARYCH DANYCH, ABY WYMUSIĆ WGRANIE BACKUPU
-        // const local = localStorage.getItem('mzk_full_backup_v12');
-        // if(local) db = JSON.parse(local);
+        // WYMUSZONE CZYSZCZENIE PRZY PIERWSZYM URUCHOMIENIU NOWEGO KODU
+        if(!localStorage.getItem('mzk_hard_reset_done_v2')) {
+            localStorage.clear();
+            localStorage.setItem('mzk_hard_reset_done_v2', 'true');
+        }
+
+        const local = localStorage.getItem('mzk_full_backup_v12');
+        if(local) db = JSON.parse(local);
         render();
     }
 
     function save() {
         localStorage.setItem('mzk_full_backup_v12', JSON.stringify(db));
-        extractStops();
         render();
     }
 
@@ -143,11 +144,14 @@
     function render() {
         const busC = document.getElementById('lines-bus');
         const tramC = document.getElementById('lines-tram');
-        const emptyMsg = document.getElementById('empty-msg');
+        const content = document.getElementById('lines-content');
+        const empty = document.getElementById('empty-msg');
+        
         busC.innerHTML = ''; tramC.innerHTML = '';
         
-        if(db.lines.length > 0) {
-            emptyMsg.style.display = 'none';
+        if(db.lines && db.lines.length > 0) {
+            content.style.display = 'block';
+            empty.style.display = 'none';
             const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
             uniqueNums.forEach(num => {
                 const l = db.lines.find(x => x.num === num);
@@ -158,7 +162,8 @@
                 if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
             });
         } else {
-            emptyMsg.style.display = 'block';
+            content.style.display = 'none';
+            empty.style.display = 'block';
         }
 
         document.getElementById('contact-display').innerText = db.contact;
@@ -200,8 +205,10 @@
                 const g = document.getElementById(`g-${idx}-${sIdx}`);
                 g.style.display = g.style.display === 'grid' ? 'none' : 'grid';
                 if(g.style.display === 'grid') {
+                    if(!line.hours) { g.innerHTML = "Brak godzin"; return; }
                     g.innerHTML = line.hours.split(',').map(h => {
                         let p = h.trim().split(':');
+                        if(p.length < 2) return "";
                         let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset);
                         return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
                     }).join('');
@@ -229,17 +236,13 @@
     function importFullBackup(e) {
         const r = new FileReader();
         r.onload = (ev) => {
-            db = JSON.parse(ev.target.result);
-            save();
-            location.reload();
+            try {
+                db = JSON.parse(ev.target.result);
+                save();
+                location.reload();
+            } catch(err) { alert("Błąd pliku!"); }
         };
         r.readAsText(e.target.files[0]);
-    }
-
-    function exportFullBackup() {
-        const blob = new Blob([JSON.stringify(db, null, 2)], {type:'text/plain'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-        a.download = `mzk_backup.txt`; a.click();
     }
 
     init();

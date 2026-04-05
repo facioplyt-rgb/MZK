@@ -26,7 +26,7 @@
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         .news-card { display: block; cursor: default; }
         .news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .news-date { font-size: 0.7rem; color: var(--text-sec); font-weight: 600; }
+        .news-date { font-size: 0.7rem; color: var(--accent); font-weight: 700; }
         .news-tag { font-size: 0.6rem; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; }
         .tag-utrudnienia { background: rgba(255, 72, 66, 0.2); color: var(--danger); }
         .tag-rozklad { background: rgba(0, 171, 85, 0.2); color: var(--accent); }
@@ -71,10 +71,7 @@
 <header><div class="brand">MZK GORZÓW</div></header>
 
 <div class="container">
-    <div id="s-home" class="section active-sec">
-        <div class="group-label">Tramwaje</div><div id="lines-tram" class="lines-grid"></div>
-        <div class="group-label">Autobusy</div><div id="lines-bus" class="lines-grid"></div>
-    </div>
+    <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
         <div class="group-label">Wyszukiwarka Przystanków</div>
         <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
@@ -102,7 +99,18 @@
                 <button onclick="setTab('c')" id="mt-c">INFO</button>
                 <button onclick="setTab('s')" id="mt-s">KOPIA</button>
             </div>
-            <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
+            <div id="tab-l" class="adm-tab">
+                <button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button>
+                <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--text-sec); margin-bottom:10px;">KATEGORIE LINII</div>
+                    <div id="adm-cats-list" style="margin-bottom:10px;"></div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="new-cat-name" placeholder="Nowa kategoria..." style="margin:0; padding:12px;">
+                        <button onclick="addCategory()" style="background:var(--accent); color:white; border:none; padding:0 20px; border-radius:12px; font-weight:700; cursor:pointer;">Dodaj</button>
+                    </div>
+                </div>
+                <div id="adm-lines-list"></div>
+            </div>
             <div id="tab-p" class="adm-tab" style="display:none;"><div class="group-label">Zarządzaj Bazą Przystanków</div><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
@@ -124,6 +132,7 @@
     <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
+    <select id="fl-cat"></select>
     <textarea id="fl-hours" placeholder="Godziny odjazdów (np. 08:10, 08:40)"></textarea>
     <div class="bulk-area">
         <textarea id="fl-bulk" placeholder="Wklej listę przystanków..." style="height:80px; margin-bottom:5px;"></textarea>
@@ -138,18 +147,14 @@
 <div id="form-news" class="overlay-form">
     <h2>Dodaj / Edytuj News</h2>
     <input type="text" id="fn-title" placeholder="Tytuł newsa">
-    <select id="fn-cat">
-        <option value="info">Informacja</option>
-        <option value="utrudnienia">Utrudnienia</option>
-        <option value="rozklad">Zmiana rozkładu</option>
-    </select>
+    <select id="fn-cat"><option value="info">Informacja</option><option value="utrudnienia">Utrudnienia</option><option value="rozklad">Zmiana rozkładu</option></select>
     <textarea id="fn-content" placeholder="Treść komunikatu..." style="height:200px"></textarea>
     <button onclick="saveNews()" class="main-btn">Zapisz News</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
 <script>
-    let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {} };
+    let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
     let curLineIdx = -1;
     let curNewsIdx = -1;
     let allAutoStops = [];
@@ -160,10 +165,19 @@
             db = JSON.parse(local);
             if(!db.stopDetails) db.stopDetails = {};
             if(!db.news) db.news = [];
+            if(!db.lineCategories) db.lineCategories = ["Tramwaje", "Autobusy"];
             repairAllLines();
         }
         extractStops();
         render();
+    }
+
+    function getFormattedDate() {
+        const d = new Date();
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}.${month}.${year}`;
     }
 
     function cleanStopName(n) {
@@ -177,7 +191,6 @@
             if (typeof l.stops === 'string') { 
                 l.stops = l.stops.split('\n').filter(s => s.trim() !== "").map((s, i) => { 
                     const info = cleanStopName(s); 
-                    // Automatyczne dodawanie NŻ do detali jeśli wykryto w nazwie
                     if(info.isNz && info.name) {
                         if(!db.stopDetails[info.name]) db.stopDetails[info.name] = {nearby:"", isNz: true};
                         else db.stopDetails[info.name].isNz = true;
@@ -196,8 +209,13 @@
             if(Array.isArray(l.stops)) l.stops.forEach(s => { 
                 if(s.name) { 
                     sSet.add(s.name); 
-                    if(!db.stopDetails[s.name]) db.stopDetails[s.name] = { nearby: "", isNz: s.nz || false }; 
-                    if(s.nz) db.stopDetails[s.name].isNz = true; // Auto-update NŻ z backupu
+                    if(!db.stopDetails[s.name]) db.stopDetails[s.name] = { nearby: "", isNz: false }; 
+                    
+                    const nameLower = s.name.toLowerCase();
+                    const containsNz = nameLower.includes(" nż") || nameLower.includes("nż.") || nameLower.includes("(nż)");
+                    if(s.nz || containsNz) {
+                        db.stopDetails[s.name].isNz = true;
+                    }
                 } 
             }); 
         }); 
@@ -205,23 +223,47 @@
     }
 
     function render() {
-        const busC = document.getElementById('lines-bus'); 
-        const tramC = document.getElementById('lines-tram');
-        busC.innerHTML = ''; tramC.innerHTML = '';
-        const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b));
-        uniqueNums.forEach(num => {
-            const l = db.lines.find(x => x.num === num);
-            const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = num;
-            div.onclick = () => openVariants(num);
-            if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
+        const sHome = document.getElementById('s-home');
+        sHome.innerHTML = '';
+        
+        db.lineCategories.forEach(cat => {
+            const linesInCat = db.lines.filter(l => l.category === cat);
+            if (linesInCat.length > 0) {
+                const label = document.createElement('div'); label.className = 'group-label'; label.innerText = cat;
+                sHome.appendChild(label);
+                
+                const grid = document.createElement('div'); grid.className = 'lines-grid';
+                const uniqueNums = [...new Set(linesInCat.map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b));
+                uniqueNums.forEach(num => {
+                    const l = linesInCat.find(x => x.num === num);
+                    const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = num;
+                    div.onclick = () => openVariants(num); grid.appendChild(div);
+                });
+                sHome.appendChild(grid);
+            }
         });
+
+        const fallbackLines = db.lines.filter(l => !l.category || !db.lineCategories.includes(l.category));
+        if (fallbackLines.length > 0) {
+            const label = document.createElement('div'); label.className = 'group-label'; label.innerText = 'Pozostałe linie';
+            sHome.appendChild(label);
+            
+            const grid = document.createElement('div'); grid.className = 'lines-grid';
+            const uniqueNums = [...new Set(fallbackLines.map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b));
+            uniqueNums.forEach(num => {
+                const l = fallbackLines.find(x => x.num === num);
+                const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = num;
+                div.onclick = () => openVariants(num); grid.appendChild(div);
+            });
+            sHome.appendChild(grid);
+        }
 
         const newsPublic = document.getElementById('public-news-list');
         newsPublic.innerHTML = db.news.length ? db.news.map(n => `
             <div class="app-card news-card">
                 <div class="news-header">
-                    <span class="news-tag tag-${n.cat || 'info'}">${n.cat || 'info'}</span>
                     <div class="news-date">${n.date}</div>
+                    <span class="news-tag tag-${n.cat || 'info'}">${n.cat || 'info'}</span>
                 </div>
                 <div style="font-weight:700;">${n.title}</div>
                 <div style="font-size:0.85rem; color:var(--text-sec); margin-top:5px;">${n.content}</div>
@@ -229,11 +271,39 @@
 
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>[${n.cat || 'info'}] <b>${n.title}</b></span><div><button onclick="openNewsForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800; margin-right:10px;">EDYTUJ</button><button onclick="deleteNews(${i})" style="color:var(--danger); background:none; border:none; font-weight:800;">USUŃ</button></div></div>`).reverse().join('');
 
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir} <small style="color:var(--text-sec)">(${l.category || 'brak'})</small></span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact;
         document.getElementById('edit-contact-text').value = db.contact;
+        
+        renderCategoriesAdmin();
         filterStops();
         renderAdminStops();
+    }
+
+    function renderCategoriesAdmin() {
+        const list = document.getElementById('adm-cats-list');
+        list.innerHTML = db.lineCategories.map((c, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1c252e; padding:10px; border-radius:10px; margin-bottom:5px;">
+                <span style="font-weight:600; font-size:0.85rem;">${c}</span>
+                <button onclick="deleteCategory(${i})" style="color:var(--danger); background:none; border:none; font-weight:800; cursor:pointer;">USUŃ</button>
+            </div>
+        `).join('');
+    }
+
+    function addCategory() {
+        const name = document.getElementById('new-cat-name').value.trim();
+        if(!name) return;
+        if(db.lineCategories.includes(name)) return alert("Ta kategoria już istnieje!");
+        db.lineCategories.push(name);
+        document.getElementById('new-cat-name').value = '';
+        save();
+    }
+
+    function deleteCategory(i) {
+        if(confirm("Czy na pewno chcesz usunąć tę kategorię? Przypisane do niej linie trafią do 'Pozostałych'.")) {
+            db.lineCategories.splice(i, 1);
+            save();
+        }
     }
 
     function openNewsForm(idx) {
@@ -250,7 +320,7 @@
         const c = document.getElementById('fn-content').value;
         const cat = document.getElementById('fn-cat').value;
         if(!t) return alert("Wpisz tytuł");
-        const data = { title: t, content: c, cat: cat, date: new Date().toLocaleDateString() };
+        const data = { title: t, content: c, cat: cat, date: getFormattedDate() };
         if(curNewsIdx === -1) db.news.push(data); else db.news[curNewsIdx] = data;
         save(); closeForms();
     }
@@ -259,11 +329,15 @@
 
     function openLineForm(idx) {
         curLineIdx = idx;
-        const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:[]} : db.lines[idx];
+        const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", category:"Autobusy", stops:[]} : db.lines[idx];
         document.getElementById('fl-num').value = l.num;
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
         document.getElementById('fl-hours').value = l.hours;
+        
+        const catSelect = document.getElementById('fl-cat');
+        catSelect.innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category === c ? 'selected' : ''}>${c}</option>`).join('');
+        
         document.getElementById('fl-stops-list').innerHTML = '';
         (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
         document.getElementById('form-line').style.display = 'block';
@@ -281,7 +355,14 @@
             time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
             nz: el.querySelector('.edit-stop-nz').checked
         })).filter(s => s.name !== "");
-        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, hours: document.getElementById('fl-hours').value, stops: stops };
+        const data = { 
+            num: document.getElementById('fl-num').value, 
+            dir: document.getElementById('fl-dir').value, 
+            type: document.getElementById('fl-type').value, 
+            category: document.getElementById('fl-cat').value,
+            hours: document.getElementById('fl-hours').value, 
+            stops: stops 
+        };
         if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
         save(); closeForms();
     }

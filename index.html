@@ -55,16 +55,12 @@
         <div class="group-label">Autobusy</div><div id="lines-bus"></div>
     </div>
     <div id="s-stops" class="section">
-        <div class="group-label">Wyszukaj Przystanek</div>
-        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj..." oninput="filterStops()">
+        <div class="group-label">Przystanki</div>
+        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
-    <div id="s-news" class="section">
-        <div class="group-label">Komunikaty</div><div id="public-news-list"></div>
-    </div>
-    <div id="s-contact" class="section">
-        <div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
-    </div>
+    <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
+    <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
     
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
@@ -104,16 +100,16 @@
     <input type="text" id="fl-num" placeholder="Numer linii">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="fl-hours" placeholder="Godziny odjazdów z pętli (np. 08:00, 08:30)"></textarea>
+    <textarea id="fl-hours" placeholder="Godziny odjazdów z pętli..."></textarea>
     
     <div class="bulk-area">
-        <div class="group-label" style="margin-top:0; color:var(--accent);">Wklej listę przystanków (jeden pod drugim):</div>
-        <textarea id="fl-bulk" placeholder="Przystanek A&#10;Przystanek B&#10;Przystanek C" style="height:100px; margin-bottom:5px;"></textarea>
-        <button onclick="convertBulk()" class="main-btn" style="padding:8px; font-size:0.8rem; background:#333;">Konwertuj na listę ↓</button>
+        <div class="group-label" style="margin-top:0; color:var(--accent);">Szybkie wklejanie trasy:</div>
+        <textarea id="fl-bulk" placeholder="Przystanek A&#10;Przystanek B nż.&#10;Przystanek C" style="height:100px; margin-bottom:5px;"></textarea>
+        <button onclick="convertBulk()" class="main-btn" style="padding:8px; font-size:0.8rem; background:#333;">Konwertuj i skanuj NŻ ↓</button>
     </div>
 
     <div id="fl-stops-list"></div>
-    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj pojedynczy przystanek</button>
+    <button onclick="addLineStop()" class="main-btn" style="background:#444">+ Dodaj ręcznie</button>
     <button onclick="saveLine()" class="main-btn">Zapisz wszystko</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -124,7 +120,7 @@
     let allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_db_final_v7');
+        const local = localStorage.getItem('mzk_db_final_v8');
         if(local) {
             db = JSON.parse(local);
             repairAllLines();
@@ -133,19 +129,42 @@
         render();
     }
 
+    // Funkcja czyszcząca nazwę z "nż." i zwracająca czy był to przystanek na żądanie
+    function cleanStopName(name) {
+        let isNz = false;
+        const nzPatterns = [/ nż\./gi, / nż/gi, / \(nż\)/gi, / nż\./gi];
+        let cleaned = name;
+        nzPatterns.forEach(p => {
+            if(p.test(cleaned)) {
+                isNz = true;
+                cleaned = cleaned.replace(p, "");
+            }
+        });
+        return { name: cleaned.trim(), isNz: isNz };
+    }
+
     function repairAllLines() {
         db.lines.forEach(l => {
             if (typeof l.stops === 'string') {
                 l.stops = l.stops.split('\n').filter(s => s.trim() !== "").map((s, i) => {
-                    let name = s.trim();
-                    return { name: name, time: (i === 0 ? 0 : 2), nz: name.toLowerCase().includes('nż.') };
+                    const info = cleanStopName(s);
+                    return { name: info.name, time: (i === 0 ? 0 : 2), nz: info.isNz };
+                });
+            } else if (Array.isArray(l.stops)) {
+                // Dodatkowe czyszczenie nazw w obiektach jeśli prześlizgnął się tekst nż.
+                l.stops.forEach(s => {
+                    const info = cleanStopName(s.name);
+                    if(info.isNz) {
+                        s.name = info.name;
+                        s.nz = true;
+                    }
                 });
             }
         });
     }
 
     function save() { 
-        localStorage.setItem('mzk_db_final_v7', JSON.stringify(db)); 
+        localStorage.setItem('mzk_db_final_v8', JSON.stringify(db)); 
         extractStops(); 
         render(); 
     }
@@ -211,7 +230,8 @@
             totalMinutes += parseInt(stop.time) || 0;
             const currentOffset = totalMinutes;
             const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
-            card.innerHTML = `<div><b>${stop.name} ${stop.name.toLowerCase().includes('nż.') ? '<span class="nz-badge">NŻ</span>' : ''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            // Czerwony badge NŻ wyświetlany tylko jeśli flaga nz jest true
+            card.innerHTML = `<div><b>${stop.name} ${stop.nz ? '<span class="nz-badge">NŻ</span>' : ''}</b></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
             card.onclick = () => {
                 const g = document.getElementById(`g-${sIdx}`);
                 const isV = g.style.display === 'grid'; g.style.display = isV ? 'none' : 'grid';
@@ -239,7 +259,6 @@
         }).join('');
     }
 
-    // FORMULARZ ADMINA
     function openLineForm(idx) {
         curIdx = idx;
         const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:[]} : db.lines[idx];
@@ -254,21 +273,26 @@
         document.getElementById('form-line').style.display = 'block';
     }
 
-    // NOWA FUNKCJA: Konwersja wklejonego tekstu na pola edycji
     function convertBulk() {
         const text = document.getElementById('fl-bulk').value;
         if(!text.trim()) return;
         const lines = text.split('\n').filter(s => s.trim() !== "");
-        lines.forEach((name, i) => {
-            addStopRow(name.trim(), (i === 0 ? 0 : 2), name.toLowerCase().includes('nż.'));
+        lines.forEach((rawName, i) => {
+            const info = cleanStopName(rawName); // Automatyczne wykrycie NŻ przy wklejaniu
+            addStopRow(info.name, (i === 0 ? 0 : 2), info.isNz);
         });
-        document.getElementById('fl-bulk').value = ""; // Wyczyść po konwersji
+        document.getElementById('fl-bulk').value = "";
     }
 
     function addStopRow(name = "", time = 2, nz = false) {
         const div = document.createElement('div');
         div.className = 'stop-edit-item';
-        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time" placeholder="+min"><label><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label><button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); font-weight:800;">X</button>`;
+        div.innerHTML = `
+            <input type="text" value="${name}" class="edit-stop-name" placeholder="Nazwa">
+            <input type="number" value="${time}" class="edit-stop-time" placeholder="+min">
+            <label style="text-align:center; font-size:0.6rem;">NŻ<br><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"></label>
+            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); font-weight:800;">X</button>
+        `;
         document.getElementById('fl-stops-list').appendChild(div);
     }
 

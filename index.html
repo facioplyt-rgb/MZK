@@ -3,196 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW (Wersja Statyczna)</title>
+    <title>MZK GORZÓW</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; }
+        :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; --warn: #feca05; --info: #1890ff; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
         header { background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(15px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .brand { font-size: 1.4rem; font-weight: 800; color: var(--text); letter-spacing: 1px; }
         .container { max-width: 550px; margin: 0 auto; padding: 15px; }
         .section { display: none; }
         .active-sec { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         
-        /* Karty Linii */
-        .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 25px 0 12px 5px; font-weight: 600; letter-spacing: 1px; }
-        .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; }
-        .line-sq { background: var(--surface); height: 75px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; cursor: pointer; border-bottom: 4px solid var(--accent); transition: 0.2s; }
-        .line-sq.tram { border-bottom-color: var(--danger); }
-        .line-sq:active { transform: scale(0.95); }
-
-        /* Rozkład */
-        .app-card { background: var(--surface); padding: 16px; border-radius: 18px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.03); cursor: pointer; }
-        .tt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a3540; }
-        .tt-time { background: var(--accent); color: white; padding: 8px 4px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.9rem; }
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+        .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .line-square.bus { border-bottom: 4px solid var(--accent); }
+        .line-square.tram { border-bottom: 4px solid var(--danger); }
         
-        /* Wyszukiwarka */
-        .search-box { width: 100%; padding: 16px; border-radius: 15px; background: var(--surface); border: 1px solid #333; color: white; margin-bottom: 20px; font-family: inherit; }
+        .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .news-card { display: block; cursor: default; }
+        .news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .news-date { font-size: 0.7rem; color: var(--accent); font-weight: 700; }
+        .news-tag { font-size: 0.6rem; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; }
+        .tag-utrudnienia { background: rgba(255, 72, 66, 0.2); color: var(--danger); }
+        .tag-rozklad { background: rgba(0, 171, 85, 0.2); color: var(--accent); }
+        .tag-info { background: rgba(24, 144, 255, 0.2); color: var(--info); }
 
-        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 80px; border-top: 1px solid #333; z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.7rem; cursor: pointer; }
+        .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
+        .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
+        .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
+        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
+        .nearby-info { color: var(--warn); font-size: 0.75rem; margin-top: 3px; font-weight: 400; opacity: 0.9; }
+        .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
+        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; }
+        .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
+        .stop-line-item.is-tram i { color: var(--danger); }
+        .spacer { white-space: pre; }
+
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
-        .back-btn { background: #1c252e; color: white; width: 100%; padding: 15px; border: none; border-radius: 15px; margin-top: 10px; cursor: pointer; font-weight: 600; }
+        
+        .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+        textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
+        
+        .adm-nav-main { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 15px; }
+        .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
+        .adm-nav-main button.active { background: var(--accent); color: white; }
+        
+        .adm-stop-card { background: #1c252e; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #333; position: relative; }
+        .adm-stop-card.is-nz { border-left-color: var(--danger); }
+        .adm-stop-card .del-stop { position: absolute; top: 15px; right: 15px; color: var(--danger); cursor: pointer; }
+        
+        .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr 65px 45px 40px; gap: 8px; align-items: center; }
+        .stop-edit-item input { margin: 0; padding: 10px 5px; font-size: 0.85rem; height: 40px; background: #0b0f19; border: 1px solid #333; color: white; }
+        .bulk-area { background: #000; border: 1px dashed var(--accent); padding: 10px; border-radius: 10px; margin-bottom: 15px; }
+        
+        .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
     </style>
 </head>
 <body>
 
-<header><b style="letter-spacing: 1px;">MZK GORZÓW</b></header>
+<header><div class="brand">MZK GORZÓW</div></header>
 
 <div class="container">
-    <div id="s-home" class="section active-sec">
-        <div id="lines-list"></div>
-    </div>
-
+    <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
-        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="renderStops()">
-        <div id="stops-results"></div>
+        <div class="group-label">Wyszukiwarka Przystanków</div>
+        <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
+        <div id="public-stops-list"></div>
     </div>
-
-    <div id="s-vars" class="section">
-        <div id="vars-head"></div>
-        <div id="vars-body"></div>
-        <button class="back-btn" onclick="show('home')">Powrót do linii</button>
+    <div id="s-news" class="section">
+        <div class="group-label">Komunikaty i Zmiany</div>
+        <div id="public-news-list"></div>
     </div>
+    <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
+    
+    <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
 
-    <div id="s-tt" class="section">
-        <div id="tt-head"></div>
-        <div id="tt-body"></div>
-        <button class="back-btn" onclick="show('vars')">Powrót do kierunków</button>
+    <div id="s-adm" class="section">
+        <div id="adm-login" class="app-card" style="display:block; text-align:center;">
+            <input type="password" id="pass" placeholder="Hasło" style="text-align:center;">
+            <button onclick="login()" class="main-btn">Zaloguj</button>
+        </div>
+        <div id="adm-ui" style="display:none;">
+            <div class="adm-nav-main">
+                <button onclick="setTab('l')" id="mt-l" class="active">LINIE</button>
+                <button onclick="setTab('p')" id="mt-p">PRZYST</button>
+                <button onclick="setTab('n')" id="mt-n">NEWS</button>
+                <button onclick="setTab('c')" id="mt-c">INFO</button>
+                <button onclick="setTab('s')" id="mt-s">KOPIA</button>
+                <button onclick="setTab('z')" id="mt-z">ZAAW</button>
+            </div>
+            <div id="tab-l" class="adm-tab">
+                <button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button>
+                <div id="adm-lines-list"></div>
+            </div>
+            <div id="tab-p" class="adm-tab" style="display:none;"><div class="group-label">Zarządzaj Bazą Przystanków</div><div id="adm-stops-list"></div></div>
+            <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
+            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
+            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj Pełny Backup</button><input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Pełny Backup</button></div>
+            
+            <div id="tab-z" class="adm-tab" style="display:none;">
+                <div class="group-label">Ustawienia Zaawansowane</div>
+                <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="font-size:0.8rem; font-weight:700; color:var(--text-sec); margin-bottom:10px;">KATEGORIE LINII (STRONA GŁÓWNA)</div>
+                    <div id="adm-cats-list" style="margin-bottom:10px;"></div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="new-cat-name" placeholder="Nowa kategoria..." style="margin:0; padding:12px;">
+                        <button onclick="addCategory()" style="background:var(--accent); color:white; border:none; padding:0 20px; border-radius:12px; font-weight:700; cursor:pointer;">Dodaj</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <nav>
     <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
-    <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-magnifying-glass"></i><span>Przystanki</span></div>
+    <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-map-pin"></i><span>Przystanki</span></div>
+    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bell"></i><span>News</span></div>
+    <div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-info-circle"></i><span>Info</span></div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Admin</span></div>
 </nav>
 
+<div id="form-line" class="overlay-form">
+    <h2>Edycja Linii</h2>
+    <input type="text" id="fl-num" placeholder="Numer">
+    <input type="text" id="fl-dir" placeholder="Kierunek">
+    
+    <div style="font-size:0.75rem; color:var(--text-sec); margin-bottom:5px; margin-left:5px;">Typ pojazdu:</div>
+    <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
+    
+    <div style="font-size:0.75rem; color:var(--text-sec); margin-bottom:5px; margin-left:5px;">Kategoria linii na stronie głównej:</div>
+    <select id="fl-cat"></select>
+    
+    <textarea id="fl-hours" placeholder="Godziny odjazdów (np. 08:10, 08:40)"></textarea>
+    <div class="bulk-area">
+        <textarea id="fl-bulk" placeholder="Wklej listę przystanków..." style="height:80px; margin-bottom:5px;"></textarea>
+        <button onclick="convertBulk()" class="main-btn" style="padding:8px; font-size:0.8rem; background:#333;">Konwertuj ↓</button>
+    </div>
+    <div id="fl-stops-list"></div>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj ręcznie</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
+<div id="form-news" class="overlay-form">
+    <h2>Dodaj / Edytuj News</h2>
+    <input type="text" id="fn-title" placeholder="Tytuł newsa">
+    <select id="fn-cat"><option value="info">Informacja</option><option value="utrudnienia">Utrudnienia</option><option value="rozklad">Zmiana rozkładu</option></select>
+    <textarea id="fn-content" placeholder="Treść komunikatu..." style="height:200px"></textarea>
+    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
+<div id="form-cat" class="overlay-form">
+    <h2>Edycja Kategorii</h2>
+    <div style="font-size:0.75rem; color:var(--text-sec); margin-bottom:5px; margin-left:5px;">Nazwa kategorii:</div>
+    <input type="text" id="fc-name" placeholder="Nazwa kategorii">
+    
+    <div style="font-size:0.75rem; color:var(--text-sec); margin-bottom:10px; margin-left:5px;">Przypisz linie do tej kategorii:</div>
+    <div id="fc-lines-list" style="margin-bottom:15px; max-height: 250px; overflow-y: auto; background: #1c252e; padding: 15px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);"></div>
+    
+    <button onclick="saveCategoryEdit()" class="main-btn">Zapisz Kategorię</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
 <script>
-    // ======================================================
-    // TUTAJ WPISUJESZ DANE (MOŻESZ WKLEIĆ TREŚĆ Z BACKUP.TXT)
-    // ======================================================
-    const db = {
-        lines: [
-            {
-                num: "100",
-                dir: "Oś. Staszica",
-                type: "bus",
-                cat: "Autobusy",
-                hours: "05:10, 05:30, 05:50, 06:10, 06:40",
-                stops: [
-                    { name: "Jedwabnicza Park Handlowy", time: 0, nz: false },
-                    { name: "Fieldorfa Nila", time: 2, nz: false },
-                    { name: "Oś. Ustronie", time: 2, nz: false },
-                    { name: "Działkowców", time: 5, nz: true }
-                ]
-            },
-            {
-                num: "1",
-                dir: "Wieprzyce",
-                type: "tram",
-                cat: "Tramwaje",
-                hours: "05:05, 05:25, 05:45",
-                stops: [
-                    { name: "Jedwabnicza Park Handlowy", time: 0, nz: false },
-                    { name: "Katedra", time: 12, nz: false }
-                ]
+    let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
+    let curLineIdx = -1;
+    let curNewsIdx = -1;
+    let curCatIdx = -1;
+    let allAutoStops = [];
+
+    function init() {
+        const local = localStorage.getItem('mzk_full_backup_v12');
+        if(local) {
+            db = JSON.parse(local);
+            if(!db.stopDetails) db.stopDetails = {};
+            if(!db.news) db.news = [];
+            if(!db.lineCategories) db.lineCategories = ["Tramwaje", "Autobusy"];
+            repairAllLines();
+        }
+        extractStops();
+        render();
+    }
+
+    function getFormattedDate() {
+        const d = new Date();
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}.${month}.${year}`;
+    }
+
+    function cleanStopName(n) {
+        let nz = false; const patterns = [/ nż\./gi, / nż/gi, / \(nż\)/gi, /nż\./gi];
+        patterns.forEach(p => { if(p.test(n)) { nz = true; n = n.replace(p, ""); } });
+        return { name: n.trim(), isNz: nz };
+    }
+
+    function repairAllLines() { 
+        db.lines.forEach(l => { 
+            if (typeof l.stops === 'string') { 
+                l.stops = l.stops.split('\n').filter(s => s.trim() !== "").map((s, i) => { 
+                    const info = cleanStopName(s); 
+                    if(info.isNz && info.name) {
+                        if(!db.stopDetails[info.name]) db.stopDetails[info.name] = {nearby:"", isNz: true};
+                        else db.stopDetails[info.name].isNz = true;
+                    }
+                    return { name: info.name, time: (i === 0 ? 0 : 2), nz: info.isNz }; 
+                }); 
+            } 
+        }); 
+    }
+
+    function save() { localStorage.setItem('mzk_full_backup_v12', JSON.stringify(db)); extractStops(); render(); }
+
+    function extractStops() { 
+        let sSet = new Set(); 
+        db.lines.forEach(l => { 
+            if(Array.isArray(l.stops)) l.stops.forEach(s => { 
+                if(s.name) { 
+                    sSet.add(s.name); 
+                    if(!db.stopDetails[s.name]) db.stopDetails[s.name] = { nearby: "", isNz: false }; 
+                    
+                    const nameLower = s.name.toLowerCase();
+                    const containsNz = nameLower.includes(" nż") || nameLower.includes("nż.") || nameLower.includes("(nż)");
+                    if(s.nz || containsNz) {
+                        db.stopDetails[s.name].isNz = true;
+                    }
+                } 
+            }); 
+        }); 
+        allAutoStops = [...sSet].sort(); 
+    }
+
+    function render() {
+        const sHome = document.getElementById('s-home');
+        sHome.innerHTML = '';
+        
+        db.lineCategories.forEach(cat => {
+            const linesInCat = db.lines.filter(l => l.category === cat);
+            if (linesInCat.length > 0) {
+                const label = document.createElement('div'); label.className = 'group-label'; label.innerText = cat;
+                sHome.appendChild(label);
+                
+                const grid = document.createElement('div'); grid.className = 'lines-grid';
+                const uniqueNums = [...new Set(linesInCat.map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b));
+                uniqueNums.forEach(num => {
+                    const l = linesInCat.find(x => x.num === num);
+                    const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = num;
+                    div.onclick = () => openVariants(num); grid.appendChild(div);
+                });
+                sHome.appendChild(grid);
             }
-            // Możesz tu dodawać kolejne linie kopiując strukturę powyżej
-        ]
-    };
-
-    // LOGIKA APLIKACJI
-    function show(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.getElementById('s-' + id).classList.add('active-sec');
-        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        if(document.getElementById('n-' + id)) document.getElementById('n-' + id).classList.add('active');
-        window.scrollTo(0,0);
-    }
-
-    function renderHome() {
-        const container = document.getElementById('lines-list');
-        container.innerHTML = '';
-        const categories = [...new Set(db.lines.map(l => l.cat))];
-        
-        categories.forEach(cat => {
-            container.innerHTML += `<div class="group-label">${cat}</div>`;
-            const grid = document.createElement('div');
-            grid.className = 'lines-grid';
-            
-            const uniqueNums = [...new Set(db.lines.filter(l => l.cat === cat).map(l => l.num))];
-            uniqueNums.forEach(num => {
-                const line = db.lines.find(l => l.num === num);
-                grid.innerHTML += `<div class="line-sq ${line.type}" onclick="openVars('${num}')">${num}</div>`;
-            });
-            container.appendChild(grid);
         });
-    }
 
-    function openVars(num) {
-        show('vars');
-        const variants = db.lines.filter(l => l.num === num);
-        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div><h2>Wybierz kierunek</h2>`;
-        document.getElementById('vars-body').innerHTML = variants.map(v => `
-            <div class="app-card" onclick="openTT(${db.lines.indexOf(v)})">
-                <b>${v.dir}</b>
-                <i class="fa-solid fa-chevron-right" style="float:right; color:var(--accent)"></i>
-            </div>
-        `).join('');
-    }
+        const fallbackLines = db.lines.filter(l => !l.category || !db.lineCategories.includes(l.category));
+        if (fallbackLines.length > 0) {
+            const label = document.createElement('div'); label.className = 'group-label'; label.innerText = 'Pozostałe linie';
+            sHome.appendChild(label);
+            
+            const grid = document.createElement('div'); grid.className = 'lines-grid';
+            const uniqueNums = [...new Set(fallbackLines.map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b));
+            uniqueNums.forEach(num => {
+                const l = fallbackLines.find(x => x.num === num);
+                const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = num;
+                div.onclick = () => openVariants(num); grid.appendChild(div);
+            });
+            sHome.appendChild(grid);
+        }
 
-    function openTT(idx) {
-        const line = db.lines[idx];
-        show('tt');
-        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
-        
-        let totalTime = 0;
-        document.getElementById('tt-body').innerHTML = line.stops.map((s, i) => {
-            totalTime += s.time;
-            const stopOffset = totalTime;
-            return `
-                <div class="app-card" style="display:block" onclick="this.querySelector('.tt-grid').style.display = this.querySelector('.tt-grid').style.display === 'none' ? 'grid' : 'none'">
-                    <b>${s.name}</b>${s.nz ? '<span class="nz-badge">NŻ</span>' : ''}
-                    <div class="tt-grid" style="display:none">
-                        ${calculateTimes(line.hours, stopOffset)}
-                    </div>
+        const newsPublic = document.getElementById('public-news-list');
+        newsPublic.innerHTML = db.news.length ? db.news.map(n => `
+            <div class="app-card news-card">
+                <div class="news-header">
+                    <div class="news-date">${n.date}</div>
+                    <span class="news-tag tag-${n.cat || 'info'}">${n.cat || 'info'}</span>
                 </div>
-            `;
-        }).join('');
-    }
+                <div style="font-weight:700;">${n.title}</div>
+                <div style="font-size:0.85rem; color:var(--text-sec); margin-top:5px;">${n.content}</div>
+            </div>`).reverse().join('') : '<p style="text-align:center;">Brak newsów.</p>';
 
-    function calculateTimes(hoursStr, offset) {
-        return hoursStr.split(',').map(h => {
-            let [hh, mm] = h.trim().split(':');
-            let d = new Date();
-            d.setHours(parseInt(hh), parseInt(mm) + offset);
-            return `<div class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</div>`;
-        }).join('');
-    }
+        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>[${n.cat || 'info'}] <b>${n.title}</b></span><div><button onclick="openNewsForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800; margin-right:10px;">EDYTUJ</button><button onclick="deleteNews(${i})" style="color:var(--danger); background:none; border:none; font-weight:800;">USUŃ</button></div></div>`).reverse().join('');
 
-    function renderStops() {
-        const q = document.getElementById('stop-search').value.toLowerCase();
-        const results = document.getElementById('stops-results');
-        if(!q) { results.innerHTML = ''; return; }
-
-        const allStops = [];
-        db.lines.forEach(l => l.stops.forEach(s => {
-            if(!allStops.find(x => x.name === s.name)) allStops.push({name: s.name, nz: s.nz});
-        }));
-
-        results.innerHTML = allStops.filter(s => s.name.toLowerCase().includes(q)).map(s => `
-            <div class="app-card">
-                <b>${s.name}</b> ${s.nz ? '<span class="nz-badge">NŻ</span>' : ''}
-            </div>
-        `).join('');
-    }
-
-    // Start
-    renderHome();
-</script>
-</body>
-</html>
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir} <small style="color:var(--text-sec)">(${l.category || 'brak'})</small></span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
+   

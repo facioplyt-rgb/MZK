@@ -77,6 +77,7 @@
     </div>
 
     <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
+    
     <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
     
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333; margin-top:20px">Wróć</button></div>
@@ -101,7 +102,13 @@
                 <button onclick="openLineForm(-1)" class="main-btn">+ Dodaj linię</button>
                 <div id="adm-lines-list"></div>
             </div>
-            <div id="tab-p" class="adm-tab" style="display:none;"><div class="group-label">Baza przystanków</div><div id="adm-stops-list"></div></div>
+
+            <div id="tab-p" class="adm-tab" style="display:none;">
+                <button onclick="openGlobalStopForm()" class="main-btn">+ Nowy Przystanek (do bazy)</button>
+                <div class="group-label">Baza wszystkich przystanków</div>
+                <div id="adm-stops-list"></div>
+            </div>
+
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Nowy news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
             <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj Backup</button><input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Backup</button></div>
@@ -139,6 +146,14 @@
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
+<div id="form-stop-global" class="overlay-form">
+    <h2 id="gs-title">Przystanek</h2>
+    <input type="hidden" id="gs-old-name">
+    <input type="text" id="gs-name" placeholder="Nazwa przystanku">
+    <button onclick="saveGlobalStop()" class="main-btn">Zapisz i synchronizuj</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
 <div id="form-news" class="overlay-form">
     <h2>News</h2>
     <input type="text" id="fn-title" placeholder="Tytuł"><select id="fn-cat"><option value="info">Info</option><option value="utrudnienia">Utrudnienia</option></select>
@@ -146,17 +161,22 @@
 </div>
 
 <script>
-    let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
-    let curLineIdx = -1, allAutoStops = [];
+    let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"], globalStops: [] };
+    let curLineIdx = -1;
 
     function init() {
-        const local = localStorage.getItem('mzk_full_v16');
+        const local = localStorage.getItem('mzk_sync_v17');
         if(local) { db = JSON.parse(local); repairAllLines(); }
-        extractStops(); render();
+        syncGlobalStops(); render();
     }
 
-    function save() { localStorage.setItem('mzk_full_v16', JSON.stringify(db)); extractStops(); render(); }
-    function extractStops() { let sSet = new Set(); db.lines.forEach(l => l.stops.forEach(s => { if(s.name) sSet.add(s.name); })); allAutoStops = [...sSet].sort(); }
+    function save() { localStorage.setItem('mzk_sync_v17', JSON.stringify(db)); render(); }
+
+    function syncGlobalStops() {
+        let sSet = new Set(db.globalStops || []);
+        db.lines.forEach(l => l.stops.forEach(s => { if(s.name) sSet.add(s.name); }));
+        db.globalStops = [...sSet].sort();
+    }
 
     function getTransfers(stopName, currentLineNum) {
         let lines = [];
@@ -185,12 +205,56 @@
             }
         });
 
-        document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card" style="display:block;"><small>${n.date}</small><div><b>${n.title}</b></div><div style="font-size:0.8rem; color:var(--text-sec);">${n.content}</div></div>`).reverse().join('');
+        document.getElementById('public-news-list').innerHTML = (db.news || []).map(n => `<div class="app-card" style="display:block;"><small>${n.date}</small><div><b>${n.title}</b></div><div style="font-size:0.8rem; color:var(--text-sec);">${n.content}</div></div>`).reverse().join('');
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact;
         renderAdminStops(); renderCategoriesAdmin(); filterStops();
     }
 
+    // --- PANEL ADMIN PRZYSTANKI ---
+    function renderAdminStops() {
+        syncGlobalStops();
+        document.getElementById('adm-stops-list').innerHTML = db.globalStops.map(s => `
+            <div class="app-card">
+                <span style="font-weight:700;">${s}</span>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="openGlobalStopForm('${s}')" style="color:var(--info); background:none; border:none; font-weight:800;">EDYTUJ</button>
+                    <button onclick="deleteGlobalStop('${s}')" style="color:var(--danger); background:none; border:none; font-weight:800;">USUŃ</button>
+                </div>
+            </div>`).join('');
+    }
+
+    function openGlobalStopForm(oldName = "") {
+        document.getElementById('gs-title').innerText = oldName ? "Edytuj Przystanek" : "Nowy Przystanek";
+        document.getElementById('gs-old-name').value = oldName;
+        document.getElementById('gs-name').value = oldName;
+        document.getElementById('form-stop-global').style.display = 'block';
+    }
+
+    function saveGlobalStop() {
+        const oldN = document.getElementById('gs-old-name').value;
+        const newN = document.getElementById('gs-name').value.trim();
+        if(!newN) return;
+
+        if(oldN) {
+            // Synchronizacja we wszystkich liniach
+            db.lines.forEach(l => l.stops.forEach(s => { if(s.name === oldN) s.name = newN; }));
+            db.globalStops = db.globalStops.map(s => s === oldN ? newN : s);
+        } else {
+            if(!db.globalStops.includes(newN)) db.globalStops.push(newN);
+        }
+        save(); closeForms();
+    }
+
+    function deleteGlobalStop(n) {
+        if(confirm(`Czy na pewno usunąć przystanek "${n}"? Zostanie on usunięty ze wszystkich linii!`)) {
+            db.lines.forEach(l => l.stops = l.stops.filter(s => s.name !== n));
+            db.globalStops = db.globalStops.filter(s => s !== n);
+            save();
+        }
+    }
+
+    // --- ROZKŁAD ---
     function renderTimetable(idx) {
         const line = db.lines[idx]; show('tt');
         document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>Do: ${line.dir}</h2>`;
@@ -232,89 +296,4 @@
     function updateTimes(sIdx, line, offset, type) {
         const container = document.getElementById(`times-${sIdx}`);
         let hoursSource = (type === 'work') ? line.hours : (type === 'sat' ? line.hoursSat : line.hoursSun);
-        if(!hoursSource) { container.innerHTML = '<p style="grid-column:1/-1; text-align:center; padding:10px; opacity:0.5;">Brak kursów</p>'; return; }
-        container.innerHTML = hoursSource.split(',').map(h => {
-            let p = h.trim().split(':'); if(p.length<2) return "";
-            let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
-            return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-        }).join('');
-    }
-
-    function switchDay(sIdx, type, event) {
-        event.stopPropagation();
-        const tabs = event.target.parentElement.querySelectorAll('.day-tab');
-        tabs.forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active');
-        const headerText = document.getElementById('tt-head').innerText;
-        const lineNum = headerText.match(/\d+/)[0];
-        const lineDir = document.getElementById('tt-head').nextElementSibling.innerText.replace('Do: ', '');
-        const lineIdx = db.lines.findIndex(l => String(l.num) === lineNum && l.dir === lineDir);
-        let total = 0;
-        for(let i=0; i<=sIdx; i++) total += parseInt(db.lines[lineIdx].stops[i].time);
-        updateTimes(sIdx, db.lines[lineIdx], total, type);
-    }
-
-    // --- LOGIKA ADMINA I POMOCNICZE ---
-    function openLineForm(idx) {
-        curLineIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", hoursSat:"", hoursSun:"", category:"Autobusy", stops:[]} : db.lines[idx];
-        document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; document.getElementById('fl-type').value = l.type;
-        document.getElementById('fl-hours').value = l.hours; document.getElementById('fl-hours-sat').value = l.hoursSat || ""; document.getElementById('fl-hours-sun').value = l.hoursSun || "";
-        document.getElementById('fl-cat').innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category === c ? 'selected' : ''}>${c}</option>`).join('');
-        document.getElementById('fl-stops-list').innerHTML = ''; 
-        (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
-        document.getElementById('form-line').style.display = 'block';
-    }
-
-    function addStopRow(name = "", time = 2, nz = false) {
-        const div = document.createElement('div'); div.className = 'stop-edit-row';
-        div.innerHTML = `<input type="text" value="${name}" class="st-n" placeholder="Nazwa"><input type="number" value="${time}" class="st-t"><input type="checkbox" ${nz?'checked':''} class="st-nz"><button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:8px;">X</button>`;
-        document.getElementById('fl-stops-list').appendChild(div);
-    }
-
-    function convertBulk() {
-        const t = document.getElementById('fl-bulk').value;
-        t.split('\n').filter(s => s.trim() !== "").forEach((r, i) => addStopRow(r.replace(/nż/gi,'').trim(), i===0?0:2, r.toLowerCase().includes('nż')));
-        document.getElementById('fl-bulk').value = "";
-    }
-
-    function saveLine() {
-        const stops = Array.from(document.getElementById('fl-stops-list').children).map(row => ({ name: row.querySelector('.st-n').value.trim(), time: parseInt(row.querySelector('.st-t').value) || 0, nz: row.querySelector('.st-nz').checked }));
-        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hours: document.getElementById('fl-hours').value, hoursSat: document.getElementById('fl-hours-sat').value, hoursSun: document.getElementById('fl-hours-sun').value, stops: stops };
-        if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
-        save(); closeForms();
-    }
-
-    function filterStops() {
-        const q = document.getElementById('stop-search').value.toLowerCase();
-        const list = document.getElementById('public-stops-list');
-        list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => {
-            const transfers = getTransfers(s, "");
-            return `<div class="app-card"><div><b>${s}</b></div><div class="stop-lines-row">${transfers.map(t => `<span class="stop-line-pill">${t.num}</span>`).join('')}</div></div>`;
-        }).join('');
-    }
-
-    function openVariants(num) {
-        show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
-        const list = document.getElementById('vars-list'); list.innerHTML = '';
-        db.lines.forEach((l, index) => { if(String(l.num) === String(num)) {
-            const d = document.createElement('div'); d.className = "app-card"; d.innerHTML = `<span>Do: <b>${l.dir}</b></span> <i class="fa-solid fa-chevron-right"></i>`;
-            d.onclick = () => renderTimetable(index); list.appendChild(d);
-        }});
-    }
-
-    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
-    function show(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); document.getElementById('s-'+id).classList.add('active-sec'); document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active'); }
-    function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.querySelectorAll('.adm-nav-main button').forEach(b => b.classList.remove('active')); document.getElementById('tab-'+t).style.display='block'; document.getElementById('mt-'+t).classList.add('active'); }
-    function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
-    function repairAllLines() { db.lines.forEach(l => { if(!l.hoursSat) l.hoursSat = ""; if(!l.hoursSun) l.hoursSun = ""; }); }
-    function exportFullBackup() { const b = new Blob([JSON.stringify(db)], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `backup_mzk.txt`; a.click(); }
-    function importFullBackup(e) { const r = new FileReader(); r.onload = (ev) => { db = JSON.parse(ev.target.result); save(); location.reload(); }; r.readAsText(e.target.files[0]); }
-    function renderAdminStops() { document.getElementById('adm-stops-list').innerHTML = allAutoStops.map(s => `<div class="app-card">${s}</div>`).join(''); }
-    function renderCategoriesAdmin() { document.getElementById('adm-cats-list').innerHTML = db.lineCategories.map((c, i) => `<div class="app-card"><span>${c}</span><button onclick="db.lineCategories.splice(${i},1); save();" style="color:var(--danger); background:none; border:none;">X</button></div>`).join(''); }
-    function addCategory() { const n = document.getElementById('new-cat-name').value; if(n) { db.lineCategories.push(n); document.getElementById('new-cat-name').value=''; save(); } }
-    function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); }
-
-    init();
-</script>
-</body>
-</html>
+        if(!hoursSource) { container.innerHTML = '<p style="grid-column:1/-1; text-align:center; 

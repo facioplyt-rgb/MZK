@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - SYSTEM TOTAL</title>
+    <title>MZK GORZÓW - SYSTEM TOTAL PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -73,14 +73,19 @@
             <input type="password" id="pass" placeholder="Hasło"><button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none;">
+            <div class="group-label">Linie</div>
             <button onclick="openLineForm(-1)" class="main-btn">+ Nowa Linia</button>
             <div id="adm-lines-list"></div>
-            <div class="group-label">Dodatki</div>
-            <button onclick="manageCategories()" class="main-btn" style="background:#444;">Kategorie</button>
-            <button onclick="openNewsForm()" class="main-btn" style="background:#444;">+ Dodaj News</button>
-            <button onclick="exportFullBackup()" class="main-btn" style="background:#222;">Eksport Bazy (Backup)</button>
+
+            <div class="group-label">Zarządzanie Danymi</div>
+            <button onclick="openStopManager()" class="main-btn" style="background:#444;">Edytuj/Usuń Przystanki</button>
+            <button onclick="manageCategories()" class="main-btn" style="background:#444;">Kategorie Linii</button>
+            <button onclick="openNewsForm()" class="main-btn" style="background:#444;">Komunikaty (News)</button>
+            
+            <div class="group-label">Baza Danych</div>
+            <button onclick="exportFullBackup()" class="main-btn" style="background:#222;">Eksport (Backup)</button>
             <input type="file" id="import-db" onchange="importFullBackup(this)" style="display:none;">
-            <button onclick="document.getElementById('import-db').click()" class="main-btn" style="background:#222;">Import Bazy</button>
+            <button onclick="document.getElementById('import-db').click()" class="main-btn" style="background:#222;">Import (Wgraj)</button>
         </div>
     </div>
 </div>
@@ -98,20 +103,27 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-hours" placeholder="Godziny robocze (np. 08:00, 08:30)"></textarea>
-    <textarea id="fl-hours-sat" placeholder="Soboty"></textarea>
-    <textarea id="fl-hours-sun" placeholder="Święta"></textarea>
+    <textarea id="fl-hours" placeholder="Robocze: 08:00, 08:30..."></textarea>
+    <textarea id="fl-hours-sat" placeholder="Soboty..."></textarea>
+    <textarea id="fl-hours-sun" placeholder="Święta..."></textarea>
     <div id="fl-stops-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
-    <button onclick="saveLine()" class="main-btn">ZAPISZ</button>
+    <button onclick="saveLine()" class="main-btn">ZAPISZ LINIE</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+</div>
+
+<div id="form-stop-mgr" class="overlay-form">
+    <h2>Zarządzaj Przystankami</h2>
+    <p style="font-size:0.7rem; color:var(--text-sec); margin-bottom:15px;">Uwaga: Zmiana nazwy tutaj zaktualizuje ją we wszystkich liniach.</p>
+    <div id="stop-mgr-list"></div>
+    <button onclick="closeForms()" class="main-btn" style="margin-top:20px;">Zamknij</button>
 </div>
 
 <div id="form-news" class="overlay-form">
     <h2>Dodaj News</h2>
     <input type="text" id="fn-title" placeholder="Tytuł">
     <textarea id="fn-content" placeholder="Treść..."></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
+    <button onclick="saveNews()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -120,13 +132,13 @@
     let curIdx = -1;
 
     function init() {
-        const local = localStorage.getItem('mzk_v_final_full');
+        const local = localStorage.getItem('mzk_v_total_pro');
         if(local) db = JSON.parse(local);
         render();
         setInterval(() => { if(document.getElementById('s-tt').classList.contains('active-sec')) renderTimetable(curIdx); }, 30000);
     }
 
-    function save() { localStorage.setItem('mzk_v_final_full', JSON.stringify(db)); render(); }
+    function save() { localStorage.setItem('mzk_v_total_pro', JSON.stringify(db)); render(); }
 
     function render() {
         const home = document.getElementById('home-content'); home.innerHTML = '';
@@ -166,7 +178,7 @@
                 let next = times.find(d => d > now);
                 if(next) {
                     let diff = Math.floor((next - now) / 60000);
-                    if(diff <= 2) live = `<span class="live-badge"><span class="arrows-anim">>>>></span> ${diff === 0 ? 'TERAZ' : '1-2 MIN'}</span>`;
+                    if(diff <= 2) live = `<span class="live-badge"><span class="arrows-anim">>>>></span> ${diff === 0 ? 'TERAZ' : '1 MIN'}</span>`;
                     else if(diff < 60) live = `<span class="live-badge">za ${diff} min</span>`;
                     else live = `<span style="opacity:0.7;">${next.getHours()}:${next.getMinutes().toString().padStart(2,'0')}</span>`;
                 }
@@ -186,6 +198,29 @@
             let p = h.trim().split(':'); let d = new Date(); d.setHours(p[0], parseInt(p[1]) + offset, 0);
             return `<span class="tt-time">${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
         }).join('');
+    }
+
+    function openStopManager() {
+        const mgr = document.getElementById('stop-mgr-list'); mgr.innerHTML = '';
+        let allStops = []; db.lines.forEach(l => l.stops.forEach(s => { if(!allStops.includes(s.name)) allStops.push(s.name); }));
+        allStops.sort().forEach(sName => {
+            const d = document.createElement('div'); d.className = 'stop-row'; d.style.gridTemplateColumns = "1fr 40px";
+            d.innerHTML = `<input type="text" value="${sName}" onchange="renameStopGlobal('${sName}', this.value)"><button onclick="deleteStopGlobal('${sName}')" style="background:var(--danger); border:none; color:white; border-radius:8px;">X</button>`;
+            mgr.appendChild(d);
+        });
+        document.getElementById('form-stop-mgr').style.display = 'block';
+    }
+
+    function renameStopGlobal(oldName, newName) {
+        db.lines.forEach(l => l.stops.forEach(s => { if(s.name === oldName) s.name = newName; }));
+        save(); openStopManager();
+    }
+
+    function deleteStopGlobal(name) {
+        if(confirm(`Usunąć przystanek "${name}" ze wszystkich linii?`)) {
+            db.lines.forEach(l => l.stops = l.stops.filter(s => s.name !== name));
+            save(); openStopManager();
+        }
     }
 
     async function findMyLocation() {

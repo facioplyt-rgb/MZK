@@ -3,46 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - PANEL V3.3</title>
+    <title>MZK GORZÓW - SYSTEM ZINTEGROWANY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f4f7f6; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Montserrat', sans-serif; background: var(--bg); padding-bottom: 90px; color: var(--dark); }
-        header { background: var(--mzk); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--yellow); position: sticky; top: 0; z-index: 1000; font-weight: 900; text-transform: uppercase; }
+        header { background: var(--mzk); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--yellow); position: sticky; top: 0; z-index: 1000; font-weight: 900; }
+        
         .container { max-width: 600px; margin: 0 auto; padding: 10px; }
         .section { display: none; }
         .active-sec { display: block; }
 
         /* WIDOK PASAŻERA */
-        .line-item { background: white; padding: 18px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 6px solid var(--mzk); font-weight: 900; }
-        .line-item.tram { border-left-color: var(--red); }
-        .stop-row { background: white; padding: 15px; margin-bottom: 5px; border-radius: 10px; border-left: 4px solid #ccc; cursor: pointer; }
-        .stop-row.is-nz { border-left-color: var(--red); }
-        .stop-name { font-weight: 800; font-size: 1rem; }
-        .badge-nz { color: var(--red); font-weight: 900; font-size: 0.7rem; margin-left: 5px; }
-        .nearby-tag { font-size: 0.7rem; color: #666; margin-top: 4px; display: block; font-style: italic; }
-        .transfer-pills { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-        .pill { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; color: #444; border: 1px solid #ddd; }
+        .line-card { background: white; padding: 18px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 6px solid var(--mzk); font-weight: 900; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .line-card.tram { border-left-color: var(--red); }
+        
+        .stop-item { background: white; padding: 15px; margin-bottom: 6px; border-radius: 10px; border-left: 4px solid #ccc; position: relative; }
+        .stop-item.is-nz { border-left-color: var(--red); }
+        .stop-name { font-weight: 800; font-size: 1.1rem; }
+        .badge-nz { color: var(--red); font-size: 0.7rem; font-weight: 900; margin-left: 5px; }
+        .nearby { font-size: 0.75rem; color: #555; margin-top: 4px; display: block; }
+        .transfers { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+        .pill { background: #eee; padding: 3px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; border: 1px solid #ddd; }
 
-        /* GODZINY */
-        .schedule-tabs { display: flex; gap: 2px; margin-top: 10px; }
-        .s-tab { flex: 1; padding: 8px; font-size: 0.7rem; background: #444; color: white; border: none; font-weight: 700; cursor: pointer; border-radius: 4px 4px 0 0; }
-        .s-tab.active { background: var(--mzk); }
-        .hours-grid { background: var(--dark); color: white; padding: 12px; display: none; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 6px; border-radius: 0 0 8px 8px; }
-        .hour-pill { background: rgba(255,255,255,0.15); padding: 6px; text-align: center; border-radius: 4px; font-weight: 700; font-size: 0.9rem; }
+        /* ROZKŁAD - TABELE */
+        .tabs { display: flex; margin-top: 10px; border-radius: 8px 8px 0 0; overflow: hidden; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: #444; color: white; font-size: 0.7rem; font-weight: 800; cursor: pointer; }
+        .tab-btn.active { background: var(--mzk); }
+        .grid { background: var(--dark); padding: 12px; display: none; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 8px; border-radius: 0 0 10px 10px; }
+        .h-pill { background: rgba(255,255,255,0.15); color: white; padding: 6px; text-align: center; border-radius: 4px; font-weight: 700; font-size: 0.9rem; }
 
         /* ADMIN */
-        .adm-btn { background: var(--dark); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; margin-bottom: 10px; cursor: pointer; }
-        textarea, input, select { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; font-size: 0.9rem; }
-        .admin-card { background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .adm-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ddd; }
+        .adm-title { font-weight: 900; color: var(--mzk); margin-bottom: 10px; display: block; text-transform: uppercase; font-size: 0.8rem; }
+        .btn-main { background: var(--dark); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
+        textarea, input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
+        .adm-item { background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
 
         /* NAV */
         nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; height: 75px; border-top: 1px solid #ddd; z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #bbb; cursor: pointer; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #bbb; cursor: pointer; font-size: 0.65rem; font-weight: 800; }
         nav div.active { color: var(--mzk); }
-        nav i { font-size: 1.3rem; margin-bottom: 3px; }
+        nav i { font-size: 1.4rem; margin-bottom: 3px; }
     </style>
 </head>
 <body>
@@ -50,47 +54,54 @@
 <header>MZK GORZÓW</header>
 
 <div class="container">
-    <div id="s-home" class="section active-sec"><div id="lines-render"></div></div>
-    <div id="s-vars" class="section"><div id="vars-render"></div></div>
-    <div id="s-tt" class="section"><div id="tt-header-render"></div><div id="tt-stops-render"></div></div>
+    <div id="s-home" class="section active-sec"><div id="lines-list"></div></div>
+    <div id="s-vars" class="section"></div>
+    <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div></div>
     <div id="s-map" class="section"><iframe id="map-frame" style="width:100%;height:500px;border:none;border-radius:15px;background:#eee;"></iframe></div>
-    <div id="s-info" class="section"><div id="info-render" style="background:white;padding:20px;border-radius:15px;line-height:1.6;"></div></div>
-    <div id="s-contact" class="section"><div id="contact-render" style="background:white;padding:20px;border-radius:15px;line-height:1.6;"></div></div>
+    <div id="s-info" class="section"><div id="info-box" style="background:white;padding:20px;border-radius:15px;"></div></div>
+    <div id="s-contact" class="section"><div id="contact-box" style="background:white;padding:20px;border-radius:15px;"></div></div>
 
     <div id="s-adm" class="section">
-        <div id="adm-auth">
-            <input type="password" id="adm-pass" placeholder="Hasło" style="text-align:center;">
-            <button onclick="login()" class="adm-btn">ZALOGUJ</button>
+        <div id="adm-login">
+            <input type="password" id="pass" placeholder="Hasło (123)" style="text-align:center;">
+            <button onclick="login()" class="btn-main">ZALOGUJ</button>
         </div>
-        <div id="adm-panel" style="display:none;">
-            <div style="display:flex; gap:3px; margin-bottom:15px;">
-                <button onclick="tab('l')" class="adm-btn" style="flex:1">LINIE</button>
-                <button onclick="tab('p')" class="adm-btn" style="flex:1">PRZYSTANKI</button>
-                <button onclick="tab('d')" class="adm-btn" style="flex:1;background:var(--mzk)">DANE</button>
+        <div id="adm-ui" style="display:none;">
+            <div style="display:flex; gap:5px;">
+                <button onclick="tab('l')" class="btn-main" style="flex:1">LINIE</button>
+                <button onclick="tab('p')" class="btn-main" style="flex:1">PRZYSTANKI</button>
+                <button onclick="tab('d')" class="btn-main" style="flex:1;background:var(--mzk)">DANE</button>
             </div>
-            
+
             <div id="t-l">
-                <button onclick="openLineEditor(-1)" class="adm-btn" style="background:#444">+ NOWA LINIA (LISTA ENTER)</button>
-                <div id="adm-lines-list"></div>
+                <button onclick="editLine(-1)" class="btn-main" style="background:#444">+ DODAJ LINIĘ</button>
+                <div id="adm-lines"></div>
             </div>
 
             <div id="t-p" style="display:none;">
-                <button onclick="openStopEditor(-1)" class="adm-btn" style="background:#444">+ KONFIGURUJ PRZYSTANEK (NŻ/Pobliże)</button>
-                <div id="adm-stops-list"></div>
+                <button onclick="editStop(-1)" class="btn-main" style="background:#444">+ KONFIGURUJ PRZYSTANEK (NŻ/Pobliże)</button>
+                <div id="adm-stops"></div>
             </div>
 
             <div id="t-d" style="display:none;">
-                <label><b>Link do mapy (Iframe src):</b></label>
-                <input type="text" id="adm-map-input" placeholder="Wklej link do Google Maps...">
-                <label><b>Informacje / Komunikaty:</b></label>
-                <textarea id="adm-info-input" style="height:100px" placeholder="Wpisz ważne informacje dla pasażerów..."></textarea>
-                <label><b>Kontakt:</b></label>
-                <textarea id="adm-contact-input" style="height:100px" placeholder="Wpisz dane kontaktowe..."></textarea>
-                <button onclick="saveGlobal()" class="adm-btn" style="background:var(--mzk)">ZAPISZ DANE</button>
-                <hr style="margin:20px 0; opacity:0.3">
-                <button onclick="exportDB()" class="adm-btn" style="background:#666">EXPORT BAZY</button>
-                <input type="file" id="importFile" style="display:none" onchange="importDB(event)">
-                <button onclick="document.getElementById('importFile').click()" class="adm-btn" style="background:var(--red)">IMPORT BAZY</button>
+                <div class="adm-box">
+                    <span class="adm-title">Konfiguracja Mapy</span>
+                    <input type="text" id="inp-map" placeholder="Wklej link iframe (src)">
+                    
+                    <span class="adm-title">Ważne Informacje (Komunikaty)</span>
+                    <textarea id="inp-info" style="height:100px;" placeholder="Treść w zakładce Info..."></textarea>
+                    
+                    <span class="adm-title">Kontakt</span>
+                    <textarea id="inp-contact" style="height:100px;" placeholder="Dane kontaktowe MZK..."></textarea>
+                    
+                    <button onclick="saveSettings()" class="btn-main" style="background:var(--mzk)">ZAPISZ WSZYSTKIE DANE</button>
+                </div>
+                <div class="adm-box" style="background:#f0f0f0;">
+                    <span class="adm-title">Baza Danych</span>
+                    <button onclick="exportDB()" class="btn-main" style="background:#666">EKSPORTUJ PLIK</button>
+                    <input type="file" id="importFile" style="display:none" onchange="importDB(event)">
+                    <button onclick="document.getElementById('importFile').click()" class="btn-main" style="background:var(--red)">IMPORTUJ PLIK</button>
+                </div>
             </div>
         </div>
     </div>
@@ -99,146 +110,203 @@
 <nav>
     <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
     <div onclick="show('map')" id="n-map"><i class="fa-solid fa-map"></i><span>Mapa</span></div>
-    <div onclick="show('info')" id="n-info"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
+    <div onclick="show('info')" id="n-info"><i class="fa-solid fa-info-circle"></i><span>Info</span></div>
     <div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-phone"></i><span>Kontakt</span></div>
     <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Admin</span></div>
 </nav>
 
-<div id="m-line-editor" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h3>EDYCJA LINII</h3>
-    <input type="text" id="le-num" placeholder="Numer">
-    <input type="text" id="le-dir" placeholder="Kierunek">
-    <select id="le-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="le-h-rob" placeholder="Robocze: 05:00, 05:30..."></textarea>
-    <textarea id="le-h-sob" placeholder="Soboty: 07:00, 08:00..."></textarea>
-    <textarea id="le-h-nie" placeholder="Niedziele: 09:00, 11:00..."></textarea>
-    <label>LISTA PRZYSTANKÓW (Nazwa | czas):</label>
-    <textarea id="le-stops-bulk" style="height:200px;" placeholder="Piaski | 0&#10;Dworzec | 4"></textarea>
-    <button onclick="saveLine()" class="adm-btn" style="background:var(--mzk)">ZAPISZ</button>
-    <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;">ANULUJ</button>
+<div id="mod-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;overflow-y:auto;">
+    <h2 style="margin-bottom:15px;">EDYCJA LINII</h2>
+    <input type="text" id="l-num" placeholder="Numer (np. 104)">
+    <input type="text" id="l-dir" placeholder="Kierunek (np. Słoneczne)">
+    <select id="l-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
+    
+    <span class="adm-title">Godziny z pętli (po przecinku):</span>
+    <textarea id="l-h-rob" placeholder="Robocze: 05:10, 05:40..."></textarea>
+    <textarea id="l-h-sob" placeholder="Soboty: 06:00, 08:00..."></textarea>
+    <textarea id="l-h-nie" placeholder="Niedziele: 08:30, 10:30..."></textarea>
+
+    <span class="adm-title" style="color:var(--red)">PRZYSTANKI (Format: Nazwa | minuty):</span>
+    <textarea id="l-bulk" style="height:150px;" placeholder="Piaski | 0&#10;Katedra | 5&#10;Dworzec | 8"></textarea>
+    
+    <button onclick="saveLine()" class="btn-main" style="background:var(--mzk)">ZAPISZ LINIĘ</button>
+    <button onclick="closeModals()" style="color:red;border:none;background:none;width:100%;font-weight:800;">ANULUJ</button>
 </div>
 
-<div id="m-stop-editor" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;">
-    <h3>PRZYSTANEK</h3>
-    <input type="text" id="se-name" placeholder="Nazwa">
-    <label><input type="checkbox" id="se-req"> NA ŻĄDANIE</label>
-    <textarea id="se-nearby" placeholder="Pobliże..."></textarea>
-    <button onclick="saveStop()" class="adm-btn">ZAPISZ</button>
-    <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;">ANULUJ</button>
+<div id="mod-stop" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;">
+    <h2>KONFIGURACJA PRZYSTANKU</h2>
+    <input type="text" id="p-name" placeholder="Dokładna nazwa">
+    <label style="display:block; margin:10px 0;"><input type="checkbox" id="p-nz"> NA ŻĄDANIE (NŻ)</label>
+    <textarea id="p-near" placeholder="Pobliże (np. Park, Szpital, Galeria...)"></textarea>
+    <button onclick="saveStop()" class="btn-main">ZAPISZ</button>
+    <button onclick="closeModals()" style="color:red;border:none;background:none;width:100%;font-weight:800;">ANULUJ</button>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('MZK_V33')) || { lines: [], stops: [], map: "", info: "", contact: "" };
-    let curIdx = -1;
+    let db = JSON.parse(localStorage.getItem('MZK_FINAL_V5')) || { 
+        lines: [], 
+        stops: [], 
+        map: "", 
+        info: "Komunikat powitalny", 
+        contact: "Dane kontaktowe" 
+    };
+    let currentIdx = -1;
 
-    function sync() { localStorage.setItem('MZK_V33', JSON.stringify(db)); render(); }
+    function sync() { localStorage.setItem('MZK_FINAL_V5', JSON.stringify(db)); render(); }
 
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        if(id==='map') document.getElementById('map-frame').src = db.map;
-        if(id==='info') document.getElementById('info-render').innerHTML = db.info.replace(/\n/g, '<br>') || "Brak komunikatów.";
-        if(id==='contact') document.getElementById('contact-render').innerHTML = db.contact.replace(/\n/g, '<br>') || "Brak danych.";
         document.getElementById('n-'+id).classList.add('active');
+        if(id==='map') document.getElementById('map-frame').src = db.map;
+        if(id==='info') document.getElementById('info-box').innerHTML = db.info.replace(/\n/g, '<br>');
+        if(id==='contact') document.getElementById('contact-box').innerHTML = db.contact.replace(/\n/g, '<br>');
         window.scrollTo(0,0);
     }
 
     function render() {
-        const lr = document.getElementById('lines-render'); lr.innerHTML = '';
+        // Render strony głównej
+        const list = document.getElementById('lines-list'); list.innerHTML = '';
         const unique = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
-        unique.forEach(n => {
-            const l = db.lines.find(lx => lx.num === n);
-            lr.innerHTML += `<div class="line-item ${l.type==='tram'?'tram':''}" onclick="openVars('${n}')">LINIA ${n} <i class="fa-solid fa-chevron-right"></i></div>`;
+        unique.forEach(num => {
+            const first = db.lines.find(lx => lx.num === num);
+            list.innerHTML += `<div class="line-card ${first.type==='tram'?'tram':''}" onclick="showVars('${num}')">LINIA ${num} <i class="fa-solid fa-chevron-right"></i></div>`;
         });
 
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l,i) => `<div class="admin-card"><span>${l.num} -> ${l.dir}</span> <button onclick="deleteL(${i})" style="color:red;border:none;background:none;">USUŃ</button></div>`).join('');
-        document.getElementById('adm-stops-list').innerHTML = db.stops.map((s,i) => `<div class="admin-card" onclick="openStopEditor(${i})"><span>${s.name} ${s.req?'(NŻ)':''}</span> <button onclick="event.stopPropagation(); deleteP(${i})" style="color:red;border:none;background:none;">USUŃ</button></div>`).join('');
-        
-        // Wypełnienie formularza w adminie danymi z DB
-        document.getElementById('adm-map-input').value = db.map || "";
-        document.getElementById('adm-info-input').value = db.info || "";
-        document.getElementById('adm-contact-input').value = db.contact || "";
+        // Render list admina
+        document.getElementById('adm-lines').innerHTML = db.lines.map((l,i) => `<div class="adm-item"><span>${l.num} -> ${l.dir}</span> <button onclick="deleteL(${i})" style="color:red;border:none;background:none;">USUŃ</button></div>`).join('');
+        document.getElementById('adm-stops').innerHTML = db.stops.map((s,i) => `<div class="adm-item" onclick="editStop(${i})"><span>${s.name} ${s.nz?'(NŻ)':''}</span> <button onclick="event.stopPropagation(); deleteP(${i})" style="color:red;border:none;background:none;">USUŃ</button></div>`).join('');
+
+        // Wypełnienie pól admina
+        document.getElementById('inp-map').value = db.map;
+        document.getElementById('inp-info').value = db.info;
+        document.getElementById('inp-contact').value = db.contact;
     }
 
-    function saveGlobal() {
-        db.map = document.getElementById('adm-map-input').value;
-        db.info = document.getElementById('adm-info-input').value;
-        db.contact = document.getElementById('adm-contact-input').value;
-        sync(); alert("Dane zapisane!");
+    // --- FUNKCJE DANYCH ---
+    function saveSettings() {
+        db.map = document.getElementById('inp-map').value;
+        db.info = document.getElementById('inp-info').value;
+        db.contact = document.getElementById('inp-contact').value;
+        sync(); alert("Zapisano ustawienia!");
     }
 
-    function openVars(n) {
+    // --- FUNKCJE ROZKŁADU ---
+    function showVars(num) {
         show('vars');
-        const vr = document.getElementById('vars-render');
-        vr.innerHTML = `<h2>Kierunki Linii ${n}</h2>`;
-        db.lines.filter(l => l.num === n).forEach(l => {
-            vr.innerHTML += `<div class="line-item" onclick="renderStops(${db.lines.indexOf(l)})">${l.dir}</div>`;
+        const v = document.getElementById('s-vars');
+        v.innerHTML = `<h2>Kierunki Linii ${num}</h2>`;
+        db.lines.filter(l => l.num === num).forEach(l => {
+            v.innerHTML += `<div class="line-card" onclick="renderTT(${db.lines.indexOf(l)})">${l.dir}</div>`;
         });
-        vr.innerHTML += `<button onclick="show('home')" class="adm-btn" style="margin-top:20px; background:#444">POWRÓT</button>`;
+        v.innerHTML += `<button onclick="show('home')" class="btn-main" style="margin-top:20px; background:#444">POWRÓT</button>`;
     }
 
-    function renderStops(idx) {
+    function renderTT(idx) {
         show('tt');
         const l = db.lines[idx];
-        document.getElementById('tt-header-render').innerHTML = `<div style="background:${l.type==='tram'?'var(--red)':'var(--mzk)'}; color:white; padding:20px; border-radius:15px; text-align:center"><h1>${l.num}</h1><p>${l.dir}</p></div>`;
-        const container = document.getElementById('tt-stops-render');
-        container.innerHTML = '';
-        let cumulative = 0;
-        l.route.forEach((step, si) => {
-            cumulative += step.time;
-            const ars = db.stops.find(as => as.name.toLowerCase() === step.name.toLowerCase());
-            const tr = [...new Set(db.lines.filter(ol => ol.num !== l.num && ol.route.some(r => r.name.toLowerCase() === step.name.toLowerCase())).map(ol => ol.num))];
+        document.getElementById('tt-head').innerHTML = `<div style="background:${l.type==='tram'?'var(--red)':'var(--mzk)'}; color:white; padding:20px; border-radius:15px; text-align:center; margin-bottom:15px;"><h1>${l.num}</h1><p>${l.dir}</p></div>`;
+        const body = document.getElementById('tt-body'); body.innerHTML = '';
+        
+        let sum = 0;
+        l.route.forEach((stop, si) => {
+            sum += stop.time;
+            const b = db.stops.find(x => x.name.toLowerCase() === stop.name.toLowerCase());
+            const trans = [...new Set(db.lines.filter(ol => ol.num !== l.num && ol.route.some(r => r.name.toLowerCase() === stop.name.toLowerCase())).map(ol => ol.num))];
+
             const div = document.createElement('div');
-            div.className = `stop-row ${ars?.req ? 'is-nz' : ''}`;
+            div.className = `stop-item ${b?.nz ? 'is-nz' : ''}`;
             div.innerHTML = `
-                <span style="float:right; font-weight:900; color:var(--mzk)">+${cumulative} min</span>
-                <span class="stop-name">${step.name}</span> ${ars?.req ? '<span class="badge-nz">NŻ</span>' : ''}
-                ${ars?.nearby ? `<span class="nearby-tag"><i class="fa-solid fa-location-dot"></i> ${ars.nearby}</span>` : ''}
-                <div class="transfer-pills">${tr.map(t => `<span class="pill">${t}</span>`).join('')}</div>
-                <div class="schedule-tabs" id="tabs-${si}">
-                    <button class="s-tab active" onclick="event.stopPropagation(); changeT(${si}, 'rob', ${idx}, ${cumulative})">Rob.</button>
-                    <button class="s-tab" onclick="event.stopPropagation(); changeT(${si}, 'sob', ${idx}, ${cumulative})">Sob.</button>
-                    <button class="s-tab" onclick="event.stopPropagation(); changeT(${si}, 'nie', ${idx}, ${cumulative})">Nie.</button>
+                <span style="float:right; font-weight:900; color:var(--mzk)">+${sum} min</span>
+                <span class="stop-name">${stop.name}</span> ${b?.nz ? '<span class="badge-nz">NŻ</span>' : ''}
+                ${b?.near ? `<span class="nearby"><i class="fa-solid fa-location-dot"></i> ${b.near}</span>` : ''}
+                <div class="transfers">${trans.map(t => `<span class="pill">${t}</span>`).join('')}</div>
+                <div class="tabs" id="tabs-${si}">
+                    <button class="tab-btn active" onclick="event.stopPropagation(); changeT(${si}, 'rob', ${idx}, ${sum})">Roboczy</button>
+                    <button class="tab-btn" onclick="event.stopPropagation(); changeT(${si}, 'sob', ${idx}, ${sum})">Sobota</button>
+                    <button class="tab-btn" onclick="event.stopPropagation(); changeT(${si}, 'nie', ${idx}, ${sum})">Niedz/Św</button>
                 </div>
-                <div class="hours-grid" id="grid-${si}"></div>
+                <div class="grid" id="grid-${si}"></div>
             `;
-            div.onclick = () => { const g = document.getElementById('grid-'+si); g.style.display = g.style.display==='grid'?'none':'grid'; if(g.style.display==='grid') changeT(si, 'rob', idx, cumulative); };
-            container.appendChild(div);
+            div.onclick = () => {
+                const g = document.getElementById('grid-'+si);
+                g.style.display = g.style.display === 'grid' ? 'none' : 'grid';
+                if(g.style.display === 'grid') changeT(si, 'rob', idx, sum);
+            };
+            body.appendChild(div);
         });
-        container.innerHTML += `<button onclick="openVars('${l.num}')" class="adm-btn" style="margin-top:20px">POWRÓT</button>`;
+        body.innerHTML += `<button onclick="showVars('${l.num}')" class="btn-main" style="margin-top:20px">POWRÓT</button>`;
     }
 
     function changeT(si, type, lIdx, off) {
-        const grid = document.getElementById('grid-'+si);
+        const g = document.getElementById('grid-'+si);
         const l = db.lines[lIdx];
-        let base = (type==='rob'?l.hRob:type==='sob'?l.hSob:l.hNie).split(',');
-        grid.innerHTML = base.map(h => {
+        let raw = (type==='rob'?l.hRob : type==='sob'?l.hSob : l.hNie).split(',');
+        g.innerHTML = raw.map(h => {
             if(!h.trim()) return '';
             let [hh, mm] = h.trim().split(':').map(Number);
             let d = new Date(); d.setHours(hh, mm + off);
-            return `<span class="hour-pill">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-        }).join('') || '<span style="font-size:0.7rem">Brak kursów</span>';
-        const ts = document.querySelectorAll(`#tabs-${si} .s-tab`); ts.forEach(t => t.classList.remove('active'));
-        if(event && event.target.classList.contains('s-tab')) event.target.classList.add('active');
+            return `<span class="h-pill">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
+        }).join('') || '<span style="color:white; font-size:0.7rem;">Brak kursów</span>';
+        const btns = document.querySelectorAll(`#tabs-${si} .tab-btn`);
+        btns.forEach(b => b.classList.remove('active'));
+        if(event && event.target.classList.contains('tab-btn')) event.target.classList.add('active');
+    }
+
+    // --- ADMIN ACTIONS ---
+    function editLine(idx) {
+        currentIdx = idx;
+        if(idx === -1) {
+            document.querySelectorAll('#mod-line input, #mod-line textarea').forEach(i => i.value='');
+        } else {
+            const l = db.lines[idx];
+            document.getElementById('l-num').value = l.num; document.getElementById('l-dir').value = l.dir;
+            document.getElementById('l-type').value = l.type; document.getElementById('l-h-rob').value = l.hRob;
+            document.getElementById('l-h-sob').value = l.hSob; document.getElementById('l-h-nie').value = l.hNie;
+            document.getElementById('l-bulk').value = l.route.map(r => `${r.name} | ${r.time}`).join('\n');
+        }
+        document.getElementById('mod-line').style.display = 'block';
     }
 
     function saveLine() {
-        const bulk = document.getElementById('le-stops-bulk').value.split('\n').filter(x => x.includes('|')).map(x => ({ name: x.split('|')[0].trim(), time: parseInt(x.split('|')[1]) || 0 }));
-        const data = { num: document.getElementById('le-num').value, dir: document.getElementById('le-dir').value, type: document.getElementById('le-type').value, hRob: document.getElementById('le-h-rob').value, hSob: document.getElementById('le-h-sob').value, hNie: document.getElementById('le-h-nie').value, route: bulk };
-        if(curIdx === -1) db.lines.push(data); else db.lines[curIdx] = data;
-        sync(); closeModal();
+        const route = document.getElementById('l-bulk').value.split('\n').filter(x => x.includes('|')).map(x => ({
+            name: x.split('|')[0].trim(),
+            time: parseInt(x.split('|')[1]) || 0
+        }));
+        const data = {
+            num: document.getElementById('l-num').value, dir: document.getElementById('l-dir').value,
+            type: document.getElementById('l-type').value, hRob: document.getElementById('l-h-rob').value,
+            hSob: document.getElementById('l-h-sob').value, hNie: document.getElementById('l-h-nie').value,
+            route: route
+        };
+        if(currentIdx === -1) db.lines.push(data); else db.lines[currentIdx] = data;
+        sync(); closeModals();
     }
 
-    function openLineEditor(idx) { curIdx = idx; if(idx === -1) { document.querySelectorAll('#m-line-editor input, #m-line-editor textarea').forEach(e => e.value=''); } else { const l = db.lines[idx]; document.getElementById('le-num').value=l.num; document.getElementById('le-dir').value=l.dir; document.getElementById('le-type').value=l.type; document.getElementById('le-h-rob').value=l.hRob; document.getElementById('le-h-sob').value=l.hSob; document.getElementById('le-h-nie').value=l.hNie; document.getElementById('le-stops-bulk').value = l.route.map(r => `${r.name} | ${r.time}`).join('\n'); } document.getElementById('m-line-editor').style.display='block'; }
-    function openStopEditor(idx) { curIdx = idx; if(idx === -1) { document.getElementById('se-name').value=''; document.getElementById('se-req').checked=false; document.getElementById('se-nearby').value=''; } else { const s = db.stops[idx]; document.getElementById('se-name').value=s.name; document.getElementById('se-req').checked=s.req; document.getElementById('se-nearby').value=s.nearby; } document.getElementById('m-stop-editor').style.display='block'; }
-    function saveStop() { const data = { name: document.getElementById('se-name').value.trim(), req: document.getElementById('se-req').checked, nearby: document.getElementById('se-nearby').value }; if(curIdx === -1) db.stops.push(data); else db.stops[curIdx] = data; sync(); closeModal(); }
-    function login() { if(document.getElementById('adm-pass').value==='123') { document.getElementById('adm-auth').style.display='none'; document.getElementById('adm-panel').style.display='block'; } }
+    function editStop(idx) {
+        currentIdx = idx;
+        if(idx === -1) {
+            document.getElementById('p-name').value = ''; document.getElementById('p-nz').checked = false; document.getElementById('p-near').value = '';
+        } else {
+            const s = db.stops[idx];
+            document.getElementById('p-name').value = s.name; document.getElementById('p-nz').checked = s.nz; document.getElementById('p-near').value = s.near;
+        }
+        document.getElementById('mod-stop').style.display = 'block';
+    }
+
+    function saveStop() {
+        const data = { name: document.getElementById('p-name').value.trim(), nz: document.getElementById('p-nz').checked, near: document.getElementById('p-near').value };
+        if(currentIdx === -1) db.stops.push(data); else db.stops[currentIdx] = data;
+        sync(); closeModals();
+    }
+
+    function login() { if(document.getElementById('pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-ui').style.display='block'; } }
     function tab(id) { ['l','p','d'].forEach(t => document.getElementById('t-'+t).style.display = (t===id?'block':'none')); }
-    function closeModal() { document.querySelectorAll('[id^="m-"]').forEach(m => m.style.display='none'); }
-    function deleteL(i) { if(confirm("Usunąć?")) { db.lines.splice(i,1); sync(); } }
-    function deleteP(i) { if(confirm("Usunąć?")) { db.stops.splice(i,1); sync(); } }
-    function exportDB() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type: 'text/plain'})); a.download = 'mzk_baza.txt'; a.click(); }
+    function closeModals() { document.querySelectorAll('[id^="mod-"]').forEach(m => m.style.display='none'); }
+    function deleteL(i) { if(confirm("Usuń linię?")) { db.lines.splice(i,1); sync(); } }
+    function deleteP(i) { if(confirm("Usuń przystanek?")) { db.stops.splice(i,1); sync(); } }
+    function exportDB() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type:'text/plain'})); a.download = 'mzk_baza.txt'; a.click(); }
     function importDB(e) { const r = new FileReader(); r.onload = (e) => { db = JSON.parse(e.target.result); sync(); }; r.readAsText(e.target.files[0]); }
 
     sync();

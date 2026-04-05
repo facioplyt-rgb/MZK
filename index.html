@@ -3,76 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW V25 - PRO</title>
+    <title>MZK GORZÓW V25 - FULL</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --mzk: #008744; --yellow: #feca05; --red: #d32f2f; --dark: #121212; --bg: #f4f7f6; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Montserrat', sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding-bottom: 90px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { font-family: 'Montserrat', sans-serif; background: var(--bg); color: var(--dark); padding-bottom: 90px; line-height: 1.5; }
         
-        header { background: var(--mzk); color: white; padding: 15px; text-align: center; border-bottom: 5px solid var(--yellow); position: sticky; top: 0; z-index: 1000; }
-        header h1 { margin: 0; font-weight: 900; font-size: 1.2rem; text-transform: uppercase; }
+        header { background: var(--mzk); color: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--yellow); position: sticky; top: 0; z-index: 1000; }
+        header h1 { font-weight: 900; font-size: 1.3rem; text-transform: uppercase; }
 
         .container { max-width: 800px; margin: 0 auto; padding: 15px; }
         .section { display: none; animation: fadeIn 0.3s ease; }
         .active-sec { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* PODZIAŁ NA TYPY */
-        .type-header { border-left: 5px solid var(--mzk); padding-left: 10px; margin: 20px 0 10px; font-weight: 900; display: flex; align-items: center; gap: 10px; color: #444; }
-        .tram-header { border-left-color: var(--red); }
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .line-card { background: white; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-bottom: 3px solid #ddd; }
-        .line-card b { font-size: 1.5rem; color: var(--mzk); }
+        /* SEKCJE LINII */
+        .type-title { border-left: 6px solid var(--mzk); padding-left: 12px; margin: 25px 0 15px; font-weight: 900; display: flex; align-items: center; gap: 10px; color: #333; }
+        .tram-title { border-left-color: var(--red); }
+        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; }
+        .line-card { background: white; border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-bottom: 4px solid #ddd; }
+        .line-card i { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #999; }
+        .line-card b { font-size: 1.8rem; color: var(--mzk); }
         .tram-card b { color: var(--red); }
 
-        /* CZARNY KAFELEK - KIERUNEK */
-        .variant-btn { background: var(--dark); color: white; padding: 20px; border-radius: 15px; margin-bottom: 10px; cursor: pointer; width: 100%; border: none; text-align: left; position: relative; }
-        .v-num { font-size: 2.5rem; font-weight: 900; }
-        .v-dir { font-size: 0.9rem; font-weight: 700; color: #bbb; text-transform: uppercase; }
+        /* ZAKŁADKA INFORMACJE */
+        .info-card { background: white; border-radius: 20px; padding: 20px; border-left: 8px solid var(--yellow); box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .info-card h2 { font-weight: 900; font-size: 1.1rem; margin-bottom: 10px; color: var(--mzk); }
 
-        /* PRZYSTANEK NA LIŚCIE */
-        .stop-item { background: white; padding: 15px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 5px solid var(--mzk); font-weight: 700; }
-        .stop-info-text { font-size: 0.7rem; color: #777; font-weight: 400; margin-top: 4px; }
+        /* CZARNY KAFELEK KIERUNKU */
+        .variant-btn { background: var(--dark); color: white; padding: 25px; border-radius: 20px; margin-bottom: 15px; cursor: pointer; width: 100%; border: none; text-align: left; }
+        .v-num { font-size: 3rem; font-weight: 900; line-height: 1; }
+        .v-dir { font-size: 1rem; font-weight: 700; color: #bbb; text-transform: uppercase; margin-top: 5px; }
 
-        /* ROZKŁAD */
-        .tt-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 800; font-size: 0.7rem; cursor: pointer; background: #ddd; }
+        /* PRZYSTANKI */
+        .stop-item { background: white; padding: 18px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 5px solid var(--mzk); font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .poi-tag { background: var(--yellow); font-size: 0.65rem; padding: 3px 8px; border-radius: 5px; margin-top: 4px; display: inline-block; color: black; }
+
+        /* ROZKŁAD - TABY */
+        .tt-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 800; font-size: 0.75rem; background: #ddd; cursor: pointer; }
         .tab-btn.active { background: var(--dark); color: white; }
-        .tt-table { background: white; border-radius: 12px; overflow: hidden; border: 2px solid var(--dark); width: 100%; }
+        .tt-table { background: white; border-radius: 20px; overflow: hidden; border: 3px solid var(--dark); width: 100%; }
         .tt-row { display: flex; border-bottom: 1px solid #eee; }
-        .tt-hour { background: #f0f0f0; width: 50px; text-align: center; padding: 10px 0; font-weight: 900; border-right: 2px solid var(--dark); }
-        .tt-min { padding: 10px; display: flex; gap: 8px; flex-wrap: wrap; font-weight: 700; }
+        .tt-hour { background: #f0f0f0; width: 60px; text-align: center; padding: 15px 0; font-weight: 900; border-right: 2px solid var(--dark); font-size: 1.3rem; }
+        .tt-min { padding: 15px; display: flex; gap: 10px; flex-wrap: wrap; font-weight: 700; font-size: 1.1rem; }
 
-        /* NAV DÓŁ */
-        nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; height: 70px; border-top: 1px solid #ddd; z-index: 1000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #999; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; }
-        nav div i { font-size: 1.2rem; margin-bottom: 3px; }
+        /* NAWIGACJA DOLNA */
+        nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; height: 80px; border-top: 2px solid #eee; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; cursor: pointer; transition: 0.2s; }
+        nav div i { font-size: 1.4rem; margin-bottom: 5px; }
+        nav div span { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
         nav div.active { color: var(--mzk); }
 
-        /* ADMIN */
-        .admin-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-        input, textarea, select { width: 100%; padding: 10px; margin: 5px 0 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; }
+        /* PANEL ADMINA */
+        .admin-nav { display: flex; gap: 5px; margin-bottom: 20px; }
+        .admin-nav button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 700; background: #eee; }
+        .admin-nav button.active { background: var(--mzk); color: white; }
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; font-size: 1rem; }
         .btn-back { border: none; background: none; color: var(--red); font-weight: 900; cursor: pointer; padding: 10px 0; display: flex; align-items: center; gap: 5px; }
-        
-        .poi-badge { background: var(--yellow); color: black; padding: 2px 6px; border-radius: 4px; font-size: 0.6rem; margin-left: 5px; }
     </style>
 </head>
 <body>
 
-<header><h1 id="main-title">MZK GORZÓW</h1></header>
+<header><h1>MZK GORZÓW</h1></header>
 
 <div class="container">
-    <div id="s-pax" class="section active-sec">
-        <div class="type-header"><i class="fa-solid fa-bus"></i> AUTOBUSY</div>
+    <div id="s-lines" class="section active-sec">
+        <div class="type-title"><i class="fa-solid fa-bus"></i> AUTOBUSY</div>
         <div id="list-buses" class="line-grid"></div>
-        <div class="type-header tram-header"><i class="fa-solid fa-train-tram"></i> TRAMWAJE</div>
+        <div class="type-title tram-title"><i class="fa-solid fa-train-tram"></i> TRAMWAJE</div>
         <div id="list-trams" class="line-grid"></div>
     </div>
 
+    <div id="s-info" class="section">
+        <h2 style="font-weight:900; margin-bottom:20px;">KOMUNIKATY</h2>
+        <div id="info-content"></div>
+    </div>
+
     <div id="s-variants" class="section">
-        <button onclick="show('pax')" class="btn-back"><i class="fa-solid fa-chevron-left"></i> POWRÓT</button>
+        <button onclick="show('lines')" class="btn-back"><i class="fa-solid fa-chevron-left"></i> POWRÓT</button>
         <div id="variant-list"></div>
     </div>
 
@@ -84,63 +95,81 @@
     <div id="s-tt" class="section">
         <button onclick="show('route')" class="btn-back"><i class="fa-solid fa-chevron-left"></i> TRASA</button>
         <div class="tt-tabs">
-            <button class="tab-btn active" id="t-rob" onclick="changeDay('rob')">ROBOCZE</button>
-            <button class="tab-btn" id="t-sob" onclick="changeDay('sob')">SOBOTY</button>
-            <button class="tab-btn" id="t-nie" onclick="changeDay('nie')">NIEDZIELE</button>
+            <button class="tab-btn active" id="t-rob" onclick="setDay('rob')">ROBOCZE</button>
+            <button class="tab-btn" id="t-sob" onclick="setDay('sob')">SOBOTY</button>
+            <button class="tab-btn" id="t-nie" onclick="setDay('nie')">NIEDZIELE</button>
         </div>
-        <div class="tt-table">
-            <div id="tt-rows"></div>
-        </div>
+        <div class="tt-table"><div id="tt-rows"></div></div>
     </div>
 
     <div id="s-adm" class="section">
         <div id="adm-login">
-            <input type="password" id="adm-pass" placeholder="Hasło panelu">
-            <button onclick="login()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px;">ZALOGUJ</button>
+            <h3 style="text-align:center; margin-bottom:15px;">PANEL ADMINA</h3>
+            <input type="password" id="adm-pass" placeholder="Hasło">
+            <button onclick="login()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px; font-weight:900;">ZALOGUJ</button>
         </div>
+        
         <div id="adm-dash" style="display:none;">
-            <button onclick="openCreator()" style="width:100%; padding:15px; background:var(--dark); color:white; border:none; border-radius:10px; margin-bottom:10px;">+ DODAJ NOWĄ LINIĘ</button>
-            <div id="adm-lines-list"></div>
+            <div class="admin-nav">
+                <button onclick="setAdmTab('lines')" id="at-lines" class="active">LINIE</button>
+                <button onclick="setAdmTab('info')" id="at-info">INFO</button>
+                <button onclick="setAdmTab('map')" id="at-map">MAPA</button>
+            </div>
+
+            <div id="ad-sec-lines" class="ad-sec">
+                <button onclick="openCreator()" style="width:100%; padding:15px; background:var(--dark); color:white; border:none; border-radius:10px; margin-bottom:15px;">+ DODAJ LINIĘ</button>
+                <div id="adm-lines-list"></div>
+            </div>
+
+            <div id="ad-sec-info" class="ad-sec" style="display:none;">
+                <label>Treść komunikatów (jeden pod drugim):</label>
+                <textarea id="adm-info-input" rows="10"></textarea>
+                <button onclick="saveInfo()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px;">ZAPISZ KOMUNIKATY</button>
+            </div>
+
+            <div id="ad-sec-map" class="ad-sec" style="display:none;">
+                <label>Link do Mapy (np. Earth/Google):</label>
+                <input type="text" id="adm-map-input">
+                <button onclick="saveMap()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px;">ZAPISZ LINK</button>
+            </div>
         </div>
     </div>
 </div>
 
 <nav>
-    <div onclick="show('pax')" id="n-pax" class="active"><i class="fa-solid fa-list-ul"></i><span>Linie</span></div>
-    <div onclick="window.open('https://earth.google.com')"><i class="fa-solid fa-map-marked-alt"></i><span>Mapa</span></div>
-    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-user-gear"></i><span>Panel</span></div>
+    <div onclick="show('lines')" id="n-lines" class="active"><i class="fa-solid fa-bus-simple"></i><span>Linie</span></div>
+    <div onclick="show('info')" id="n-info"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
+    <div onclick="goMap()" id="n-map"><i class="fa-solid fa-map-location-dot"></i><span>Mapa</span></div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-gears"></i><span>Panel</span></div>
 </nav>
 
 <div id="creator" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; display:none; padding:20px; overflow-y:auto;">
-    <h2>Nowa Linia</h2>
-    <input type="text" id="c-num" placeholder="Numer (np. 124)">
-    <input type="text" id="c-dir" placeholder="Kierunek (np. Piaski)">
+    <h2 style="font-weight:900">Nowa Linia</h2>
+    <input type="text" id="c-num" placeholder="Numer (np. 1)">
+    <input type="text" id="c-dir" placeholder="Kierunek (np. Wieprzyce)">
     <select id="c-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <p>Godziny startowe (robocze):</p>
-    <textarea id="c-times" placeholder="06:05, 06:35, 07:05..."></textarea>
-    <p>Lista przystanków (Nazwa, minuty od startu):</p>
-    <textarea id="c-stops" style="height:120px;" placeholder="Dworzec PKP, 0&#10;Katedra, 4&#10;Piaski, 10"></textarea>
-    <button onclick="saveLine()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px;">GENERUJ LINIĘ</button>
-    <button onclick="document.getElementById('creator').style.display='none'" style="width:100%; margin-top:10px; border:none; background:none; color:red;">ANULUJ</button>
+    <p style="font-size:0.8rem; margin-top:10px;">Godziny Robocze (Bazowe dla 1-szego przystanku):</p>
+    <textarea id="c-times" placeholder="05:20, 05:50, 06:10..."></textarea>
+    <p style="font-size:0.8rem; margin-top:10px;">Lista przystanków (Nazwa, Minuty od startu):</p>
+    <textarea id="c-stops" style="height:120px;" placeholder="Przystanek Start, 0&#10;Drugi Przystanek, 4&#10;Koniec Trasy, 10"></textarea>
+    <button onclick="generateLine()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px; font-weight:900; margin-top:10px;">GENERUJ LINIĘ</button>
+    <button onclick="document.getElementById('creator').style.display='none'" style="width:100%; margin-top:10px; border:none; color:red;">ANULUJ</button>
 </div>
 
 <div id="stop-editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2100; display:none; padding:20px; overflow-y:auto;">
-    <h2 id="se-title">Edytuj Przystanek</h2>
-    <label>Co jest w pobliżu?</label>
-    <input type="text" id="se-poi" placeholder="np. Galeria, Szkoła, Poczta">
-    <label>Godziny Robocze (dla tego przystanku):</label>
-    <textarea id="se-rob" style="height:100px;"></textarea>
-    <label>Soboty:</label>
-    <textarea id="se-sob" style="height:80px;"></textarea>
-    <label>Niedziele:</label>
-    <textarea id="se-nie" style="height:80px;"></textarea>
-    <button onclick="saveStopDetails()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px;">ZAPISZ PRZYSTANEK</button>
-    <button onclick="document.getElementById('stop-editor').style.display='none'" style="width:100%; margin-top:10px; border:none; background:none;">ZAMKNIJ</button>
+    <h2 id="se-title" style="font-weight:900">Edycja Przystanku</h2>
+    <label>Informacja o okolicy (POI):</label>
+    <input type="text" id="se-poi" placeholder="np. Szpital, Galeria, Poczta">
+    <label>Godziny Robocze:</label><textarea id="se-rob"></textarea>
+    <label>Godziny Sobota:</label><textarea id="se-sob"></textarea>
+    <label>Godziny Niedziela:</label><textarea id="se-nie"></textarea>
+    <button onclick="saveStopDetails()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px;">ZAPISZ ZMIANY</button>
+    <button onclick="document.getElementById('stop-editor').style.display='none'" style="width:100%; margin-top:10px; border:none;">ZAMKNIJ</button>
 </div>
 
 <script>
-    const DB_KEY = 'MZK_SYSTEM_V25';
-    let db = JSON.parse(localStorage.getItem(DB_KEY)) || [];
+    const KEY = 'MZK_V25_DATA_FINAL';
+    let db = JSON.parse(localStorage.getItem(KEY)) || { lines: [], info: "Brak nowych komunikatów.", map: "https://earth.google.com" };
     let curL = null, curS = null, curDay = 'rob';
 
     function show(id) {
@@ -148,87 +177,93 @@
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
         if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
-        if(id === 'pax') renderPax();
+        if(id === 'lines') renderLines();
+        if(id === 'info') renderInfo();
         window.scrollTo(0,0);
     }
 
-    function renderPax() {
+    function renderLines() {
         const b = document.getElementById('list-buses'), t = document.getElementById('list-trams');
         b.innerHTML = ''; t.innerHTML = '';
-        const unique = [...new Set(db.map(l => l.num))].sort((x,y)=>x.localeCompare(y, undefined, {numeric:true}));
+        const unique = [...new Set(db.lines.map(l => l.num))].sort((x,y)=>x.localeCompare(y, undefined, {numeric:true}));
         unique.forEach(num => {
-            const line = db.find(l => l.num === num);
-            const html = `<div class="line-card ${line.type==='tram'?'tram-card':''}" onclick="openVariants('${num}')"><b>${num}</b></div>`;
+            const line = db.lines.find(l => l.num === num);
+            const html = `<div class="line-card ${line.type==='tram'?'tram-card':''}" onclick="openVariants('${num}')"><i class="fa-solid fa-bus-side"></i><b>${num}</b></div>`;
             if(line.type === 'tram') t.innerHTML += html; else b.innerHTML += html;
+        });
+    }
+
+    function renderInfo() {
+        const cont = document.getElementById('info-content');
+        cont.innerHTML = '';
+        db.info.split('\n').forEach(line => {
+            if(line.trim()) cont.innerHTML += `<div class="info-card"><h2>UWAGA!</h2><p>${line}</p></div>`;
         });
     }
 
     function openVariants(num) {
         show('variants');
         const list = document.getElementById('variant-list'); list.innerHTML = '';
-        db.filter(l => l.num === num).forEach(l => {
-            list.innerHTML += `<div class="variant-btn" onclick="openRoute(${db.indexOf(l)})"><div class="v-num">${l.num}</div><div class="v-dir">${l.dir}</div></div>`;
+        db.lines.filter(l => l.num === num).forEach(l => {
+            list.innerHTML += `<div class="variant-btn" onclick="openRoute(${db.lines.indexOf(l)})"><div class="v-num">${l.num}</div><div class="v-dir">${l.dir}</div></div>`;
         });
     }
 
     function openRoute(idx) {
         show('route'); curL = idx;
-        const l = db[idx];
-        const cont = document.getElementById('route-container'); cont.innerHTML = `<h3>${l.num} -> ${l.dir}</h3>`;
+        const l = db.lines[idx];
+        const cont = document.getElementById('route-container'); cont.innerHTML = `<h3>LINIA ${l.num} ➔ ${l.dir}</h3><br>`;
         l.stops.forEach((s, i) => {
             cont.innerHTML += `<div class="stop-item" onclick="openTT(${i})">
                 <div>
-                    <div>${s.n} ${s.poi ? `<span class="poi-badge">${s.poi}</span>` : ''}</div>
-                    <div class="stop-info-text">${s.poi ? 'W pobliżu: ' + s.poi : 'Kliknij aby zobaczyć rozkład'}</div>
+                    <div>${s.n}</div>
+                    ${s.poi ? `<span class="poi-tag"><i class="fa-solid fa-location-dot"></i> ${s.poi}</span>` : ''}
                 </div>
-                <i class="fa-solid fa-clock"></i>
+                <i class="fa-solid fa-chevron-right" style="color:#ccc"></i>
             </div>`;
         });
     }
 
-    function openTT(sIdx) { curS = sIdx; show('tt'); changeDay('rob'); }
+    function openTT(sIdx) { curS = sIdx; show('tt'); setDay('rob'); }
 
-    function changeDay(day) {
+    function setDay(day) {
         curDay = day;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('t-'+day).classList.add('active');
-        renderTT();
-    }
-
-    function renderTT() {
-        const l = db[curL]; const s = l.stops[curS];
+        const s = db.lines[curL].stops[curS];
         const rows = document.getElementById('tt-rows'); rows.innerHTML = '';
         let hMap = {};
-        const times = (s[curDay] || "").split(',').forEach(t => {
+        (s[day] || "").split(',').forEach(t => {
             let p = t.trim().split(':'); if(p.length<2) return;
             let h = p[0].padStart(2,'0'); if(!hMap[h]) hMap[h] = [];
-            hMap[h].push(p[1]);
+            hMap[h].push(p[1].padStart(2,'0'));
         });
         Object.keys(hMap).sort().forEach(h => {
             rows.innerHTML += `<div class="tt-row"><div class="tt-hour">${h}</div><div class="tt-min">${hMap[h].sort().join(' ')}</div></div>`;
         });
     }
 
-    // ADMIN LOGIC
+    function goMap() { window.open(db.map, '_blank'); }
+
+    // ADMIN
     function login() { if(document.getElementById('adm-pass').value === '123') { 
         document.getElementById('adm-login').style.display='none'; 
-        document.getElementById('adm-dash').style.display='block'; renderAdmList(); 
+        document.getElementById('adm-dash').style.display='block'; 
+        document.getElementById('adm-info-input').value = db.info;
+        document.getElementById('adm-map-input').value = db.map;
+        renderAdmLines(); 
     }}
 
-    function renderAdmList() {
-        const list = document.getElementById('adm-lines-list'); list.innerHTML = '';
-        db.forEach((l, i) => {
-            list.innerHTML += `<div class="admin-box">
-                <b>${l.num} -> ${l.dir}</b><br>
-                <button onclick="editFullLine(${i})">EDYTUJ PRZYSTANKI</button>
-                <button onclick="delLine(${i})" style="color:red">USUŃ</button>
-            </div>`;
-        });
+    function setAdmTab(tab) {
+        document.querySelectorAll('.ad-sec').forEach(s => s.style.display='none');
+        document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
+        document.getElementById('ad-sec-'+tab).style.display='block';
+        document.getElementById('at-'+tab).classList.add('active');
     }
 
     function openCreator() { document.getElementById('creator').style.display='block'; }
 
-    function saveLine() {
+    function generateLine() {
         const num = document.getElementById('c-num').value;
         const dir = document.getElementById('c-dir').value;
         const type = document.getElementById('c-type').value;
@@ -238,60 +273,69 @@
         const lineStops = stopsRaw.map(line => {
             const [name, offset] = line.split(',');
             const off = parseInt(offset) || 0;
-            // Automat: przelicz godziny bazowe na ten przystanek
             const localTimes = baseTimes.split(',').map(t => {
                 let [h, m] = t.trim().split(':');
                 let d = new Date(2026, 0, 1, h, parseInt(m) + off);
                 return `${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
             }).join(', ');
-
             return { n: name.trim(), rob: localTimes, sob: '', nie: '', poi: '' };
         });
 
-        db.push({ num, dir, type, stops: lineStops });
+        db.lines.push({ num, dir, type, stops: lineStops });
         save();
         document.getElementById('creator').style.display='none';
-        renderAdmList();
+        renderAdmLines();
     }
 
-    function editFullLine(idx) {
-        curL = idx;
-        const l = db[idx];
-        const list = document.getElementById('adm-lines-list');
-        list.innerHTML = `<button onclick="renderAdmList()">[X] ZAMKNIJ EDYCJĘ</button><h3>Edycja: ${l.num}</h3>`;
-        l.stops.forEach((s, si) => {
-            list.innerHTML += `<div class="admin-box" onclick="openStopEditor(${si})">
-                <b>${si+1}. ${s.n}</b> (Kliknij aby edytować godziny/info)
+    function renderAdmLines() {
+        const list = document.getElementById('adm-lines-list'); list.innerHTML = '';
+        db.lines.forEach((l, i) => {
+            list.innerHTML += `<div style="background:white; padding:15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between;">
+                <b>${l.num} ➔ ${l.dir}</b>
+                <div>
+                    <button onclick="editLineStops(${i})" style="color:blue; border:none; background:none; margin-right:10px;">EDYTUJ</button>
+                    <button onclick="delLine(${i})" style="color:red; border:none; background:none;">USUŃ</button>
+                </div>
             </div>`;
         });
     }
 
+    function editLineStops(idx) {
+        curL = idx; const l = db.lines[idx];
+        const list = document.getElementById('adm-lines-list');
+        list.innerHTML = `<button onclick="renderAdmLines()">[X] ZAMKNIJ EDYCJĘ</button><br><br>`;
+        l.stops.forEach((s, si) => {
+            list.innerHTML += `<div style="background:#eee; padding:10px; margin-bottom:5px; border-radius:8px;" onclick="openStopEditor(${si})">${si+1}. ${s.n} (Kliknij by edytować)</div>`;
+        });
+    }
+
     function openStopEditor(si) {
-        curS = si;
-        const s = db[curL].stops[si];
+        curS = si; const s = db.lines[curL].stops[si];
         document.getElementById('se-title').innerText = s.n;
         document.getElementById('se-poi').value = s.poi || '';
         document.getElementById('se-rob').value = s.rob || '';
         document.getElementById('se-sob').value = s.sob || '';
         document.getElementById('se-nie').value = s.nie || '';
-        document.getElementById('stop-editor').style.display = 'block';
+        document.getElementById('stop-editor').style.display='block';
     }
 
     function saveStopDetails() {
-        const s = db[curL].stops[curS];
+        const s = db.lines[curL].stops[curS];
         s.poi = document.getElementById('se-poi').value;
         s.rob = document.getElementById('se-rob').value;
         s.sob = document.getElementById('se-sob').value;
         s.nie = document.getElementById('se-nie').value;
         save();
-        document.getElementById('stop-editor').style.display = 'none';
-        editFullLine(curL);
+        document.getElementById('stop-editor').style.display='none';
+        editLineStops(curL);
     }
 
-    function delLine(i) { if(confirm("Na pewno?")) { db.splice(i,1); save(); renderAdmList(); }}
-    function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); renderPax(); }
+    function saveInfo() { db.info = document.getElementById('adm-info-input').value; save(); alert("Zapisano!"); }
+    function saveMap() { db.map = document.getElementById('adm-map-input').value; save(); alert("Zapisano!"); }
+    function delLine(i) { if(confirm("Usunąć?")) { db.lines.splice(i,1); save(); renderAdmLines(); }}
+    function save() { localStorage.setItem(KEY, JSON.stringify(db)); renderLines(); }
 
-    renderPax();
+    renderLines();
 </script>
 </body>
 </html>

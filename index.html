@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - SYSTEM V35</title>
+    <title>MZK GORZÓW - SYSTEM V40</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -19,17 +19,15 @@
         .active-sec { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* LISTA LINII */
-        .type-title { border-left: 5px solid var(--mzk); padding-left: 10px; margin: 25px 0 10px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+        /* WIDOK UŻYTKOWNIKA */
         .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; }
         .line-card { background: white; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; border-bottom: 4px solid #ddd; }
         .line-card b { font-size: 1.6rem; color: var(--mzk); }
 
-        /* TRASA I PRZYSTANKI */
-        .stop-item { background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 4px solid var(--mzk); }
-        .stop-name { font-weight: 800; font-size: 0.95rem; display: flex; align-items: center; gap: 5px; }
-        .on-demand-badge { color: var(--red); font-size: 0.65rem; font-weight: 900; }
-        .stop-details { font-size: 0.6rem; color: #666; margin-top: 4px; display: flex; gap: 5px; flex-wrap: wrap; }
+        .stop-item { background: white; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; border-left: 4px solid var(--mzk); }
+        .stop-name { font-weight: 800; font-size: 0.95rem; }
+        .on-demand { color: var(--red); font-size: 0.65rem; font-weight: 900; margin-left: 5px; }
+        .stop-details { font-size: 0.6rem; color: #666; margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
 
         /* NAV */
         nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; height: 75px; border-top: 1px solid #eee; z-index: 2000; }
@@ -37,15 +35,14 @@
         nav div.active { color: var(--mzk); }
         nav span { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; margin-top: 4px; }
 
-        /* ADMIN */
-        .adm-nav { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
-        .adm-nav button { flex: 1; min-width: 80px; padding: 10px; border: none; border-radius: 8px; font-weight: 700; background: #eee; font-size: 0.7rem; }
+        /* ADMIN DASHBOARD */
+        .adm-nav { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
+        .adm-nav button { flex: 1; min-width: 70px; padding: 12px 5px; border: none; border-radius: 8px; font-weight: 800; background: #ddd; font-size: 0.6rem; text-transform: uppercase; }
         .adm-nav button.active { background: var(--mzk); color: white; }
         .adm-list-item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
         
         input, textarea, select { width: 100%; padding: 12px; margin: 5px 0 15px; border-radius: 10px; border: 1px solid #ccc; font-family: inherit; }
-        label { font-size: 0.7rem; font-weight: 800; }
-        .btn-back { border: none; background: none; color: var(--red); font-weight: 900; cursor: pointer; padding: 10px 0; display: block; }
+        .btn-back { border: none; background: none; color: var(--red); font-weight: 900; cursor: pointer; padding: 10px 0; }
     </style>
 </head>
 <body>
@@ -55,6 +52,11 @@
 <div class="container">
     <div id="s-lines" class="section active-sec">
         <div id="list-buses" class="line-grid"></div>
+    </div>
+
+    <div id="s-info" class="section">
+        <h2 style="font-weight:900; margin-bottom:15px;">KOMUNIKATY</h2>
+        <div id="info-display"></div>
     </div>
 
     <div id="s-route" class="section">
@@ -70,9 +72,10 @@
         
         <div id="adm-dash" style="display:none;">
             <div class="adm-nav">
-                <button id="an-l" class="active" onclick="setAdmSec('l')">LINIE</button>
-                <button id="an-p" onclick="setAdmSec('p')">PRZYSTANKI</button>
-                <button id="an-i" onclick="setAdmSec('i')">INFO</button>
+                <button id="an-l" class="active" onclick="setAdmSec('l')">Linie</button>
+                <button id="an-p" onclick="setAdmSec('p')">Przystanki</button>
+                <button id="an-i" onclick="setAdmSec('i')">Info</button>
+                <button id="an-m" onclick="setAdmSec('m')">Mapa</button>
             </div>
 
             <div id="ad-sec-l">
@@ -81,12 +84,18 @@
             </div>
 
             <div id="ad-sec-p" style="display:none;">
-                <p style="font-size:0.7rem; color:#666; margin-bottom:10px;">Tutaj edytujesz globalne ustawienia przystanków dla wszystkich linii.</p>
                 <div id="adm-stops-list"></div>
             </div>
 
             <div id="ad-sec-i" style="display:none;">
+                <button onclick="editInfoPrompt(null)" style="width:100%; padding:15px; background:var(--dark); color:white; border:none; border-radius:10px; margin-bottom:15px;">+ DODAJ KOMUNIKAT</button>
                 <div id="adm-info-list"></div>
+            </div>
+
+            <div id="ad-sec-m" style="display:none;">
+                <label>Link do mapy:</label>
+                <input type="text" id="adm-map-url">
+                <button onclick="saveMap()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px;">ZAPISZ LINK</button>
             </div>
         </div>
     </div>
@@ -94,25 +103,17 @@
 
 <nav>
     <div onclick="show('lines')" id="n-lines" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
-    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-user-gear"></i><span>Admin</span></div>
+    <div onclick="show('info')" id="n-info"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
+    <div onclick="goMap()"><i class="fa-solid fa-map-location-dot"></i><span>Mapa</span></div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-user-gear"></i><span>Panel</span></div>
 </nav>
 
 <div id="m-stop" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:3000; display:none; padding:20px; overflow-y:auto;">
     <h2 id="ms-title" style="font-weight:900;"></h2>
-    <hr style="margin:10px 0;">
-    
     <label>Status:</label>
-    <select id="ms-demand">
-        <option value="none">Stały</option>
-        <option value="all">Na żądanie (wszystkie linie)</option>
-    </select>
-
-    <label>Co w pobliżu? (POI):</label>
-    <input type="text" id="ms-poi">
-
-    <label>Ważne informacje:</label>
-    <textarea id="ms-extra" placeholder="np. Biletomat na przystanku"></textarea>
-
+    <select id="ms-demand"><option value="none">Stały</option><option value="all">Na żądanie</option></select>
+    <label>Co w pobliżu?:</label><input type="text" id="ms-poi">
+    <label>Info dodatkowe:</label><textarea id="ms-extra"></textarea>
     <button onclick="saveGlobalStop()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px; font-weight:900;">ZAPISZ GLOBALNIE</button>
     <button onclick="document.getElementById('m-stop').style.display='none'" style="width:100%; margin-top:10px; border:none;">ANULUJ</button>
 </div>
@@ -121,85 +122,55 @@
     <h2 style="font-weight:900">Nowa Linia</h2>
     <input type="text" id="c-num" placeholder="Numer">
     <input type="text" id="c-dir" placeholder="Kierunek">
-    <textarea id="c-stops" placeholder="Przystanki: Nazwa, minuty (np. Katedra, 5) - jeden pod drugim"></textarea>
-    <button onclick="generateLine()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px; font-weight:900;">STWÓRZ I AKTUALIZUJ BAZĘ</button>
+    <textarea id="c-stops" placeholder="Przystanki (jeden pod drugim)"></textarea>
+    <button onclick="generateLine()" style="width:100%; padding:15px; background:var(--mzk); color:white; border:none; border-radius:10px; font-weight:900;">STWÓRZ</button>
     <button onclick="document.getElementById('m-creator').style.display='none'" style="width:100%; margin-top:10px; border:none;">ZAMKNIJ</button>
 </div>
 
 <script>
-    const DB_KEY = 'MZK_V35_GLOBAL_STOPS';
-    // Baza zawiera linie oraz centralną listę przystanków (globalStops)
-    let db = JSON.parse(localStorage.getItem(DB_KEY)) || { lines: [], globalStops: {}, info: [] };
+    const DB_KEY = 'MZK_V40_FINAL_STORAGE';
+    let db = JSON.parse(localStorage.getItem(DB_KEY)) || { lines: [], globalStops: {}, info: [], map: "https://earth.google.com" };
     let editingStopName = null;
 
-    function save() { 
-        localStorage.setItem(DB_KEY, JSON.stringify(db)); 
-        renderLines(); 
-    }
+    function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); renderLines(); renderInfo(); }
 
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+        if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
         if(id === 'lines') renderLines();
+        if(id === 'info') renderInfo();
     }
 
-    // --- FUNKCJA AUTOMATYCZNEGO DODAWANIA PRZYSTANKÓW ---
-    function updateGlobalStopsDatabase() {
-        db.lines.forEach(line => {
-            line.stops.forEach(s => {
-                if (!db.globalStops[s.n]) {
-                    // Jeśli przystanku nie ma w bazie, dodaj go z domyślnymi wartościami
-                    db.globalStops[s.n] = {
-                        demand: 'none',
-                        poi: '',
-                        extra: ''
-                    };
-                }
-            });
-        });
-        save();
-    }
+    // --- LOGIKA ADMINA ---
+    function login() { if(document.getElementById('adm-pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; renderAdmLines(); document.getElementById('adm-map-url').value = db.map; } }
 
-    function generateLine() {
-        const num = document.getElementById('c-num').value;
-        const dir = document.getElementById('c-dir').value;
-        const stopsRaw = document.getElementById('c-stops').value.trim().split('\n');
-        
-        const lineStops = stopsRaw.map(st => {
-            const [n] = st.split(',');
-            return { n: n.trim() };
-        });
-
-        db.lines.push({ num, dir, stops: lineStops });
-        updateGlobalStopsDatabase(); // Tu dzieje się magia automatu
-        document.getElementById('m-creator').style.display='none';
-        renderAdmLines();
-    }
-
-    // --- PANEL ADMINA: ZAKŁADKA PRZYSTANKI ---
     function setAdmSec(s) {
         document.querySelectorAll('[id^="ad-sec-"]').forEach(d => d.style.display='none');
         document.querySelectorAll('.adm-nav button').forEach(b => b.classList.remove('active'));
         document.getElementById('ad-sec-'+s).style.display='block';
         document.getElementById('an-'+s).classList.add('active');
         if(s === 'p') renderAdmStops();
+        if(s === 'i') renderAdmInfo();
+    }
+
+    function generateLine() {
+        const num = document.getElementById('c-num').value, dir = document.getElementById('c-dir').value;
+        const stopsRaw = document.getElementById('c-stops').value.trim().split('\n');
+        const lineStops = stopsRaw.map(n => {
+            const name = n.trim();
+            if(!db.globalStops[name]) db.globalStops[name] = { demand: 'none', poi: '', extra: '' };
+            return { n: name };
+        });
+        db.lines.push({ num, dir, stops: lineStops });
+        save(); document.getElementById('m-creator').style.display='none'; renderAdmLines();
     }
 
     function renderAdmStops() {
         const d = document.getElementById('adm-stops-list'); d.innerHTML = '';
-        const sortedNames = Object.keys(db.globalStops).sort();
-        
-        sortedNames.forEach(name => {
-            const s = db.globalStops[name];
-            d.innerHTML += `
-                <div class="adm-list-item">
-                    <div>
-                        <b>${name}</b><br>
-                        <small>${s.demand === 'all' ? 'nż' : 'stały'} | ${s.poi || 'brak POI'}</small>
-                    </div>
-                    <button onclick="openGlobalStopEditor('${name}')" style="background:var(--yellow); border:none; padding:8px; border-radius:5px;">EDYTUJ</button>
-                </div>`;
+        Object.keys(db.globalStops).sort().forEach(name => {
+            d.innerHTML += `<div class="adm-list-item"><b>${name}</b><button onclick="openGlobalStopEditor('${name}')" style="background:var(--yellow); border:none; padding:8px; border-radius:5px;">EDYTUJ</button></div>`;
         });
     }
 
@@ -214,17 +185,32 @@
     }
 
     function saveGlobalStop() {
-        db.globalStops[editingStopName] = {
-            demand: document.getElementById('ms-demand').value,
-            poi: document.getElementById('ms-poi').value,
-            extra: document.getElementById('ms-extra').value
-        };
-        save();
-        document.getElementById('m-stop').style.display='none';
-        renderAdmStops();
+        db.globalStops[editingStopName] = { demand: document.getElementById('ms-demand').value, poi: document.getElementById('ms-poi').value, extra: document.getElementById('ms-extra').value };
+        save(); document.getElementById('m-stop').style.display='none'; renderAdmStops();
     }
 
-    // --- WIDOK UŻYTKOWNIKA ---
+    function renderAdmLines() {
+        const d = document.getElementById('adm-lines-list'); d.innerHTML = '';
+        db.lines.forEach((l, i) => {
+            d.innerHTML += `<div class="adm-list-item"><b>${l.num} ➔ ${l.dir}</b><button onclick="db.lines.splice(${i},1); save(); renderAdmLines();" style="color:red; background:none; border:none;">USUŃ</button></div>`;
+        });
+    }
+
+    function renderAdmInfo() {
+        const d = document.getElementById('adm-info-list'); d.innerHTML = '';
+        db.info.forEach((m, i) => {
+            d.innerHTML += `<div class="adm-list-item"><p>${m.substring(0,25)}...</p><div><button onclick="editInfoPrompt(${i})">E</button><button onclick="db.info.splice(${i},1); save(); renderAdmInfo();">X</button></div></div>`;
+        });
+    }
+
+    function editInfoPrompt(idx) {
+        const txt = prompt("Treść:", idx !== null ? db.info[idx] : "");
+        if(txt) { if(idx !== null) db.info[idx] = txt; else db.info.push(txt); save(); renderAdmInfo(); }
+    }
+
+    function saveMap() { db.map = document.getElementById('adm-map-url').value; save(); alert("Zapisano mapę!"); }
+
+    // --- LOGIKA UŻYTKOWNIKA ---
     function renderLines() {
         const b = document.getElementById('list-buses'); b.innerHTML = '';
         db.lines.forEach((l, i) => {
@@ -236,37 +222,31 @@
         show('route');
         const l = db.lines[idx];
         const d = document.getElementById('route-display');
-        d.innerHTML = `<h3>LINIA ${l.num}</h3>`;
-        
+        d.innerHTML = `<h3>LINIA ${l.num} ➔ ${l.dir}</h3><br>`;
         l.stops.forEach(s => {
-            // Pobierz dane globalne dla tego przystanku
             const g = db.globalStops[s.n] || { demand: 'none', poi: '', extra: '' };
-            
             d.innerHTML += `
                 <div class="stop-item">
                     <div>
-                        <div class="stop-name">
-                            ${s.n} ${g.demand === 'all' ? '<span class="on-demand-badge">nż</span>' : ''}
-                        </div>
+                        <div class="stop-name">${s.n} ${g.demand === 'all' ? '<span class="on-demand">NŻ</span>' : ''}</div>
                         <div class="stop-details">
                             ${g.poi ? `<span><i class="fa-solid fa-location-dot"></i> ${g.poi}</span>` : ''}
-                            ${g.extra ? `<span style="color:var(--red)">${g.extra}</span>` : ''}
+                            ${g.extra ? `<span style="color:var(--red); font-weight:700;">${g.extra}</span>` : ''}
                         </div>
                     </div>
                 </div>`;
         });
     }
 
-    function login() { if(document.getElementById('adm-pass').value === '123') { document.getElementById('adm-login').style.display='none'; document.getElementById('adm-dash').style.display='block'; renderAdmLines(); } }
-    function renderAdmLines() {
-        const d = document.getElementById('adm-lines-list'); d.innerHTML = '';
-        db.lines.forEach((l, i) => {
-            d.innerHTML += `<div class="adm-list-item"><b>${l.num} ➔ ${l.dir}</b> <button onclick="db.lines.splice(${i},1); save(); renderAdmLines();">X</button></div>`;
-        });
+    function renderInfo() {
+        const d = document.getElementById('info-display'); d.innerHTML = '';
+        db.info.forEach(m => { d.innerHTML += `<div style="background:white; padding:15px; border-radius:12px; margin-bottom:10px; border-left:6px solid var(--yellow);">${m}</div>`; });
     }
+
+    function goMap() { window.open(db.map, '_blank'); }
     function openCreator() { document.getElementById('m-creator').style.display='block'; }
 
-    renderLines();
+    renderLines(); renderInfo();
 </script>
 </body>
 </html>

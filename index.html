@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - PANEL V3.2</title>
+    <title>MZK GORZÓW - PANEL V3.3</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Montserrat', sans-serif; background: var(--bg); padding-bottom: 90px; color: var(--dark); }
         header { background: var(--mzk); color: white; padding: 15px; text-align: center; border-bottom: 4px solid var(--yellow); position: sticky; top: 0; z-index: 1000; font-weight: 900; text-transform: uppercase; }
-        
         .container { max-width: 600px; margin: 0 auto; padding: 10px; }
         .section { display: none; }
         .active-sec { display: block; }
@@ -19,17 +18,15 @@
         /* WIDOK PASAŻERA */
         .line-item { background: white; padding: 18px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-left: 6px solid var(--mzk); font-weight: 900; }
         .line-item.tram { border-left-color: var(--red); }
-        
         .stop-row { background: white; padding: 15px; margin-bottom: 5px; border-radius: 10px; border-left: 4px solid #ccc; cursor: pointer; }
         .stop-row.is-nz { border-left-color: var(--red); }
         .stop-name { font-weight: 800; font-size: 1rem; }
         .badge-nz { color: var(--red); font-weight: 900; font-size: 0.7rem; margin-left: 5px; }
-        
         .nearby-tag { font-size: 0.7rem; color: #666; margin-top: 4px; display: block; font-style: italic; }
         .transfer-pills { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
         .pill { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; color: #444; border: 1px solid #ddd; }
 
-        /* TABELE GODZIN */
+        /* GODZINY */
         .schedule-tabs { display: flex; gap: 2px; margin-top: 10px; }
         .s-tab { flex: 1; padding: 8px; font-size: 0.7rem; background: #444; color: white; border: none; font-weight: 700; cursor: pointer; border-radius: 4px 4px 0 0; }
         .s-tab.active { background: var(--mzk); }
@@ -39,7 +36,7 @@
         /* ADMIN */
         .adm-btn { background: var(--dark); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 800; margin-bottom: 10px; cursor: pointer; }
         textarea, input, select { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; font-size: 0.9rem; }
-        .admin-card { background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .admin-card { background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
         /* NAV */
         nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; height: 75px; border-top: 1px solid #ddd; z-index: 2000; }
@@ -73,25 +70,25 @@
             </div>
             
             <div id="t-l">
-                <button onclick="openLineEditor(-1)" class="adm-btn" style="background:#444">+ NOWA LINIA (LISTA PRZYSTANKÓW)</button>
+                <button onclick="openLineEditor(-1)" class="adm-btn" style="background:#444">+ NOWA LINIA (LISTA ENTER)</button>
                 <div id="adm-lines-list"></div>
             </div>
 
             <div id="t-p" style="display:none;">
-                <button onclick="openStopEditor(-1)" class="adm-btn" style="background:#444">+ DODAJ DO ARSENAŁU</button>
+                <button onclick="openStopEditor(-1)" class="adm-btn" style="background:#444">+ KONFIGURUJ PRZYSTANEK (NŻ/Pobliże)</button>
                 <div id="adm-stops-list"></div>
             </div>
 
             <div id="t-d" style="display:none;">
-                <label>Mapa (Link Iframe):</label>
-                <input type="text" id="map-url" placeholder="https://www.google.com/maps/embed?...">
-                <label>Informacje / Komunikaty:</label>
-                <textarea id="adm-info-txt" style="height:120px;" placeholder="Wpisz ważne komunikaty dla pasażerów..."></textarea>
-                <label>Kontakt:</label>
-                <textarea id="adm-contact-txt" style="height:120px;" placeholder="Dane kontaktowe MZK..."></textarea>
-                <button onclick="saveGlobal()" class="adm-btn" style="background:var(--mzk)">ZAPISZ DANE I MAPĘ</button>
-                <hr style="margin:15px 0; opacity:0.3;">
-                <button onclick="exportDB()" class="adm-btn">EKSPORT BAZY</button>
+                <label><b>Link do mapy (Iframe src):</b></label>
+                <input type="text" id="adm-map-input" placeholder="Wklej link do Google Maps...">
+                <label><b>Informacje / Komunikaty:</b></label>
+                <textarea id="adm-info-input" style="height:100px" placeholder="Wpisz ważne informacje dla pasażerów..."></textarea>
+                <label><b>Kontakt:</b></label>
+                <textarea id="adm-contact-input" style="height:100px" placeholder="Wpisz dane kontaktowe..."></textarea>
+                <button onclick="saveGlobal()" class="adm-btn" style="background:var(--mzk)">ZAPISZ DANE</button>
+                <hr style="margin:20px 0; opacity:0.3">
+                <button onclick="exportDB()" class="adm-btn" style="background:#666">EXPORT BAZY</button>
                 <input type="file" id="importFile" style="display:none" onchange="importDB(event)">
                 <button onclick="document.getElementById('importFile').click()" class="adm-btn" style="background:var(--red)">IMPORT BAZY</button>
             </div>
@@ -109,49 +106,40 @@
 
 <div id="m-line-editor" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;overflow-y:auto;">
     <h3>EDYCJA LINII</h3>
-    <input type="text" id="le-num" placeholder="Numer linii">
+    <input type="text" id="le-num" placeholder="Numer">
     <input type="text" id="le-dir" placeholder="Kierunek">
     <select id="le-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    
-    <label>Godziny z pętli (Robocze):</label>
-    <textarea id="le-h-rob" placeholder="05:10, 05:40..."></textarea>
-    <label>Godziny z pętli (Soboty):</label>
-    <textarea id="le-h-sob" placeholder="06:00, 07:00..."></textarea>
-    <label>Godziny z pętli (Niedz./Św.):</label>
-    <textarea id="le-h-nie" placeholder="08:00, 10:00..."></textarea>
-
-    <label style="font-weight:900; color:var(--red); margin-top:10px; display:block;">LISTA PRZYSTANKÓW (PO ENTERZE):</label>
-    <p style="font-size:0.7rem; color:#888;">Format: Nazwa Przystanku | czas (np: Piaski | 2)</p>
-    <textarea id="le-stops-bulk" style="height:200px;" placeholder="Przystanek Start | 0&#10;Kolejny Przystanek | 3"></textarea>
-    
-    <button onclick="saveLine()" class="adm-btn" style="background:var(--mzk)">ZAPISZ LINIĘ</button>
-    <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;margin-top:10px;">ANULUJ</button>
+    <textarea id="le-h-rob" placeholder="Robocze: 05:00, 05:30..."></textarea>
+    <textarea id="le-h-sob" placeholder="Soboty: 07:00, 08:00..."></textarea>
+    <textarea id="le-h-nie" placeholder="Niedziele: 09:00, 11:00..."></textarea>
+    <label>LISTA PRZYSTANKÓW (Nazwa | czas):</label>
+    <textarea id="le-stops-bulk" style="height:200px;" placeholder="Piaski | 0&#10;Dworzec | 4"></textarea>
+    <button onclick="saveLine()" class="adm-btn" style="background:var(--mzk)">ZAPISZ</button>
+    <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;">ANULUJ</button>
 </div>
 
 <div id="m-stop-editor" style="position:fixed;top:0;left:0;width:100%;height:100%;background:white;z-index:3000;display:none;padding:20px;">
-    <h3>ARSENAŁ PRZYSTANKU</h3>
-    <input type="text" id="se-name" placeholder="Dokładna nazwa">
-    <div style="margin:10px 0;">
-        <label><input type="checkbox" id="se-req"> NA ŻĄDANIE (NŻ)</label>
-    </div>
-    <textarea id="se-nearby" placeholder="Co jest w pobliżu? (Szpital, Galeria...)"></textarea>
-    <button onclick="saveStopArsenal()" class="adm-btn">ZAPISZ W ARSENALE</button>
-    <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;margin-top:10px;">ANULUJ</button>
+    <h3>PRZYSTANEK</h3>
+    <input type="text" id="se-name" placeholder="Nazwa">
+    <label><input type="checkbox" id="se-req"> NA ŻĄDANIE</label>
+    <textarea id="se-nearby" placeholder="Pobliże..."></textarea>
+    <button onclick="saveStop()" class="adm-btn">ZAPISZ</button>
+    <button onclick="closeModal()" style="color:red;border:none;background:none;width:100%;font-weight:800;">ANULUJ</button>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('MZK_V32')) || { lines: [], stops: [], map: "", info: "", contact: "" };
+    let db = JSON.parse(localStorage.getItem('MZK_V33')) || { lines: [], stops: [], map: "", info: "", contact: "" };
     let curIdx = -1;
 
-    function sync() { localStorage.setItem('MZK_V32', JSON.stringify(db)); render(); }
+    function sync() { localStorage.setItem('MZK_V33', JSON.stringify(db)); render(); }
 
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
         if(id==='map') document.getElementById('map-frame').src = db.map;
-        if(id==='info') document.getElementById('info-render').innerHTML = db.info.replace(/\n/g, '<br>') || "Brak ważnych komunikatów.";
-        if(id==='contact') document.getElementById('contact-render').innerHTML = db.contact.replace(/\n/g, '<br>') || "Brak danych kontaktowych.";
+        if(id==='info') document.getElementById('info-render').innerHTML = db.info.replace(/\n/g, '<br>') || "Brak komunikatów.";
+        if(id==='contact') document.getElementById('contact-render').innerHTML = db.contact.replace(/\n/g, '<br>') || "Brak danych.";
         document.getElementById('n-'+id).classList.add('active');
         window.scrollTo(0,0);
     }
@@ -159,32 +147,32 @@
     function render() {
         const lr = document.getElementById('lines-render'); lr.innerHTML = '';
         const unique = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
-        unique.forEach(num => {
-            const first = db.lines.find(lx => lx.num === num);
-            lr.innerHTML += `<div class="line-item ${first.type==='tram'?'tram':''}" onclick="openVars('${num}')">LINIA ${num} <i class="fa-solid fa-chevron-right"></i></div>`;
+        unique.forEach(n => {
+            const l = db.lines.find(lx => lx.num === n);
+            lr.innerHTML += `<div class="line-item ${l.type==='tram'?'tram':''}" onclick="openVars('${n}')">LINIA ${n} <i class="fa-solid fa-chevron-right"></i></div>`;
         });
 
-        const al = document.getElementById('adm-lines-list'); al.innerHTML = '';
-        db.lines.forEach((l, i) => {
-            al.innerHTML += `<div class="admin-card" onclick="openLineEditor(${i})"><span>${l.num} -> ${l.dir}</span> <button onclick="event.stopPropagation(); deleteLine(${i})" style="color:red;border:none;background:none;">USUŃ</button></div>`;
-        });
-
-        const as = document.getElementById('adm-stops-list'); as.innerHTML = '';
-        db.stops.forEach((s, i) => {
-            as.innerHTML += `<div class="admin-card" onclick="openStopEditor(${i})"><span>${s.name} ${s.req?'(NŻ)':''}</span> <button onclick="event.stopPropagation(); deleteStop(${i})" style="color:red;border:none;background:none;">USUŃ</button></div>`;
-        });
-
-        // Wypełnienie pól w zakładce Dane
-        document.getElementById('map-url').value = db.map;
-        document.getElementById('adm-info-txt').value = db.info;
-        document.getElementById('adm-contact-txt').value = db.contact;
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l,i) => `<div class="admin-card"><span>${l.num} -> ${l.dir}</span> <button onclick="deleteL(${i})" style="color:red;border:none;background:none;">USUŃ</button></div>`).join('');
+        document.getElementById('adm-stops-list').innerHTML = db.stops.map((s,i) => `<div class="admin-card" onclick="openStopEditor(${i})"><span>${s.name} ${s.req?'(NŻ)':''}</span> <button onclick="event.stopPropagation(); deleteP(${i})" style="color:red;border:none;background:none;">USUŃ</button></div>`).join('');
+        
+        // Wypełnienie formularza w adminie danymi z DB
+        document.getElementById('adm-map-input').value = db.map || "";
+        document.getElementById('adm-info-input').value = db.info || "";
+        document.getElementById('adm-contact-input').value = db.contact || "";
     }
 
-    function openVars(num) {
+    function saveGlobal() {
+        db.map = document.getElementById('adm-map-input').value;
+        db.info = document.getElementById('adm-info-input').value;
+        db.contact = document.getElementById('adm-contact-input').value;
+        sync(); alert("Dane zapisane!");
+    }
+
+    function openVars(n) {
         show('vars');
         const vr = document.getElementById('vars-render');
-        vr.innerHTML = `<h2 style="margin-bottom:15px">Wybierz kierunek (Linia ${num})</h2>`;
-        db.lines.filter(l => l.num === num).forEach(l => {
+        vr.innerHTML = `<h2>Kierunki Linii ${n}</h2>`;
+        db.lines.filter(l => l.num === n).forEach(l => {
             vr.innerHTML += `<div class="line-item" onclick="renderStops(${db.lines.indexOf(l)})">${l.dir}</div>`;
         });
         vr.innerHTML += `<button onclick="show('home')" class="adm-btn" style="margin-top:20px; background:#444">POWRÓT</button>`;
@@ -193,29 +181,21 @@
     function renderStops(idx) {
         show('tt');
         const l = db.lines[idx];
-        document.getElementById('tt-header-render').innerHTML = `<div style="background:${l.type==='tram'?'var(--red)':'var(--mzk)'}; color:white; padding:20px; border-radius:15px; margin-bottom:15px; text-align:center"><h1>${l.num}</h1><p>${l.dir}</p></div>`;
-        
+        document.getElementById('tt-header-render').innerHTML = `<div style="background:${l.type==='tram'?'var(--red)':'var(--mzk)'}; color:white; padding:20px; border-radius:15px; text-align:center"><h1>${l.num}</h1><p>${l.dir}</p></div>`;
         const container = document.getElementById('tt-stops-render');
         container.innerHTML = '';
-        
         let cumulative = 0;
         l.route.forEach((step, si) => {
             cumulative += step.time;
             const ars = db.stops.find(as => as.name.toLowerCase() === step.name.toLowerCase());
-            
-            // Przesiadki
-            const tr = db.lines
-                .filter(ol => ol.num !== l.num && ol.route.some(r => r.name.toLowerCase() === step.name.toLowerCase()))
-                .map(ol => ol.num);
-            const uTr = [...new Set(tr)];
-
+            const tr = [...new Set(db.lines.filter(ol => ol.num !== l.num && ol.route.some(r => r.name.toLowerCase() === step.name.toLowerCase())).map(ol => ol.num))];
             const div = document.createElement('div');
             div.className = `stop-row ${ars?.req ? 'is-nz' : ''}`;
             div.innerHTML = `
                 <span style="float:right; font-weight:900; color:var(--mzk)">+${cumulative} min</span>
                 <span class="stop-name">${step.name}</span> ${ars?.req ? '<span class="badge-nz">NŻ</span>' : ''}
                 ${ars?.nearby ? `<span class="nearby-tag"><i class="fa-solid fa-location-dot"></i> ${ars.nearby}</span>` : ''}
-                <div class="transfer-pills">${uTr.map(t => `<span class="pill">${t}</span>`).join('')}</div>
+                <div class="transfer-pills">${tr.map(t => `<span class="pill">${t}</span>`).join('')}</div>
                 <div class="schedule-tabs" id="tabs-${si}">
                     <button class="s-tab active" onclick="event.stopPropagation(); changeT(${si}, 'rob', ${idx}, ${cumulative})">Rob.</button>
                     <button class="s-tab" onclick="event.stopPropagation(); changeT(${si}, 'sob', ${idx}, ${cumulative})">Sob.</button>
@@ -223,109 +203,43 @@
                 </div>
                 <div class="hours-grid" id="grid-${si}"></div>
             `;
-            div.onclick = () => toggleS(si, 'rob', idx, cumulative);
+            div.onclick = () => { const g = document.getElementById('grid-'+si); g.style.display = g.style.display==='grid'?'none':'grid'; if(g.style.display==='grid') changeT(si, 'rob', idx, cumulative); };
             container.appendChild(div);
         });
         container.innerHTML += `<button onclick="openVars('${l.num}')" class="adm-btn" style="margin-top:20px">POWRÓT</button>`;
     }
 
-    function toggleS(si, type, lineIdx, off) {
-        const grid = document.getElementById('grid-'+si);
-        if(grid.style.display === 'grid') grid.style.display = 'none';
-        else changeT(si, type, lineIdx, off);
-    }
-
     function changeT(si, type, lIdx, off) {
         const grid = document.getElementById('grid-'+si);
-        const line = db.lines[lIdx];
-        let base = [];
-        if(type==='rob') base = line.hRob.split(',');
-        if(type==='sob') base = line.hSob.split(',');
-        if(type==='nie') base = line.hNie.split(',');
-
-        let html = '';
-        base.forEach(h => {
-            if(!h.trim()) return;
+        const l = db.lines[lIdx];
+        let base = (type==='rob'?l.hRob:type==='sob'?l.hSob:l.hNie).split(',');
+        grid.innerHTML = base.map(h => {
+            if(!h.trim()) return '';
             let [hh, mm] = h.trim().split(':').map(Number);
             let d = new Date(); d.setHours(hh, mm + off);
-            html += `<span class="hour-pill">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-        });
-        grid.innerHTML = html || '<span style="font-size:0.7rem">Brak kursów</span>';
-        grid.style.display = 'grid';
-        
-        const tabs = document.querySelectorAll(`#tabs-${si} .s-tab`);
-        tabs.forEach(t => t.classList.remove('active'));
-        if(event) event.target.classList.add('active');
-    }
-
-    // ADMIN ACTIONS
-    function saveGlobal() {
-        db.map = document.getElementById('map-url').value;
-        db.info = document.getElementById('adm-info-txt').value;
-        db.contact = document.getElementById('adm-contact-txt').value;
-        sync(); alert("Dane zapisane!");
-    }
-
-    function openLineEditor(idx) {
-        curIdx = idx;
-        if(idx === -1) {
-            document.getElementById('le-num').value=''; document.getElementById('le-dir').value='';
-            document.getElementById('le-h-rob').value=''; document.getElementById('le-h-sob').value='';
-            document.getElementById('le-h-nie').value=''; document.getElementById('le-stops-bulk').value='';
-        } else {
-            const l = db.lines[idx];
-            document.getElementById('le-num').value=l.num; document.getElementById('le-dir').value=l.dir;
-            document.getElementById('le-type').value=l.type;
-            document.getElementById('le-h-rob').value=l.hRob; document.getElementById('le-h-sob').value=l.hSob;
-            document.getElementById('le-h-nie').value=l.hNie;
-            document.getElementById('le-stops-bulk').value = l.route.map(r => `${r.name} | ${r.time}`).join('\n');
-        }
-        document.getElementById('m-line-editor').style.display='block';
+            return `<span class="hour-pill">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
+        }).join('') || '<span style="font-size:0.7rem">Brak kursów</span>';
+        const ts = document.querySelectorAll(`#tabs-${si} .s-tab`); ts.forEach(t => t.classList.remove('active'));
+        if(event && event.target.classList.contains('s-tab')) event.target.classList.add('active');
     }
 
     function saveLine() {
-        const bulk = document.getElementById('le-stops-bulk').value.split('\n');
-        const route = bulk.filter(line => line.includes('|')).map(line => {
-            const [name, time] = line.split('|');
-            return { name: name.trim(), time: parseInt(time) || 0 };
-        });
-        const data = {
-            num: document.getElementById('le-num').value,
-            dir: document.getElementById('le-dir').value,
-            type: document.getElementById('le-type').value,
-            hRob: document.getElementById('le-h-rob').value,
-            hSob: document.getElementById('le-h-sob').value,
-            hNie: document.getElementById('le-h-nie').value,
-            route: route
-        };
+        const bulk = document.getElementById('le-stops-bulk').value.split('\n').filter(x => x.includes('|')).map(x => ({ name: x.split('|')[0].trim(), time: parseInt(x.split('|')[1]) || 0 }));
+        const data = { num: document.getElementById('le-num').value, dir: document.getElementById('le-dir').value, type: document.getElementById('le-type').value, hRob: document.getElementById('le-h-rob').value, hSob: document.getElementById('le-h-sob').value, hNie: document.getElementById('le-h-nie').value, route: bulk };
         if(curIdx === -1) db.lines.push(data); else db.lines[curIdx] = data;
         sync(); closeModal();
     }
 
-    function openStopEditor(idx) {
-        curIdx = idx;
-        if(idx === -1) {
-            document.getElementById('se-name').value=''; document.getElementById('se-req').checked=false; document.getElementById('se-nearby').value='';
-        } else {
-            const s = db.stops[idx];
-            document.getElementById('se-name').value=s.name; document.getElementById('se-req').checked=s.req; document.getElementById('se-nearby').value=s.nearby;
-        }
-        document.getElementById('m-stop-editor').style.display='block';
-    }
-
-    function saveStopArsenal() {
-        const data = { name: document.getElementById('se-name').value.trim(), req: document.getElementById('se-req').checked, nearby: document.getElementById('se-nearby').value };
-        if(curIdx === -1) db.stops.push(data); else db.stops[curIdx] = data;
-        sync(); closeModal();
-    }
-
+    function openLineEditor(idx) { curIdx = idx; if(idx === -1) { document.querySelectorAll('#m-line-editor input, #m-line-editor textarea').forEach(e => e.value=''); } else { const l = db.lines[idx]; document.getElementById('le-num').value=l.num; document.getElementById('le-dir').value=l.dir; document.getElementById('le-type').value=l.type; document.getElementById('le-h-rob').value=l.hRob; document.getElementById('le-h-sob').value=l.hSob; document.getElementById('le-h-nie').value=l.hNie; document.getElementById('le-stops-bulk').value = l.route.map(r => `${r.name} | ${r.time}`).join('\n'); } document.getElementById('m-line-editor').style.display='block'; }
+    function openStopEditor(idx) { curIdx = idx; if(idx === -1) { document.getElementById('se-name').value=''; document.getElementById('se-req').checked=false; document.getElementById('se-nearby').value=''; } else { const s = db.stops[idx]; document.getElementById('se-name').value=s.name; document.getElementById('se-req').checked=s.req; document.getElementById('se-nearby').value=s.nearby; } document.getElementById('m-stop-editor').style.display='block'; }
+    function saveStop() { const data = { name: document.getElementById('se-name').value.trim(), req: document.getElementById('se-req').checked, nearby: document.getElementById('se-nearby').value }; if(curIdx === -1) db.stops.push(data); else db.stops[curIdx] = data; sync(); closeModal(); }
     function login() { if(document.getElementById('adm-pass').value==='123') { document.getElementById('adm-auth').style.display='none'; document.getElementById('adm-panel').style.display='block'; } }
     function tab(id) { ['l','p','d'].forEach(t => document.getElementById('t-'+t).style.display = (t===id?'block':'none')); }
     function closeModal() { document.querySelectorAll('[id^="m-"]').forEach(m => m.style.display='none'); }
-    function deleteLine(i) { if(confirm("Usunąć linię?")) { db.lines.splice(i,1); sync(); } }
-    function deleteStop(i) { if(confirm("Usunąć z arsenału?")) { db.stops.splice(i,1); sync(); } }
-    function exportDB() { const b = new Blob([JSON.stringify(db)], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'mzk_baza.txt'; a.click(); }
-    function importDB(e) { const reader = new FileReader(); reader.onload = function(e) { db = JSON.parse(e.target.result); sync(); }; reader.readAsText(e.target.files[0]); }
+    function deleteL(i) { if(confirm("Usunąć?")) { db.lines.splice(i,1); sync(); } }
+    function deleteP(i) { if(confirm("Usunąć?")) { db.stops.splice(i,1); sync(); } }
+    function exportDB() { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(db)], {type: 'text/plain'})); a.download = 'mzk_baza.txt'; a.click(); }
+    function importDB(e) { const r = new FileReader(); r.onload = (e) => { db = JSON.parse(e.target.result); sync(); }; r.readAsText(e.target.files[0]); }
 
     sync();
 </script>

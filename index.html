@@ -22,7 +22,7 @@
         .line-square.bus { border-bottom: 4px solid var(--accent); }
         .line-square.tram { border-bottom: 4px solid var(--danger); }
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); cursor: pointer; }
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; vertical-align: middle; }
+        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; }
         .tt-container { width: 100%; margin-top: 15px; background: #0b0f19; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
         .tt-row { display: grid; grid-template-columns: 45px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .tt-row.header { background: #1c252e; font-size: 0.55rem; font-weight: 800; color: var(--text-sec); text-align: center; }
@@ -39,7 +39,7 @@
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         input, textarea, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-        .other-info { color: var(--text-sec); font-size: 0.7rem; margin-top: 3px; display: block; font-weight: 400; }
+        .other-info { color: var(--text-sec); font-size: 0.7rem; margin-top: 3px; display: block; }
     </style>
 </head>
 <body>
@@ -92,7 +92,7 @@
     <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="fl-hours" placeholder="Dni robocze"></textarea>
+    <textarea id="fl-hours" placeholder="Robocze"></textarea>
     <textarea id="fl-hours-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-hours-sun" placeholder="Nd / Św"></textarea>
     <div id="fl-stops-list"></div>
@@ -108,7 +108,9 @@
 
     function init() {
         const local = localStorage.getItem(DB_KEY);
-        if(local) db = JSON.parse(local);
+        if(local) {
+            try { db = JSON.parse(local); } catch(e) { console.error("DB Error"); }
+        }
         render();
         renderStopsList();
     }
@@ -138,72 +140,50 @@
         return groups;
     }
 
-    // --- NOWA FUNKCJA: Szukanie najbliższego "innego" kursu ---
     function getNextOtherLine(stopName, currentLineNum) {
+        if(!db.lines.length) return null;
         const now = new Date();
         const dayType = getDayType();
         let closest = null;
 
         db.lines.forEach(l => {
-            if(l.num === currentLineNum) return; // Pomijamy linię, którą jedziemy
-            
+            if(l.num === currentLineNum) return;
             let totalOffset = 0;
             l.stops.forEach(s => {
                 totalOffset += parseInt(s.time) || 0;
                 if(s.name === stopName) {
-                    const hoursStr = dayType === 'work' ? l.hours : (dayType === 'sat' ? l.hoursSat : l.hoursSun);
+                    const hoursStr = dayType==='work' ? l.hours : (dayType==='sat' ? l.hoursSat : l.hoursSun);
+                    if(!hoursStr) return;
                     const grouped = getGroupedHours(hoursStr, totalOffset);
-                    Object.values(grouped).flat().forEach(timeObj => {
-                        const [h, m] = timeObj.full.split(':');
-                        const d = new Date(); d.setHours(h, m, 0);
+                    Object.values(grouped).flat().forEach(t => {
+                        const [th, tm] = t.full.split(':');
+                        const d = new Date(); d.setHours(th, tm, 0);
                         if(d > now && (!closest || d < closest.time)) {
-                            closest = { time: d, num: l.num, type: l.type };
+                            closest = { time: d, num: l.num };
                         }
                     });
                 }
             });
         });
-
         if(!closest) return null;
-        const diff = Math.floor((closest.time - now) / 60000);
-        return { diff, num: closest.num, type: closest.type };
+        return { diff: Math.floor((closest.time - now)/60000), num: closest.num };
     }
 
     function openStopDetails(stopName, backTo = 'home', backIdx = null, excludeLineNum = null) {
         show('stop-details');
         const head = document.getElementById('sd-head');
         const content = document.getElementById('sd-content');
-        const backBtn = document.getElementById('sd-back-btn');
-
         let linesHere = [];
         db.lines.forEach(l => {
             if(l.stops.some(s => s.name === stopName)) {
-                // Jeśli excludeLineNum jest podane, nie pokazujemy go na liście głównej przesiadek w tej zakładce
                 if(excludeLineNum && l.num === excludeLineNum) return;
                 if(!linesHere.some(e => e.num === l.num)) linesHere.push({num: l.num, type: l.type});
             }
         });
-
-        const det = db.stopDetails[stopName] || {nearby: "Brak dodatkowych informacji o przesiadkach.", isNz: false};
-
+        const det = db.stopDetails[stopName] || {nearby: "Brak dodatkowych informacji."};
         head.innerHTML = `<div class="group-label">Informacje o przystanku</div><h1>${stopName}</h1>`;
-        
-        content.innerHTML = `
-            <div class="app-card" style="display:block; cursor:default;">
-                <div class="group-label" style="margin-top:0">${excludeLineNum ? 'Inne linie (przesiadki)' : 'Wszystkie linie'}</div>
-                <div style="margin-bottom:20px;">
-                    ${linesHere.length > 0 ? linesHere.map(ln => `<span class="stop-chip ${ln.type}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('') : '<p style="font-size:0.8rem; opacity:0.5;">Brak innych linii.</p>'}
-                </div>
-                <div class="group-label">Przesiadki i okolica</div>
-                <p style="font-size:0.9rem; color:var(--text-sec); line-height:1.5;">${det.nearby}</p>
-            </div>
-        `;
-
-        backBtn.onclick = () => {
-            if(backTo === 'tt') renderTimetable(backIdx);
-            else if(backTo === 'stops') show('stops');
-            else show('home');
-        };
+        content.innerHTML = `<div class="app-card" style="display:block; cursor:default;"><div class="group-label">Linie (przesiadki)</div><div style="margin-bottom:20px;">${linesHere.map(ln => `<span class="stop-chip ${ln.type}">${ln.num}</span>`).join('')}</div><div class="group-label">Opis</div><p style="font-size:0.9rem; color:var(--text-sec);">${det.nearby}</p></div>`;
+        document.getElementById('sd-back-btn').onclick = () => { if(backTo==='tt') renderTimetable(backIdx); else if(backTo==='stops') show('stops'); else show('home'); };
     }
 
     function renderTimetable(idx) {
@@ -211,115 +191,75 @@
         show('tt');
         const dayType = getDayType();
         document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
-        
         const body = document.getElementById('tt-body');
         body.innerHTML = '';
         let totalOffset = 0;
-
         line.stops.forEach((stop, sIdx) => {
             totalOffset += parseInt(stop.time) || 0;
             const currentOffset = totalOffset;
+            const other = getNextOtherLine(stop.name, line.num);
             const card = document.createElement('div');
             card.className = 'app-card';
             card.style.display = 'block';
-
+            
             const gWork = getGroupedHours(line.hours, currentOffset);
             const gSat = getGroupedHours(line.hoursSat, currentOffset);
             const gSun = getGroupedHours(line.hoursSun, currentOffset);
             const allHours = [...new Set([...Object.keys(gWork), ...Object.keys(gSat), ...Object.keys(gSun)])].sort();
 
-            // Szukamy najbliższego INNEGO kursu
-            const other = getNextOtherLine(stop.name, line.num);
-            const otherHtml = other ? `<span class="other-info"><i class="fa-solid fa-shuffle"></i> Inna linia (${other.num}) za: <b>${other.diff} min</b></span>` : `<span class="other-info">Brak innych linii w pobliżu</span>`;
-
-            card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <b style="font-size:1.1rem;">${stop.name} ${stop.nz?'<span class="nz-badge">NŻ</span>':''}</b>
-                        ${otherHtml}
-                    </div>
-                    <i class="fa-solid fa-circle-info" style="color:var(--accent); font-size:1.2rem; margin-top:5px;"></i>
-                </div>
-                <div class="tt-container">
-                    <div class="tt-row header">
-                        <div class="tt-cell">Godz</div>
-                        <div class="tt-cell ${dayType==='work'?'today-hl':''}">Roboczy</div>
-                        <div class="tt-cell ${dayType==='sat'?'today-hl':''}">Sobota</div>
-                        <div class="tt-cell ${dayType==='sun'?'today-hl':''}">Nd/Św</div>
-                    </div>
-                    ${allHours.map(h => `
-                        <div class="tt-row">
-                            <div class="tt-cell hour">${h}</div>
-                            <div class="tt-cell ${dayType==='work'?'today-hl':''}">${(gWork[h]||[]).map(m=>m.min).join(' ')}</div>
-                            <div class="tt-cell ${dayType==='sat'?'today-hl':''}">${(gSat[h]||[]).map(m=>m.min).join(' ')}</div>
-                            <div class="tt-cell ${dayType==='sun'?'today-hl':''}">${(gSun[h]||[]).map(m=>m.min).join(' ')}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            // Przekazujemy line.num jako wykluczenie, aby nie duplikować rozkładu tej samej linii
+            card.innerHTML = `<div style="display:flex; justify-content:space-between;"><div><b>${stop.name}</b><span class="other-info">${other ? 'Inna linia ('+other.num+') za: '+other.diff+' min' : 'Brak przesiadek'}</span></div><i class="fa-solid fa-circle-info" style="color:var(--accent);"></i></div><div class="tt-container"><div class="tt-row header"><div class="tt-cell">Godz</div><div class="tt-cell ${dayType==='work'?'today-hl':''}">Rob</div><div class="tt-cell ${dayType==='sat'?'today-hl':''}">Sob</div><div class="tt-cell ${dayType==='sun'?'today-hl':''}">Nd</div></div>${allHours.map(h => `<div class="tt-row"><div class="tt-cell hour">${h}</div><div class="tt-cell">${(gWork[h]||[]).map(m=>m.min).join(' ')}</div><div class="tt-cell">${(gSat[h]||[]).map(m=>m.min).join(' ')}</div><div class="tt-cell">${(gSun[h]||[]).map(m=>m.min).join(' ')}</div></div>`).join('')}</div>`;
             card.onclick = () => openStopDetails(stop.name, 'tt', idx, line.num);
             body.appendChild(card);
         });
     }
 
     function renderStopsList() {
-        const query = document.getElementById('stop-search').value.toLowerCase();
+        const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
         list.innerHTML = '';
-        let allStops = new Set();
-        db.lines.forEach(l => l.stops.forEach(s => allStops.add(s.name)));
-        [...allStops].sort().filter(s => s.toLowerCase().includes(query)).forEach(stopName => {
-            const d = document.createElement('div');
-            d.className = 'app-card';
-            d.innerHTML = `<b>${stopName}</b><i class="fa-solid fa-chevron-right" style="float:right; opacity:0.3;"></i>`;
-            d.onclick = () => openStopDetails(stopName, 'stops');
+        let all = new Set();
+        db.lines.forEach(l => l.stops.forEach(s => all.add(s.name)));
+        [...all].sort().filter(s => s.toLowerCase().includes(q)).forEach(name => {
+            const d = document.createElement('div'); d.className = 'app-card'; d.innerHTML = `<b>${name}</b>`;
+            d.onclick = () => openStopDetails(name, 'stops');
             list.appendChild(d);
         });
     }
 
     function render() {
         const sHome = document.getElementById('s-home');
-        sHome.innerHTML = '<div class="group-label">Linie komunikacyjne</div>';
+        sHome.innerHTML = '<div class="group-label">Linie</div>';
         const grid = document.createElement('div'); grid.className = 'lines-grid';
         let unique = new Set();
-        db.lines.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).forEach(l => {
+        db.lines.forEach(l => {
             if(!unique.has(l.num)) {
                 unique.add(l.num);
-                const div = document.createElement('div');
-                div.className = `line-square ${l.type}`;
-                div.innerText = l.num;
-                div.onclick = () => openVariants(l.num);
-                grid.appendChild(div);
+                const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = l.num;
+                div.onclick = () => openVariants(l.num); grid.appendChild(div);
             }
         });
         sHome.appendChild(grid);
         document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card" style="display:block;"><small>${n.date}</small><h4>${n.title}</h4><p>${n.content}</p></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact;
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><b>${l.num}</b> ${l.dir} <button onclick="openLineForm(${i})" style="float:right; color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><b>${l.num}</b> ${l.dir} <button onclick="openLineForm(${i})" style="float:right; color:var(--accent); background:none; border:none;">EDYTUJ</button></div>`).join('');
     }
 
     function openVariants(num) {
         show('vars');
         document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
         const list = document.getElementById('vars-list'); list.innerHTML = '';
-        db.lines.forEach((l, idx) => {
-            if(l.num == num) {
-                const d = document.createElement('div'); d.className = 'app-card';
-                d.innerHTML = `<b>Kierunek: ${l.dir}</b>`;
-                d.onclick = () => renderTimetable(idx);
-                list.appendChild(d);
-            }
-        });
+        db.lines.forEach((l, idx) => { if(l.num == num) {
+            const d = document.createElement('div'); d.className = 'app-card'; d.innerHTML = `<b>Kierunek: ${l.dir}</b>`;
+            d.onclick = () => renderTimetable(idx); list.appendChild(d);
+        }});
     }
 
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        const navId = (id==='tt'||id==='vars'||id==='stop-details') ? 'home' : id;
-        if(document.getElementById('n-'+navId)) document.getElementById('n-'+navId).classList.add('active');
-        window.scrollTo(0,0);
+        const nid = (id==='tt'||id==='vars'||id==='stop-details') ? 'home' : id;
+        if(document.getElementById('n-'+nid)) document.getElementById('n-'+nid).classList.add('active');
     }
 
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
@@ -340,11 +280,11 @@
         document.getElementById('form-line').style.display = 'block';
     }
 
-    function addStopRow(name="", time=2, nz=false) {
-        const div = document.createElement('div'); div.className = 'stop-edit-item';
-        div.style.cssText = "display:grid; grid-template-columns: 1fr 60px 40px 40px; gap:5px; margin-bottom:8px;";
-        div.innerHTML = `<input type="text" value="${name}" class="st-n"><input type="number" value="${time}" class="st-t"><input type="checkbox" ${nz?'checked':''} class="st-z"><button onclick="this.parentElement.remove()" style="background:var(--danger); color:white; border:none; border-radius:8px;">X</button>`;
-        document.getElementById('fl-stops-list').appendChild(div);
+    function addStopRow(n="", t=2, z=false) {
+        const d = document.createElement('div'); d.className='stop-edit-item';
+        d.style.cssText="display:grid; grid-template-columns: 1fr 60px 40px 40px; gap:5px; margin-bottom:8px;";
+        d.innerHTML=`<input type="text" value="${n}" class="st-n"><input type="number" value="${t}" class="st-t"><input type="checkbox" ${z?'checked':''} class="st-z"><button onclick="this.parentElement.remove()" style="background:var(--danger); color:white; border:none; border-radius:8px;">X</button>`;
+        document.getElementById('fl-stops-list').appendChild(d);
     }
 
     function saveLine() {

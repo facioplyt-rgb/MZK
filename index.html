@@ -17,12 +17,10 @@
         .active-sec { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
-        
         .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; margin-bottom: 15px; }
         .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .line-square.bus { border-bottom: 4px solid var(--accent); }
         .line-square.tram { border-bottom: 4px solid var(--danger); }
-        
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         .news-card { display: block; cursor: default; }
         .news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -31,51 +29,38 @@
         .tag-utrudnienia { background: rgba(255, 72, 66, 0.2); color: var(--danger); }
         .tag-rozklad { background: rgba(0, 171, 85, 0.2); color: var(--accent); }
         .tag-info { background: rgba(24, 144, 255, 0.2); color: var(--info); }
-
         .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
         .nearby-info { color: var(--warn); font-size: 0.75rem; margin-top: 3px; font-weight: 400; opacity: 0.9; }
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
-        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; }
+        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-right: 5px; margin-bottom: 5px; }
         .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
         .stop-line-item.is-tram i { color: var(--danger); }
+        .transfer-live { color: var(--warn); font-weight: 700; font-size: 0.7rem; margin-left: 4px; }
         .spacer { white-space: pre; }
-
-        /* DODATEK LIVE I GPS */
-        .live-badge { color: var(--warn); font-weight: 800; font-size: 0.8rem; }
-        .arrows-anim { display: inline-block; animation: moveArrows 1s infinite linear; color: var(--warn); font-weight: 900; margin-right: 5px; }
-        @keyframes moveArrows { 0% { opacity: 0.2; transform: translateX(-3px); } 50% { opacity: 1; } 100% { opacity: 0.2; transform: translateX(3px); } }
-        .gps-btn { background: var(--warn); color: #000; border: none; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 15px rgba(254, 202, 5, 0.3); }
-
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
-        
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
-        
         .adm-nav-main { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
-        
         .adm-stop-card { background: #1c252e; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #333; position: relative; }
         .adm-stop-card.is-nz { border-left-color: var(--danger); }
         .adm-stop-card .del-stop { position: absolute; top: 15px; right: 15px; color: var(--danger); cursor: pointer; }
-        
         .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr 65px 45px 40px; gap: 8px; align-items: center; }
         .stop-edit-item input { margin: 0; padding: 10px 5px; font-size: 0.85rem; height: 40px; background: #0b0f19; border: 1px solid #333; color: white; }
         .bulk-area { background: #000; border: 1px dashed var(--accent); padding: 10px; border-radius: 10px; margin-bottom: 15px; }
-        
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
+        .live-badge { color: var(--warn); font-weight: 800; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-
 <header><div class="brand">MZK GORZÓW</div></header>
-
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
@@ -83,15 +68,10 @@
         <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
-    <div id="s-news" class="section">
-        <div class="group-label">Komunikaty i Zmiany</div>
-        <div id="public-news-list"></div>
-    </div>
+    <div id="s-news" class="section"><div class="group-label">Komunikaty i Zmiany</div><div id="public-news-list"></div></div>
     <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
-    
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
-
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
             <input type="password" id="pass" placeholder="Hasło" style="text-align:center;">
@@ -106,26 +86,15 @@
                 <button onclick="setTab('s')" id="mt-s">KOPIA</button>
                 <button onclick="setTab('z')" id="mt-z">ZAAW</button>
             </div>
-            <div id="tab-l" class="adm-tab">
-                <button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button>
-                <div id="adm-lines-list"></div>
-            </div>
+            <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
             <div id="tab-p" class="adm-tab" style="display:none;"><div class="group-label">Zarządzaj Bazą Przystanków</div><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj Pełny Backup</button><input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Pełny Backup</button></div>
-            <div id="tab-z" class="adm-tab" style="display:none;">
-                <div class="group-label">Ustawienia Zaawansowane</div>
-                <div id="adm-cats-list"></div>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="new-cat-name" placeholder="Nowa kategoria...">
-                    <button onclick="addCategory()" style="background:var(--accent); color:white; border:none; padding:0 20px; border-radius:12px; font-weight:700; cursor:pointer;">Dodaj</button>
-                </div>
-            </div>
+            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj Backup</button><input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Backup</button></div>
+            <div id="tab-z" class="adm-tab" style="display:none;"><div class="group-label">Ustawienia Kategorii</div><div id="adm-cats-list"></div><div style="display:flex; gap:10px;"><input type="text" id="new-cat-name" placeholder="Nowa kategoria..."><button onclick="addCategory()">Dodaj</button></div></div>
         </div>
     </div>
 </div>
-
 <nav>
     <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
     <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-map-pin"></i><span>Przystanki</span></div>
@@ -140,12 +109,12 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-hours" placeholder="Dni robocze"></textarea>
+    <textarea id="fl-hours" placeholder="Robocze (np. 08:00, 08:30)"></textarea>
     <textarea id="fl-hours-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-hours-sun" placeholder="Niedziele"></textarea>
     <div class="bulk-area"><textarea id="fl-bulk" placeholder="Lista przystanków..."></textarea><button onclick="convertBulk()" class="main-btn">Konwertuj ↓</button></div>
     <div id="fl-stops-list"></div>
-    <button onclick="addStopRow()" class="main-btn">+ Dodaj</button>
+    <button onclick="addStopRow()" class="main-btn">+ Dodaj ręcznie</button>
     <button onclick="saveLine()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -161,33 +130,27 @@
 
 <script>
     let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
-    let curLineIdx = -1, curNewsIdx = -1, curCatIdx = -1, allAutoStops = [];
+    let curLineIdx = -1, curNewsIdx = -1, allAutoStops = [];
 
     function init() {
-        const local = localStorage.getItem('mzk_v12_stable');
-        if(local) { db = JSON.parse(local); }
+        const local = localStorage.getItem('mzk_v12_final');
+        if(local) db = JSON.parse(local);
         extractStops(); render();
-        // Odświeżanie Live co 30s
         setInterval(() => { if(document.getElementById('s-tt').classList.contains('active-sec')) renderTimetable(curLineIdx); }, 30000);
     }
 
-    function save() { localStorage.setItem('mzk_v12_stable', JSON.stringify(db)); extractStops(); render(); }
-
-    function extractStops() { 
-        let sSet = new Set(); 
-        db.lines.forEach(l => l.stops.forEach(s => { if(s.name) sSet.add(s.name); })); 
-        allAutoStops = [...sSet].sort(); 
-    }
+    function save() { localStorage.setItem('mzk_v12_final', JSON.stringify(db)); extractStops(); render(); }
+    function extractStops() { let sSet = new Set(); db.lines.forEach(l => l.stops.forEach(s => { if(s.name) sSet.add(s.name); })); allAutoStops = [...sSet].sort(); }
 
     function render() {
         const sHome = document.getElementById('s-home'); sHome.innerHTML = '';
         db.lineCategories.forEach(cat => {
-            const lins = db.lines.filter(l => l.category === cat);
-            if(lins.length > 0) {
+            const lines = db.lines.filter(l => l.category === cat);
+            if(lines.length > 0) {
                 sHome.innerHTML += `<div class="group-label">${cat}</div>`;
                 const grid = document.createElement('div'); grid.className = 'lines-grid';
-                [...new Set(lins.map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
-                    const l = lins.find(x => x.num === num);
+                [...new Set(lines.map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
+                    const l = lines.find(x => x.num === num);
                     grid.innerHTML += `<div class="line-square ${l.type}" onclick="openVariants('${num}')">${num}</div>`;
                 });
                 sHome.appendChild(grid);
@@ -196,8 +159,7 @@
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
         document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card news-card"><div class="news-header"><span class="news-date">${n.date}</span><span class="news-tag tag-${n.cat}">${n.cat}</span></div><b>${n.title}</b><div>${n.content}</div></div>`).reverse().join('');
         document.getElementById('contact-display').innerText = db.contact;
-        document.getElementById('edit-contact-text').value = db.contact;
-        filterStops(); renderAdminStops(); renderCatsAdmin();
+        renderCatsAdmin(); filterStops(); renderAdminStops();
     }
 
     function openVariants(num) {
@@ -206,12 +168,13 @@
         db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><span>Do: <b>${l.dir}</b></span><i class="fa-solid fa-chevron-right"></i></div>`; });
     }
 
+    // GŁÓWNA FUNKCJA ROZKŁADU Z PRZESIADKAMI LIVE
     function renderTimetable(idx) {
         curLineIdx = idx; const line = db.lines[idx]; show('tt');
         const now = new Date(); const day = now.getDay();
         const type = (day === 0) ? 'sun' : (day === 6 ? 'sat' : 'work');
         
-        document.getElementById('tt-head').innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2></div><button class="gps-btn" onclick="findMyLocation()"><i class="fa-solid fa-location-crosshairs"></i></button></div>`;
+        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
         const body = document.getElementById('tt-body'); body.innerHTML = '';
         let total = 0;
         
@@ -219,44 +182,58 @@
             total += parseInt(stop.time) || 0; const currentOffset = total;
             const det = db.stopDetails[stop.name] || {nearby:"", isNz: stop.nz};
             
-            let source = (type === 'work') ? line.hours : (type === 'sat' ? (line.hoursSat || line.hours) : (line.hoursSun || line.hours));
-            let liveLabel = "";
-            if(source) {
-                let times = source.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return null; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset, 0); return d; }).filter(t => t);
+            // Czas odjazdu dla głównej linii
+            let mainSource = (type === 'work') ? line.hours : (type === 'sat' ? (line.hoursSat || line.hours) : (line.hoursSun || line.hours));
+            let mainLive = "";
+            if(mainSource) {
+                let times = mainSource.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return null; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset, 0); return d; }).filter(t => t);
                 let next = times.find(d => d > now);
                 if(next) {
                     let diff = Math.floor((next - now) / 60000);
-                    if(diff <= 2) liveLabel = `<span class="live-badge"><span class="arrows-anim">>>>></span> ${diff === 0 ? 'TERAZ' : '1-2 MIN'}</span>`;
-                    else if(diff < 60) liveLabel = `<span class="live-badge">za ${diff} min</span>`;
+                    mainLive = diff <= 2 ? `<span class="live-badge">TERAZ</span>` : `<span class="live-badge">za ${diff} min</span>`;
                 }
             }
 
-            const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block'; card.setAttribute('data-stop', stop.name);
-            card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div><b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}${det.nearby?`<div class="nearby-info">${det.nearby}</div>`:''}</div><div>${liveLabel}</div></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            // SZUKANIE PRZESIADEK
+            let transfers = [];
+            db.lines.forEach(l => {
+                if(l.num === line.num && l.dir === line.dir) return; // pomin aktualną linię
+                let sPos = l.stops.findIndex(st => st.name === stop.name);
+                if(sPos !== -1) {
+                    let tTotal = 0; for(let i=0; i<=sPos; i++) tTotal += parseInt(l.stops[i].time || 0);
+                    let tSource = (type === 'work') ? l.hours : (type === 'sat' ? (l.hoursSat || l.hours) : (l.hoursSun || l.hours));
+                    if(tSource) {
+                        let tTimes = tSource.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return null; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + tTotal, 0); return d; }).filter(t => t);
+                        let tNext = tTimes.find(d => d > now);
+                        if(tNext) {
+                            let tDiff = Math.floor((tNext - now) / 60000);
+                            if(tDiff < 60) transfers.push(`<span class="stop-line-item ${l.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${l.type==='tram'?'tram':'bus'}"></i>${l.num}<span class="transfer-live">${tDiff}m</span></span>`);
+                        }
+                    }
+                }
+            });
+
+            const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div>
+                        <b>${stop.name}</b>${det.isNz?'<span class="nz-badge">NŻ</span>':''}
+                        <div class="stop-lines-row">${transfers.join('')}</div>
+                    </div>
+                    <div>${mainLive}</div>
+                </div>
+                <div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
+            
             card.onclick = () => {
                 const g = document.getElementById(`g-${sIdx}`); g.style.display = g.style.display==='grid'?'none':'grid';
-                if(g.style.display==='grid' && source) {
-                    g.innerHTML = source.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return ""; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset); return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`; }).join('');
+                if(g.style.display==='grid' && mainSource) {
+                    g.innerHTML = mainSource.split(',').map(h => { let p = h.trim().split(':'); if(p.length<2) return ""; let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + currentOffset); return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`; }).join('');
                 }
             };
             body.appendChild(card);
         });
     }
 
-    async function findMyLocation() {
-        if(!navigator.geolocation) return;
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-            const query = `[out:json];node["highway"="bus_stop"](around:250,${pos.coords.latitude},${pos.coords.longitude});out;`;
-            const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
-            const data = await res.json();
-            if(data.elements.length > 0) {
-                const nearest = data.elements[0].tags.name;
-                document.querySelectorAll('#tt-body .app-card').forEach(c => { if(nearest.toLowerCase().includes(c.getAttribute('data-stop').toLowerCase())) { c.scrollIntoView({behavior:'smooth'}); c.style.border="2px solid var(--warn)"; if(c.querySelector('.tt-grid').style.display !== 'grid') c.click(); } });
-            }
-        });
-    }
-
-    /* ADMIN FUNCTIONS - WSZYSTKO CO MIAŁEŚ */
     function openLineForm(idx) {
         curLineIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", hoursSat:"", hoursSun:"", category:"Autobusy", stops:[]} : db.lines[idx];
         document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; document.getElementById('fl-type').value = l.type;
@@ -283,8 +260,8 @@
     function convertBulk() { document.getElementById('fl-bulk').value.split('\n').filter(s => s.trim()).forEach((r, i) => addStopRow(r.trim(), i===0?0:2)); document.getElementById('fl-bulk').value = ""; }
     function renderCatsAdmin() { document.getElementById('adm-cats-list').innerHTML = db.lineCategories.map((c, i) => `<div>${c} <button onclick="db.lineCategories.splice(${i},1); save();">X</button></div>`).join(''); }
     function addCategory() { const n = document.getElementById('new-cat-name').value; if(n) { db.lineCategories.push(n); save(); } }
-    function openNewsForm(i) { curNewsIdx = i; const n = i===-1 ? {title:"", content:"", cat:"info"} : db.news[i]; document.getElementById('fn-title').value = n.title; document.getElementById('fn-content').value = n.content; document.getElementById('form-news').style.display='block'; }
-    function saveNews() { const n = {title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value, cat: document.getElementById('fn-cat').value, date: new Date().toLocaleDateString()}; if(curNewsIdx===-1) db.news.push(n); else db.news[curNewsIdx]=n; save(); closeForms(); }
+    function openNewsForm(i) { curNewsIdx = i; document.getElementById('form-news').style.display='block'; }
+    function saveNews() { const n = {title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value, cat: document.getElementById('fn-cat').value, date: new Date().toLocaleDateString()}; db.news.push(n); save(); closeForms(); }
     function exportFullBackup() { const b = new Blob([JSON.stringify(db)], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `backup.txt`; a.click(); }
     function importFullBackup(e) { const r = new FileReader(); r.onload = (ev) => { db = JSON.parse(ev.target.result); save(); location.reload(); }; r.readAsText(e.target.files[0]); }
     function show(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); document.getElementById('s-'+id).classList.add('active-sec'); document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active'); }

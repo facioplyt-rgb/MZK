@@ -23,25 +23,23 @@
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         
         .line-info { display: flex; align-items: center; gap: 35px; } 
-        .line-badge { background: var(--accent); color: white; padding: 6px 14px; border-radius: 12px; font-weight: 800; min-width: 55px; text-align: center; font-size: 1.1rem; }
+        .line-badge { background: var(--accent); color: white; padding: 6px 14px; border-radius: 12px; font-weight: 800; min-width: 60px; text-align: center; font-size: 1.1rem; }
         .tram-badge { background: var(--danger); }
 
-        /* ROZKŁAD GRID */
-        .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 8px; margin-top: 12px; }
-        .tt-time { background: var(--accent); color: white; padding: 8px 4px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 0.9rem; }
+        .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 12px; }
+        .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
 
-        /* NAV */
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
 
-        /* ADMIN */
+        .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+        textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
+
         .adm-nav-main { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
-        .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-        textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
     </style>
 </head>
 <body>
@@ -54,21 +52,6 @@
         <div class="group-label">Autobusy</div><div id="lines-bus"></div>
     </div>
 
-    <div id="s-stops" class="section">
-        <div class="group-label">Infrastruktura</div>
-        <div id="public-stops-list"></div>
-    </div>
-
-    <div id="s-news" class="section">
-        <div class="group-label">Komunikaty i Utrudnienia</div>
-        <div id="public-news-list"></div>
-    </div>
-
-    <div id="s-contact" class="section">
-        <div class="group-label">Informacje</div>
-        <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
-    </div>
-
     <div id="s-vars" class="section">
         <div id="vars-head"></div>
         <div id="vars-list"></div>
@@ -78,103 +61,121 @@
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
         <div id="tt-body"></div>
-        <button onclick="show('vars')" class="main-btn" style="background:#333">Wróć do kierunków</button>
+        <button onclick="show('vars')" class="main-btn" style="background:#333">Wróć do wyboru kierunku</button>
+    </div>
+
+    <div id="s-stops" class="section">
+        <div class="group-label">Informacja o przystankach</div>
+        <div id="public-stops-list"></div>
+    </div>
+
+    <div id="s-news" class="section">
+        <div class="group-label">Aktualne utrudnienia i wiadomości</div>
+        <div id="public-news-list"></div>
+    </div>
+
+    <div id="s-contact" class="section">
+        <div class="group-label">Biuro Obsługi</div>
+        <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
     </div>
 
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
-            <input type="password" id="pass" placeholder="Hasło" style="text-align:center;">
+            <input type="password" id="pass" placeholder="Kod dostępu" style="text-align:center;">
             <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none;">
             <div class="adm-nav-main">
-                <button onclick="setMainTab('l')" id="mt-l" class="active">LINIE</button>
-                <button onclick="setMainTab('p')" id="mt-p">PRZYST</button>
-                <button onclick="setMainTab('n')" id="mt-n">KOMUNIK</button>
-                <button onclick="setMainTab('c')" id="mt-c">KONTAKT</button>
-                <button onclick="setMainTab('s')" id="mt-s">BAZA</button>
+                <button onclick="setTab('l')" id="mt-l" class="active">LINIE</button>
+                <button onclick="setTab('p')" id="mt-p">PRZYST</button>
+                <button onclick="setTab('n')" id="mt-n">NEWS</button>
+                <button onclick="setTab('c')" id="mt-c">KONTAKT</button>
+                <button onclick="setTab('s')" id="mt-s">BACKUP</button>
             </div>
             <div id="tab-l" class="adm-tab">
-                <button onclick="openLineForm(-1)" class="main-btn">+ Dodaj Nową Linię</button>
+                <button onclick="openLineForm(-1)" class="main-btn">Dodaj linię/kierunek</button>
                 <div id="adm-lines-list"></div>
             </div>
-            <div id="tab-p" class="adm-tab" style="display:none;">
-                <button onclick="openStopForm(-1)" class="main-btn">+ Dodaj Przystanek</button>
-                <div id="adm-stops-list"></div>
-            </div>
             <div id="tab-n" class="adm-tab" style="display:none;">
-                <button onclick="openNewsForm(-1)" class="main-btn">+ Nowy Komunikat</button>
+                <button onclick="openNewsForm(-1)" class="main-btn">Dodaj komunikat</button>
                 <div id="adm-news-list"></div>
             </div>
-            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportData()" class="main-btn">Eksportuj Baza.txt</button><input type="file" id="importFile" style="display:none" onchange="importData(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Baza.txt</button></div>
+            <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
+            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px;"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
+            <div id="tab-s" class="adm-tab" style="display:none;">
+                <p style="font-size:0.8rem; margin-bottom:10px; color:var(--text-sec);">Backup pobierze Linie, Przystanki, Newsy i Kontakt do jednego pliku.</p>
+                <button onclick="exportData()" class="main-btn">Eksportuj mzk_baza.txt</button>
+                <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+                <button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj mzk_baza.txt</button>
+            </div>
         </div>
     </div>
 </div>
 
 <nav>
-    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
-    <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-map-pin"></i><span>Przystanki</span></div>
-    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bell"></i><span>Komunikaty</span></div>
-    <div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-info-circle"></i><span>Kontakt</span></div>
-    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Admin</span></div>
+    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-route"></i><span>Linie</span></div>
+    <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-map-location-dot"></i><span>Przystanki</span></div>
+    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bell"></i><span>News</span></div>
+    <div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-info-circle"></i><span>Info</span></div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-user-shield"></i><span>Admin</span></div>
 </nav>
 
 <div id="form-line" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h2 id="line-form-title">Edycja Linii</h2>
-    <input type="text" id="fl-num" placeholder="Nr linii (np. 100)">
-    <input type="text" id="fl-dir" placeholder="Kierunek docelowy">
+    <h2>Zarządzaj Linią</h2>
+    <input type="text" id="fl-num" placeholder="Numer (np. 100)">
+    <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <textarea id="fl-hours" placeholder="Godziny odjazdów z pętli (po przecinku): 05:00, 05:20..."></textarea>
-    <p class="group-label">Lista przystanków (Nazwa | +minuty)</p>
-    <textarea id="fl-stops-raw" style="height:200px;" placeholder="Przystanek 1 | +0&#10;Przystanek 2 | +2"></textarea>
-    <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
-    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+    <label>Godziny (po przecinku):</label>
+    <textarea id="fl-hours" placeholder="05:10, 05:30..."></textarea>
+    <label>Przystanki (jeden w linii):</label>
+    <p style="font-size:0.7rem; color:var(--accent);">Możesz pisać: Przystanek | +2 (lub samo nazwę)</p>
+    <textarea id="fl-stops-raw" style="height:250px;" placeholder="Nazwa Przystanku"></textarea>
+    <button onclick="saveLine()" class="main-btn">Zapisz</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Wróć</button>
 </div>
 
 <div id="form-news" style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:3000;display:none;padding:20px;overflow-y:auto;">
-    <h2>Komunikat</h2>
+    <h2>Nowy Komunikat</h2>
     <input type="text" id="fn-title" placeholder="Tytuł">
-    <textarea id="fn-content" style="height:150px;" placeholder="Treść..."></textarea>
-    <select id="fn-lvl"><option value="info">Info</option><option value="warn">Ważne</option><option value="alert">Pilne</option></select>
-    <button onclick="saveNews()" class="main-btn">Zapisz</button>
-    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+    <textarea id="fn-content" style="height:200px;" placeholder="Treść..."></textarea>
+    <select id="fn-lvl"><option value="info">Info</option><option value="warn">Ważne</option><option value="alert">PILNE</option></select>
+    <button onclick="saveNews()" class="main-btn">Dodaj</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none">Wróć</button>
 </div>
 
 <script>
-    let db = { lines: [], stops: [], news: [], contact: "MZK Gorzów" };
+    let db = { lines: [], stops: [], news: [], contact: "MZK Gorzów Wlkp." };
     let curIdx = -1;
 
     function init() {
-        const local = localStorage.getItem('mzk_data_v11');
+        const local = localStorage.getItem('mzk_final_v12');
         if(local) db = JSON.parse(local);
         if(!db.news) db.news = [];
         render();
     }
 
-    function save() { localStorage.setItem('mzk_data_v11', JSON.stringify(db)); render(); }
+    function save() { localStorage.setItem('mzk_final_v12', JSON.stringify(db)); render(); }
 
     function render() {
-        // GŁÓWNA LISTA LINII (Grupowanie po numerze)
         const busC = document.getElementById('lines-bus'); const tramC = document.getElementById('lines-tram');
         busC.innerHTML = ''; tramC.innerHTML = '';
         
+        // GRUPOWANIE LINII DLA STRONY GŁÓWNEJ
         const uniqueNums = [...new Set(db.lines.map(l => l.num))].sort((a,b)=>a-b);
-        
         uniqueNums.forEach(num => {
-            const sample = db.lines.find(l => l.num === num);
+            const l = db.lines.find(x => x.num === num);
             const div = document.createElement('div'); div.className = 'app-card';
-            div.innerHTML = `<div class="line-info"><span class="line-badge ${sample.type==='tram'?'tram-badge':''}">${num}</span><b>Wybierz kierunek</b></div><i class="fa-solid fa-chevron-right"></i>`;
+            div.innerHTML = `<div class="line-info"><span class="line-badge ${l.type==='tram'?'tram-badge':''}">${num}</span><b>Wybierz kierunek...</b></div><i class="fa-solid fa-chevron-right"></i>`;
             div.onclick = () => openVariants(num);
-            if(sample.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
+            if(l.type === 'tram') tramC.appendChild(div); else busC.appendChild(div);
         });
 
-        // KOMUNIKATY
+        // PUBLICZNE NEWSY
         document.getElementById('public-news-list').innerHTML = db.news.length ? db.news.map(n => `
             <div class="app-card" style="display:block; border-left: 5px solid ${n.lvl==='alert'?'#ff4842':n.lvl==='warn'?'#feca05':'#00ab55'}">
                 <b>${n.title}</b><p style="font-size:0.9rem; margin-top:5px; white-space:pre-wrap;">${n.content}</p>
             </div>
-        `).join('') : '<p style="text-align:center; color:var(--text-sec);">Brak ważnych komunikatów.</p>';
+        `).join('') : '<p style="text-align:center; color:var(--text-sec); padding:20px;">Brak komunikatów.</p>';
 
         // ADMIN LISTY
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> ${l.dir}</span><button onclick="openLineForm(${i})" style="color:var(--accent); border:none; background:none; font-weight:800;">EDYTUJ</button></div>`).join('');
@@ -182,11 +183,11 @@
         document.getElementById('contact-display').innerText = db.contact;
     }
 
-    /* SYSTEM WARIANTÓW */
+    /* LOGIKA WARIANTÓW */
     function openVariants(num) {
         const variants = db.lines.filter(l => String(l.num) === String(num));
         show('vars');
-        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} - Wybierz kierunek:</div>`;
+        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
         const list = document.getElementById('vars-list'); list.innerHTML = '';
         variants.forEach(v => {
             const d = document.createElement('div'); d.className = "app-card";
@@ -196,100 +197,92 @@
         });
     }
 
-    /* ROZKŁAD JAZDY - LOGIKA NAPRAWIONA */
+    /* ROZKŁAD JAZDY - PEŁNA NAPRAWA */
     function renderTimetable(idx) {
         const line = db.lines[idx];
         show('tt');
-        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2 style="margin-bottom:15px;">${line.dir}</h2>`;
+        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
         const body = document.getElementById('tt-body'); body.innerHTML = '';
         
-        let cumulativeMinutes = 0;
-        const stopLines = line.stops.split('\n').filter(s => s.trim());
+        let cumulative = 0;
+        const stopsArr = line.stops.split('\n').filter(s => s.trim());
 
-        stopLines.forEach((sRaw, sIdx) => {
-            let [name, offsetStr] = sRaw.split('|').map(x => x.trim());
-            // Jeśli baza nie ma formatu | +X, dodajemy domyślnie 1 min od poprzedniego
-            let offset = parseInt(offsetStr?.replace('+', '')) || (sIdx === 0 ? 0 : 1);
-            cumulativeMinutes += offset;
+        stopsArr.forEach((sLine, sIdx) => {
+            let [name, offStr] = sLine.split('|').map(x => x.trim());
+            // NAPRAWA: Jeśli Twoja baza nie ma | +X, dodaj automatycznie 2 minuty
+            let offset = parseInt(offStr?.replace('+', '')) || (sIdx === 0 ? 0 : 2);
+            cumulative += offset;
 
-            const b = document.createElement('div'); b.className = `app-card`; b.style.display='block';
-            b.innerHTML = `<div style="display:flex;justify-content:space-between;"><b>${name}</b><span style="color:var(--accent)">+${cumulativeMinutes} min</span></div><div class="tt-grid" id="grid-${sIdx}" style="display:none;"></div>`;
+            const card = document.createElement('div'); card.className = 'app-card'; card.style.display = 'block';
+            card.innerHTML = `<div style="display:flex;justify-content:space-between;"><b>${name}</b><span style="color:var(--accent)">+${cumulative} min</span></div><div id="g-${sIdx}" class="tt-grid" style="display:none;"></div>`;
             
-            b.onclick = () => {
-                const g = document.getElementById(`grid-${sIdx}`);
-                const isVisible = g.style.display === 'grid';
-                g.style.display = isVisible ? 'none' : 'grid';
-                if(!isVisible) {
-                    // Obliczanie faktycznych godzin dla tego przystanku
+            card.onclick = () => {
+                const g = document.getElementById(`g-${sIdx}`);
+                const isV = g.style.display === 'grid';
+                g.style.display = isV ? 'none' : 'grid';
+                if(!isV) {
                     g.innerHTML = line.hours.split(',').map(h => {
                         let [hh, mm] = h.trim().split(':').map(Number);
-                        if (isNaN(hh) || isNaN(mm)) return "";
-                        let date = new Date();
-                        date.setHours(hh, mm + cumulativeMinutes);
-                        return `<span class="tt-time">${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}</span>`;
+                        if(isNaN(hh)) return "";
+                        let d = new Date(); d.setHours(hh, mm + cumulative);
+                        return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
                     }).join('');
                 }
             };
-            body.appendChild(b);
+            body.appendChild(card);
         });
     }
 
-    /* ADMIN FORM */
+    /* ADMIN AKCJE */
     function openLineForm(idx) {
-        curIdx = idx;
-        const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:""} : db.lines[idx];
-        document.getElementById('fl-num').value = l.num;
-        document.getElementById('fl-dir').value = l.dir;
-        document.getElementById('fl-type').value = l.type;
-        document.getElementById('fl-hours').value = l.hours;
-        document.getElementById('fl-stops-raw').value = l.stops;
-        document.getElementById('form-line').style.display = 'block';
+        curIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", stops:""} : db.lines[idx];
+        document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir;
+        document.getElementById('fl-type').value = l.type; document.getElementById('fl-hours').value = l.hours;
+        document.getElementById('fl-stops-raw').value = l.stops; document.getElementById('form-line').style.display='block';
     }
-
     function saveLine() {
-        const data = {
-            num: document.getElementById('fl-num').value,
-            dir: document.getElementById('fl-dir').value,
-            type: document.getElementById('fl-type').value,
-            hours: document.getElementById('fl-hours').value,
-            stops: document.getElementById('fl-stops-raw').value
-        };
+        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, hours: document.getElementById('fl-hours').value, stops: document.getElementById('fl-stops-raw').value };
         if(curIdx === -1) db.lines.push(data); else db.lines[curIdx] = data;
         save(); closeForms();
     }
-
     function openNewsForm(idx) {
-        curIdx = idx;
-        const n = idx === -1 ? {title:"", content:"", lvl:"info"} : db.news[idx];
-        document.getElementById('fn-title').value = n.title;
-        document.getElementById('fn-content').value = n.content;
-        document.getElementById('fn-lvl').value = n.lvl;
-        document.getElementById('form-news').style.display = 'block';
+        curIdx = idx; const n = idx === -1 ? {title:"", content:"", lvl:"info"} : db.news[idx];
+        document.getElementById('fn-title').value = n.title; document.getElementById('fn-content').value = n.content;
+        document.getElementById('fn-lvl').value = n.lvl; document.getElementById('form-news').style.display='block';
     }
-
     function saveNews() {
-        const data = { title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value, lvl: document.getElementById('fn-lvl').value };
-        if(curIdx === -1) db.news.push(data); else db.news[curIdx] = data;
+        db.news[curIdx === -1 ? db.news.length : curIdx] = { title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value, lvl: document.getElementById('fn-lvl').value };
         save(); closeForms();
     }
 
-    /* NAV */
+    /* SYSTEMOWE */
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
         if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
     }
-    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
-    function setMainTab(t) {
+    function setTab(t) {
         document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none');
         document.querySelectorAll('.adm-nav-main button').forEach(b => b.classList.remove('active'));
         document.getElementById('tab-'+t).style.display='block';
         document.getElementById('mt-'+t).classList.add('active');
+        if(t === 'c') document.getElementById('edit-contact-text').value = db.contact;
     }
+    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('[id^="form-"]').forEach(f => f.style.display='none'); }
-    function exportData() { const b = new Blob([JSON.stringify(db)], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'mzk_baza.txt'; a.click(); }
-    function importData(e) { const r = new FileReader(); r.onload = (ev) => { db = JSON.parse(ev.target.result); save(); init(); }; r.readAsText(e.target.files[0]); }
+    function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); alert("Zapisano!"); }
+    
+    // BACKUP WSZYSTKIEGO
+    function exportData() { 
+        const blob = new Blob([JSON.stringify(db)], {type:'text/plain'}); 
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mzk_baza.txt'; a.click(); 
+    }
+    function importData(e) { 
+        const r = new FileReader(); 
+        r.onload = (ev) => { db = JSON.parse(ev.target.result); save(); init(); alert("Backup przywrócony!"); }; 
+        r.readAsText(e.target.files[0]); 
+    }
 
     init();
 </script>

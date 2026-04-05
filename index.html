@@ -3,317 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK GORZÓW - SYSTEM INFORMACJI PASAŻERSKIEJ</title>
+    <title>MZK GORZÓW - PASAŻER & FACIO</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --mzk-green: #008744; --mzk-yellow: #feca05; --bg: #f4f7f6; --dark: #1a1a1a; --shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        :root { --mzk-green: #008744; --mzk-yellow: #feca05; --bg: #f4f7f6; --dark: #1a1a1a; }
         body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
         
-        /* HEADER */
+        /* GŁÓWNE ELEMENTY */
         header { background: var(--mzk-green); color: white; padding: 20px; text-align: center; border-bottom: 6px solid var(--mzk-yellow); }
-        header h1 { margin: 0; font-weight: 900; letter-spacing: -1px; }
-        
         nav { display: flex; justify-content: center; gap: 10px; background: #fff; padding: 10px; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 1000; }
-        nav button { background: #f0f0f0; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        nav button { background: #eee; border: none; padding: 10px 25px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         nav button.active { background: var(--mzk-green); color: white; }
 
-        .container { max-width: 900px; margin: auto; padding: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; }
         .section { display: none; }
         .section.active { display: block; }
 
-        /* GRID LINII */
-        .cat-title { font-weight: 900; text-transform: uppercase; font-size: 0.8rem; color: #777; margin: 25px 0 10px; border-left: 4px solid var(--mzk-yellow); padding-left: 10px; }
-        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px; }
+        /* WIDOK LINII (GRIID) */
+        .line-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 12px; margin-top: 20px; }
         .line-box { 
-            background: white; border: 2px solid #eee; border-radius: 12px; padding: 15px 5px; 
-            text-align: center; font-weight: 900; font-size: 1.4rem; color: #ddd; cursor: pointer; transition: 0.2s;
+            background: white; border: 2px solid #ddd; border-radius: 12px; padding: 20px 5px; 
+            text-align: center; font-weight: 900; font-size: 1.5rem; cursor: pointer; transition: 0.2s;
         }
-        .line-active { border-color: var(--mzk-green); color: var(--dark); }
-        .line-active:hover { transform: translateY(-3px); border-color: var(--mzk-yellow); box-shadow: var(--shadow); }
-        .line-dest { font-size: 0.6rem; font-weight: 400; color: #666; margin-top: 5px; }
+        .line-box:hover { border-color: var(--mzk-green); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .line-active { border-color: var(--mzk-green); background: #fff; }
 
-        /* WIDOK ROZKŁADU (PASAŻER) */
-        .timetable-view { background: white; border-radius: 20px; padding: 20px; box-shadow: var(--shadow); margin-top: 20px; }
-        .stop-block { border-left: 4px solid var(--mzk-green); margin-bottom: 20px; padding-left: 20px; position: relative; }
-        .stop-block::before { content: ''; position: absolute; left: -10px; top: 0; width: 16px; height: 16px; background: var(--mzk-green); border-radius: 50%; border: 3px solid white; }
-        .stop-name { font-weight: 900; font-size: 1.2rem; margin: 0; }
-        .stop-sub { font-size: 0.8rem; color: #666; margin-bottom: 10px; }
+        /* WIDOK TRASY (KORALIKI) */
+        .route-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .stop-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; position: relative; }
+        .stop-item:hover { background: #f9f9f9; padding-left: 20px; }
+        .stop-item::before { content: ''; width: 14px; height: 14px; background: var(--mzk-green); border-radius: 50%; margin-right: 15px; border: 3px solid white; box-shadow: 0 0 0 2px var(--mzk-green); }
+        .stop-name { font-weight: 700; font-size: 1.1rem; flex-grow: 1; }
+        .stop-time-tag { font-size: 0.8rem; color: #888; font-weight: 400; }
+
+        /* TABLICZKA PRZYSTANKOWA (OFICJALNA) */
+        .timetable { background: white; border: 3px solid var(--dark); border-radius: 15px; overflow: hidden; margin-top: 20px; }
+        .tt-head { background: var(--dark); color: white; padding: 20px; text-align: center; }
+        .tt-num { font-size: 4rem; font-weight: 900; line-height: 1; display: block; }
+        .tt-stop { background: var(--mzk-yellow); padding: 10px; text-align: center; font-weight: 900; font-size: 1.2rem; border-bottom: 2px solid var(--dark); }
+        .tt-dir { padding: 5px; text-align: center; border-bottom: 2px solid var(--dark); font-weight: 700; font-size: 0.9rem; }
         
-        .hour-row { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 5px 0; }
-        .hour-val { font-weight: 900; color: var(--mzk-green); width: 40px; font-size: 1.1rem; }
-        .minute-list { display: flex; flex-wrap: wrap; gap: 10px; font-size: 1rem; font-weight: 600; }
-        .marker { font-size: 0.7rem; color: red; vertical-align: super; }
+        .tt-row { display: grid; grid-template-columns: 70px 1fr; border-bottom: 1px solid #ccc; }
+        .tt-hour { background: #f0f0f0; padding: 12px; font-weight: 900; font-size: 1.4rem; text-align: center; border-right: 3px solid var(--dark); }
+        .tt-min-list { padding: 12px; font-size: 1.4rem; font-weight: 600; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+        .tt-min-list span { position: relative; }
+        .tt-marker { font-size: 0.8rem; color: #ff0000; position: absolute; top: -5px; right: -8px; font-weight: 900; }
 
-        .transfer-pill { background: #333; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; margin-right: 4px; }
-
-        /* ADMIN & EDITOR */
-        .login-card { background: white; max-width: 350px; margin: 100px auto; padding: 30px; border-radius: 20px; box-shadow: var(--shadow); text-align: center; }
-        .editor-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: none; overflow-y: auto; }
-        .bulk-box { background: #f0f7ff; padding: 15px; border-radius: 12px; border: 2px dashed #007bff; margin: 20px 0; }
-        .stop-row-edit { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #ddd; }
-
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; box-sizing: border-box; }
-        .btn { padding: 12px 20px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        /* ADMIN - EDYTOR */
+        .edit-stop-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 6px solid var(--mzk-green); border: 1px solid #ddd; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        .btn { padding: 15px 25px; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
         .btn-green { background: var(--mzk-green); color: white; }
-        .btn-red { background: #ff4d4d; color: white; }
         .btn-blue { background: #007bff; color: white; }
+        .btn-red { background: #e74c3c; color: white; }
     </style>
 </head>
 <body>
 
-<header><h1>MZK GORZÓW</h1></header>
+<header><h1>MZK GORZÓW • SYSTEM ROZKŁADÓW</h1></header>
 
-<nav id="main-nav">
-    <button id="nav-lines" class="active" onclick="showSection('lines-sec')">PASAŻER</button>
-    <button id="nav-admin" onclick="showSection('admin-sec')">ADMIN (FACIO)</button>
+<nav>
+    <button id="nav-pax" class="active" onclick="showSec('pax-sec')">PASAŻER</button>
+    <button id="nav-adm" onclick="showSec('adm-sec')">PANEL FACIO</button>
 </nav>
 
 <div class="container">
-    <div id="lines-sec" class="section active">
-        <input type="text" id="search-pax" placeholder="Szukaj numeru linii..." style="padding:15px; border-radius:15px; border:2px solid var(--mzk-green); margin-bottom:20px; width:100%;" oninput="renderGrids()">
-        <div id="grid-pax"></div>
+    <div id="pax-sec" class="section active">
+        <h2 style="text-align:center; font-weight:900;">Wybierz linię</h2>
+        <div id="pax-grid" class="line-grid"></div>
     </div>
 
-    <div id="tt-view-sec" class="section">
-        <button class="btn btn-green" onclick="showSection('lines-sec')" style="margin-bottom:20px;">← POWRÓT DO LISTY</button>
-        <div id="tt-container"></div>
-    </div>
-
-    <div id="admin-sec" class="section">
-        <div id="login-form" class="login-card">
-            <h2>Panel Facio</h2>
-            <input type="text" id="adm-user" placeholder="Login">
-            <input type="password" id="adm-pass" placeholder="Hasło">
-            <button class="btn btn-green" style="width:100%; margin-top:15px;" onclick="tryLogin()">ZALOGUJ</button>
+    <div id="route-sec" class="section">
+        <button class="btn btn-green" onclick="showSec('pax-sec')">← Powrót do linii</button>
+        <h2 id="route-line-title" style="margin-top:20px;">Linia --</h2>
+        <div class="route-card">
+            <div id="route-list"></div>
         </div>
-        <div id="admin-dashboard" style="display:none">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2>Zarządzanie</h2>
-                <button class="btn btn-green" onclick="openEditor('new')">+ NOWA LINIA</button>
+    </div>
+
+    <div id="tt-sec" class="section">
+        <button id="back-to-route" class="btn btn-green" style="margin-bottom:20px;">← Powrót do trasy</button>
+        <div class="timetable">
+            <div class="tt-head">
+                <span class="tt-num" id="tt-num">--</span>
             </div>
-            <div id="grid-admin"></div>
+            <div class="tt-stop" id="tt-stop-name">PRZYSTANEK</div>
+            <div class="tt-dir">KIERUNEK: <span id="tt-dir">---</span></div>
+            <div id="tt-body"></div>
+        </div>
+    </div>
+
+    <div id="adm-sec" class="section">
+        <div id="login-box" class="route-card" style="max-width:400px; margin:auto; text-align:center;">
+            <h2>Autoryzacja</h2>
+            <input type="text" id="user" placeholder="Login (Facio)">
+            <input type="password" id="pass" placeholder="Hasło (Admin123)">
+            <button class="btn btn-green" onclick="login()" style="width:100%">Wejdź</button>
+        </div>
+        <div id="adm-dash" style="display:none">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>Twoje linie:</h3>
+                <button class="btn btn-green" onclick="openEditor('new')">+ DODAJ LINIĘ</button>
+            </div>
+            <div id="adm-grid" class="line-grid"></div>
         </div>
     </div>
 </div>
 
-<div id="editor-layer" class="editor-overlay">
-    <div style="background:var(--dark); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100;">
-        <h2 id="edit-title" style="margin:0">Edytor</h2>
-        <button class="btn btn-red" onclick="closeEditor()">ZAMKNIJ X</button>
+<div id="editor" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:2000; display:none; overflow-y:auto;">
+    <div style="background:var(--dark); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+        <h2 id="ed-title" style="margin:0">Edytor Linii</h2>
+        <button class="btn btn-red" onclick="closeEditor()">X</button>
     </div>
     <div class="container">
-        <div style="background:white; padding:20px; border-radius:15px;">
-            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:15px;">
-                <input type="number" id="inp-num" placeholder="Nr linii">
-                <select id="sel-variant" onchange="loadVariantData(this.value)"></select>
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                <input type="text" id="inp-from" placeholder="Z przystanku">
-                <input type="text" id="inp-to" placeholder="Do przystanku">
-            </div>
-            <textarea id="inp-starts" placeholder="Odjazdy z pętli (05:10, 05:30s, 06:00...)" style="margin-top:10px;"></textarea>
-
-            <div class="bulk-box">
-                <label><b>Wklej listę z Notatnika (Entery):</b></label>
-                <textarea id="bulk-paste" rows="4"></textarea>
-                <button class="btn btn-blue" style="width:100%; margin-top:5px;" onclick="processBulk()">GENERUJ PRZYSTANKI</button>
+        <div class="route-card">
+            <input type="number" id="inp-num" placeholder="Numer linii">
+            <input type="text" id="inp-from" placeholder="Z pętli A">
+            <input type="text" id="inp-to" placeholder="Do pętli B">
+            <textarea id="inp-starts" placeholder="Odjazdy z pętli A (np. 06:10, 06:35s, 07:05w)"></textarea>
+            
+            <div style="background:#e3f2fd; padding:15px; border-radius:12px; margin:20px 0;">
+                <label><b>⚡ Wklej listę przystanków (z Notatnika - Entery):</b></label>
+                <textarea id="bulk-paste" rows="4" placeholder="Katedra&#10;Piaski&#10;Wieprzyce"></textarea>
+                <button class="btn btn-blue" style="width:100%" onclick="doBulk()">GENERUJ POLA PRZYSTANKÓW</button>
             </div>
 
-            <div id="stops-list-edit"></div>
-            <button class="btn btn-green" style="width:100%; height:60px; margin-top:20px;" onclick="saveLine()">ZAPISZ ROZKŁAD</button>
+            <div id="ed-stops-list"></div>
+            <button class="btn btn-green" style="width:100%; margin-top:20px; font-size:1.5rem;" onclick="saveLine()">ZAPISZ CAŁY ROZKŁAD</button>
             <button class="btn btn-red" style="width:100%; margin-top:10px;" onclick="deleteLine()">USUŃ LINIĘ</button>
         </div>
     </div>
 </div>
 
 <script>
-    const DB_KEY = 'MZK_SYSTEM_V6_FINAL';
-    let db = JSON.parse(localStorage.getItem(DB_KEY)) || { lines: {}, globalStops: {} };
+    const DB_KEY = 'MZK_GORZOW_V7';
+    let db = JSON.parse(localStorage.getItem(DB_KEY)) || { lines: {}, stops: {} };
 
-    // LOGOWANIE
-    function tryLogin() {
-        if(document.getElementById('adm-user').value === 'Facio' && document.getElementById('adm-pass').value === 'Admin123') {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('admin-dashboard').style.display = 'block';
+    // --- SYSTEM LOGOWANIA ---
+    function login() {
+        if(document.getElementById('user').value === 'Facio' && document.getElementById('pass').value === 'Admin123') {
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('adm-dash').style.display = 'block';
             renderGrids();
-        } else alert("Błąd!");
+        } else alert("Błędne dane!");
     }
 
-    // SEKCJE
-    function showSection(id) {
+    function showSec(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.querySelectorAll('#main-nav button').forEach(b => b.classList.remove('active'));
-        if(id === 'lines-sec') document.getElementById('nav-lines').classList.add('active');
-        if(id === 'admin-sec') document.getElementById('nav-admin').classList.add('active');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        if(id === 'pax-sec') document.getElementById('nav-pax').classList.add('active');
     }
 
-    // EDYTOR
-    let currentLine = null;
+    // --- PANEL ADMINA (FACIO) ---
+    let editingLineNum = null;
+
     function openEditor(num) {
-        currentLine = num;
-        document.getElementById('editor-layer').style.display = 'block';
-        document.getElementById('inp-num').value = num === 'new' ? '' : num;
-        refreshVariantList(num);
-        loadVariantData('new');
+        editingLineNum = num;
+        document.getElementById('editor').style.display = 'block';
+        document.getElementById('ed-stops-list').innerHTML = '';
+        if(num === 'new') {
+            document.getElementById('inp-num').value = ''; document.getElementById('inp-from').value = '';
+            document.getElementById('inp-to').value = ''; document.getElementById('inp-starts').value = '';
+        } else {
+            const l = db.lines[num];
+            document.getElementById('inp-num').value = num;
+            document.getElementById('inp-from').value = l.from;
+            document.getElementById('inp-to').value = l.to;
+            document.getElementById('inp-starts').value = l.starts.join(', ');
+            l.stops.forEach(s => addStopRow(s));
+        }
     }
-    function closeEditor() { document.getElementById('editor-layer').style.display = 'none'; renderGrids(); }
 
-    function refreshVariantList(num) {
-        const sel = document.getElementById('sel-variant');
-        sel.innerHTML = '<option value="new">-- NOWY WARIANT --</option>';
-        if(db.lines[num]) db.lines[num].forEach((v, i) => sel.innerHTML += `<option value="${i}">${v.from} -> ${v.to}</option>`);
-    }
+    function closeEditor() { document.getElementById('editor').style.display = 'none'; renderGrids(); }
 
-    function processBulk() {
-        const names = document.getElementById('bulk-paste').value.split('\n').map(n=>n.trim()).filter(n=>n!=='');
-        names.forEach(name => addStopRowEdit({name: name, adj: 0}));
+    function doBulk() {
+        const names = document.getElementById('bulk-paste').value.split('\n').filter(n => n.trim() !== '');
+        names.forEach(n => addStopRow({name: n.trim(), adj: 0}));
         document.getElementById('bulk-paste').value = '';
     }
 
-    function addStopRowEdit(data = {name:'', adj:0}) {
-        const cont = document.getElementById('stops-list-edit');
-        const id = 'se' + Math.random().toString(36).substr(2,9);
-        const g = db.globalStops[data.name] || {sub:'', trans:''};
-        cont.insertAdjacentHTML('beforeend', `
-            <div class="stop-row-edit" id="${id}">
-                <div style="display:grid; grid-template-columns: 2fr 2fr 1fr 0.5fr; gap:10px;">
-                    <input type="text" class="s-name" value="${data.name}" placeholder="Nazwa" oninput="syncG(this)">
-                    <input type="text" class="s-sub" value="${g.sub}" placeholder="Opis" oninput="saveG(this)">
-                    <input type="text" class="s-trans" value="${g.trans}" placeholder="Linie" oninput="saveG(this)">
+    function addStopRow(data) {
+        const id = 's' + Math.random().toString(36).substr(2,7);
+        document.getElementById('ed-stops-list').insertAdjacentHTML('beforeend', `
+            <div class="edit-stop-card" id="${id}">
+                <div style="display:grid; grid-template-columns: 3fr 1fr; gap:10px;">
+                    <input type="text" class="s-name" value="${data.name}" placeholder="Nazwa przystanku">
                     <input type="number" class="s-adj" value="${data.adj}" placeholder="+min">
                 </div>
-                <button onclick="document.getElementById('${id}').remove()" style="color:red; border:none; background:none; cursor:pointer; font-size:10px;">Usuń</button>
+                <button onclick="document.getElementById('${id}').remove()" style="color:red; border:none; background:none; cursor:pointer; font-size:0.7rem;">USUŃ PRZYSTANEK</button>
             </div>`);
     }
 
-    function syncG(el) {
-        const row = el.closest('.stop-row-edit');
-        if(db.globalStops[el.value]) {
-            row.querySelector('.s-sub').value = db.globalStops[el.value].sub;
-            row.querySelector('.s-trans').value = db.globalStops[el.value].trans;
-        }
-    }
-    function saveG(el) {
-        const row = el.closest('.stop-row-edit');
-        const name = row.querySelector('.s-name').value;
-        if(name) db.globalStops[name] = { sub: row.querySelector('.s-sub').value, trans: row.querySelector('.s-trans').value };
-    }
-
-    function loadVariantData(idx) {
-        document.getElementById('stops-list-edit').innerHTML = '';
-        if(idx === 'new') {
-            ['inp-from','inp-to','inp-starts'].forEach(i => document.getElementById(i).value = '');
-            return;
-        }
-        const v = db.lines[currentLine][idx];
-        document.getElementById('inp-from').value = v.from;
-        document.getElementById('inp-to').value = v.to;
-        document.getElementById('inp-starts').value = v.starts.join(', ');
-        v.stops.forEach(s => addStopRowEdit(s));
-    }
-
     function saveLine() {
-        const num = document.getElementById('inp-num').value;
-        if(!num) return;
-        const vIdx = document.getElementById('sel-variant').value;
-        const data = {
+        const n = document.getElementById('inp-num').value;
+        if(!n) return alert("Podaj numer!");
+        db.lines[n] = {
             from: document.getElementById('inp-from').value.toUpperCase(),
             to: document.getElementById('inp-to').value.toUpperCase(),
             starts: document.getElementById('inp-starts').value.split(',').map(s=>s.trim()).filter(s=>s!==''),
-            stops: Array.from(document.querySelectorAll('.stop-row-edit')).map(r => ({
-                name: r.querySelector('.s-name').value,
-                adj: parseInt(r.querySelector('.s-adj').value) || 0
+            stops: Array.from(document.querySelectorAll('.edit-stop-card')).map(el => ({
+                name: el.querySelector('.s-name').value,
+                adj: parseInt(el.querySelector('.s-adj').value) || 0
             }))
         };
-        if(!db.lines[num]) db.lines[num] = [];
-        if(vIdx === 'new') db.lines[num].push(data); else db.lines[num][vIdx] = data;
         localStorage.setItem(DB_KEY, JSON.stringify(db));
+        alert("Rozkład zapisany!");
         closeEditor();
     }
 
-    function deleteLine() { if(confirm("Usuń?")) { delete db.lines[currentLine]; localStorage.setItem(DB_KEY, JSON.stringify(db)); closeEditor(); } }
+    function deleteLine() { if(confirm("Na pewno usunąć?")) { delete db.lines[editingLineNum]; localStorage.setItem(DB_KEY, JSON.stringify(db)); closeEditor(); } }
 
-    // WIDOK PASAŻERA - GENEROWANIE ROZKŁADU
-    function openTimetable(num) {
-        const line = db.lines[num];
-        if(!line) return;
-        showSection('tt-view-sec');
-        const cont = document.getElementById('tt-container');
-        cont.innerHTML = `<h1>Linia ${num}</h1>`;
-
-        line.forEach(v => {
-            let html = `<div class="timetable-view"><h3>Kierunek: ${v.to}</h3>`;
-            let cumulativeMin = 0;
-
-            v.stops.forEach(stop => {
-                cumulativeMin += stop.adj;
-                const g = db.globalStops[stop.name] || {sub:'', trans:''};
-                
-                // Obliczanie godzin dla tego przystanku
-                let times = {};
-                v.starts.forEach(startTime => {
-                    const timePart = startTime.match(/\d{2}:\d{2}/)[0];
-                    const marker = startTime.replace(timePart, '');
-                    let [h, m] = timePart.split(':').map(Number);
-                    let d = new Date(2026, 0, 1, h, m + cumulativeMin);
-                    let finalH = d.getHours();
-                    let finalM = d.getMinutes().toString().padStart(2, '0');
-                    if(!times[finalH]) times[finalH] = [];
-                    times[finalH].push({m: finalM, marker: marker});
-                });
-
-                let transHtml = g.trans.split(',').filter(t=>t.trim()).map(t => `<span class="transfer-pill" onclick="openTimetable('${t.trim()}')">${t.trim()}</span>`).join('');
-
-                html += `
-                <div class="stop-block">
-                    <div style="display:flex; justify-content:space-between">
-                        <div>
-                            <p class="stop-name">${stop.name}</p>
-                            <p class="stop-sub">${g.sub}</p>
-                        </div>
-                        <div>${transHtml}</div>
-                    </div>`;
-                
-                Object.keys(times).sort((a,b)=>a-b).forEach(h => {
-                    html += `<div class="hour-row">
-                        <div class="hour-val">${h.toString().padStart(2,'0')}</div>
-                        <div class="minute-list">
-                            ${times[h].map(item => `<span>${item.m}<span class="marker">${item.marker}</span></span>`).join('')}
-                        </div>
-                    </div>`;
-                });
-                html += `</div>`;
-            });
-            cont.innerHTML += html + `</div>`;
+    // --- PANEL PASAŻERA (ROZKŁAD JAZDY) ---
+    function renderGrids() {
+        const pGrid = document.getElementById('pax-grid');
+        const aGrid = document.getElementById('adm-grid');
+        pGrid.innerHTML = ''; aGrid.innerHTML = '';
+        
+        Object.keys(db.lines).sort((a,b)=>a-b).forEach(num => {
+            const l = db.lines[num];
+            pGrid.innerHTML += `<div class="line-box line-active" onclick="showRoute('${num}')">${num}<br><small style="font-size:0.6rem; color:#666;">➔ ${l.to}</small></div>`;
+            aGrid.innerHTML += `<div class="line-box line-active" onclick="openEditor('${num}')">${num}</div>`;
         });
     }
 
-    function renderGrids() {
-        const pGrid = document.getElementById('grid-pax');
-        const aGrid = document.getElementById('grid-admin');
-        const q = document.getElementById('search-pax').value;
-        pGrid.innerHTML = ''; aGrid.innerHTML = '';
+    function showRoute(num) {
+        const l = db.lines[num];
+        showSec('route-sec');
+        document.getElementById('route-line-title').innerText = "Linia " + num;
+        const list = document.getElementById('route-list');
+        list.innerHTML = '';
+        let cumulative = 0;
+        l.stops.forEach((s, idx) => {
+            cumulative += s.adj;
+            const item = document.createElement('div');
+            item.className = 'stop-item';
+            item.innerHTML = `<span class="stop-name">${s.name}</span> <span class="stop-time-tag">+${cumulative} min</span>`;
+            item.onclick = () => showTimetable(num, idx);
+            list.appendChild(item);
+        });
+    }
 
-        const cats = [
-            { t: "Tramwaje (1-15)", min: 1, max: 15 },
-            { t: "Magistrala (100-119)", min: 100, max: 119 },
-            { t: "Autobusy", min: 120, max: 200 }
-        ];
+    function showTimetable(num, stopIdx) {
+        const l = db.lines[num];
+        const stop = l.stops[stopIdx];
+        showSec('tt-sec');
+        document.getElementById('tt-num').innerText = num;
+        document.getElementById('tt-stop-name').innerText = stop.name;
+        document.getElementById('tt-dir').innerText = l.to;
+        document.getElementById('back-to-route').onclick = () => showRoute(num);
 
-        cats.forEach(c => {
-            let hP = `<div class="cat-title">${c.t}</div><div class="line-grid">`;
-            let hA = `<div class="cat-title">${c.t}</div><div class="line-grid">`;
-            let found = false;
-            for(let i=c.min; i<=c.max; i++) {
-                if(q && !i.toString().includes(q)) continue;
-                const active = db.lines[i] ? 'line-active' : '';
-                const dest = db.lines[i] ? `<div class="line-dest">${db.lines[i][0].to}</div>` : '';
-                hP += `<div class="line-box ${active}" onclick="if(db.lines[${i}]) openTimetable(${i})">${i}${dest}</div>`;
-                hA += `<div class="line-box ${active}" onclick="openEditor(${i})">${i}</div>`;
-                found = true;
-            }
-            if(found) { pGrid.innerHTML += hP + "</div>"; aGrid.innerHTML += hA + "</div>"; }
+        let totalShift = 0;
+        for(let i=0; i<=stopIdx; i++) totalShift += l.stops[i].adj;
+
+        const ttBody = document.getElementById('tt-body');
+        ttBody.innerHTML = '';
+
+        // Obliczanie godzin
+        let hours = {};
+        l.starts.forEach(st => {
+            const timePart = st.match(/\d{2}:\d{2}/)[0];
+            const marker = st.replace(timePart, '').trim();
+            let [h, m] = timePart.split(':').map(Number);
+            let d = new Date(2026, 0, 1, h, m + totalShift);
+            let fH = d.getHours();
+            let fM = d.getMinutes().toString().padStart(2, '0');
+            if(!hours[fH]) hours[fH] = [];
+            hours[fH].push({m: fM, s: marker});
+        });
+
+        Object.keys(hours).sort((a,b)=>a-b).forEach(h => {
+            let minsHtml = hours[h].map(item => `<span>${item.m}<span class="tt-marker">${item.s}</span></span>`).join('');
+            ttBody.innerHTML += `
+                <div class="tt-row">
+                    <div class="tt-hour">${h.toString().padStart(2, '0')}</div>
+                    <div class="tt-min-list">${minsHtml}</div>
+                </div>`;
         });
     }
 

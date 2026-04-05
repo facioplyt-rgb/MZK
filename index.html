@@ -15,37 +15,31 @@
         .container { max-width: 550px; margin: 0 auto; padding: 15px; }
         .section { display: none; }
         .active-sec { display: block; animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
-        .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; margin-bottom: 15px; }
-        .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.2s; }
-        .line-square:active { transform: scale(0.9); }
+        .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; }
+        .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .line-square.bus { border-bottom: 4px solid var(--accent); }
         .line-square.tram { border-bottom: 4px solid var(--danger); }
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); cursor: pointer; }
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; }
-        
-        /* ROZKŁAD - TABELA */
+        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; vertical-align: middle; }
         .tt-container { width: 100%; margin-top: 15px; background: #0b0f19; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; }
         .tt-row { display: grid; grid-template-columns: 45px 1fr 1fr 1fr; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .tt-row.header { background: #1c252e; font-size: 0.55rem; font-weight: 800; color: var(--text-sec); text-transform: uppercase; text-align: center; }
+        .tt-row.header { background: #1c252e; font-size: 0.55rem; font-weight: 800; color: var(--text-sec); text-align: center; }
         .tt-cell { padding: 10px 4px; font-size: 0.8rem; text-align: center; border-right: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 3px; }
         .tt-cell.hour { font-weight: 800; color: var(--accent); background: rgba(0,171,85,0.05); }
-        .today-hl { background: rgba(0,171,85,0.15) !important; color: var(--accent); font-weight: 600; }
-        .live-next { background: rgba(254, 202, 5, 0.1); border: 1px solid var(--warn); color: var(--warn); padding: 10px; border-radius: 12px; font-size: 0.8rem; margin: 10px 0; display: flex; align-items: center; gap: 10px; font-weight: 600; }
-
-        /* STOP DETAIL VIEW */
-        .stop-chip { display: inline-flex; align-items: center; gap: 5px; background: #1c252e; padding: 5px 10px; border-radius: 8px; margin: 3px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(255,255,255,0.05); }
-        .stop-chip.tram { color: var(--danger); }
+        .today-hl { background: rgba(0,171,85,0.15) !important; color: var(--accent); }
+        .stop-chip { display: inline-flex; align-items: center; gap: 5px; background: #1c252e; padding: 6px 12px; border-radius: 10px; margin: 4px; font-size: 0.8rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); }
         .stop-chip.bus { color: var(--accent); }
-
+        .stop-chip.tram { color: var(--danger); }
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-        textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
+        input, textarea, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
+        .other-info { color: var(--text-sec); font-size: 0.7rem; margin-top: 3px; display: block; font-weight: 400; }
     </style>
 </head>
 <body>
@@ -56,29 +50,25 @@
     <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
         <div class="group-label">Szukaj Przystanku</div>
-        <input type="text" id="stop-search" placeholder="Nazwa przystanku..." oninput="renderPublicStops()">
+        <input type="text" id="stop-search" placeholder="Wpisz nazwę..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
     <div id="s-news" class="section"><div class="group-label">Komunikaty</div><div id="public-news-list"></div></div>
-    <div id="s-contact" class="section"><div class="group-label">Info</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
-    
+    <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
-    
     <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-body"></div><button onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button></div>
-
     <div id="s-stop-details" class="section">
         <div id="sd-head"></div>
         <div id="sd-content"></div>
-        <button id="sd-back-btn" class="main-btn" style="background:#333">Wróć do trasy</button>
+        <button id="sd-back-btn" class="main-btn" style="background:#333">Wróć</button>
     </div>
-
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
             <input type="password" id="pass" placeholder="Hasło" style="text-align:center;">
             <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none;">
-            <div class="adm-nav-main" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px; margin-bottom:15px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-bottom:15px;">
                 <button onclick="setTab('l')" class="main-btn" style="padding:10px; font-size:0.7rem;">LINIE</button>
                 <button onclick="setTab('n')" class="main-btn" style="padding:10px; font-size:0.7rem;">NEWS</button>
                 <button onclick="setTab('s')" class="main-btn" style="padding:10px; font-size:0.7rem;">KOPIA</button>
@@ -98,14 +88,13 @@
 </nav>
 
 <div id="form-line" class="overlay-form">
-    <h2 id="fl-title">Edycja Linii</h2>
+    <h2>Edycja Linii</h2>
     <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-    <div class="group-label">Godziny (przecinek)</div>
-    <textarea id="fl-hours" placeholder="Robocze"></textarea>
+    <textarea id="fl-hours" placeholder="Dni robocze"></textarea>
     <textarea id="fl-hours-sat" placeholder="Soboty"></textarea>
-    <textarea id="fl-hours-sun" placeholder="Nd/Św"></textarea>
+    <textarea id="fl-hours-sun" placeholder="Nd / Św"></textarea>
     <div id="fl-stops-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
     <button onclick="saveLine()" class="main-btn">Zapisz</button>
@@ -114,16 +103,17 @@
 
 <script>
     const DB_KEY = 'mzk_full_backup_v12';
-    let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
+    let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {} };
     let curLineIdx = -1;
 
     function init() {
         const local = localStorage.getItem(DB_KEY);
         if(local) db = JSON.parse(local);
         render();
+        renderStopsList();
     }
 
-    function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); render(); }
+    function save() { localStorage.setItem(DB_KEY, JSON.stringify(db)); render(); renderStopsList(); }
 
     function getDayType() {
         const d = new Date();
@@ -132,7 +122,6 @@
         return 'work';
     }
 
-    // --- LOGIKA ROZKŁADU ---
     function getGroupedHours(hoursStr, offset = 0) {
         if(!hoursStr) return {};
         let groups = {};
@@ -149,43 +138,70 @@
         return groups;
     }
 
-    // --- WIDOK SZCZEGÓŁÓW PRZYSTANKU (NOWA ZAKŁADKA) ---
-    function openStopDetails(stopName, fromContext = 'tt', backIdx = null) {
+    // --- NOWA FUNKCJA: Szukanie najbliższego "innego" kursu ---
+    function getNextOtherLine(stopName, currentLineNum) {
+        const now = new Date();
+        const dayType = getDayType();
+        let closest = null;
+
+        db.lines.forEach(l => {
+            if(l.num === currentLineNum) return; // Pomijamy linię, którą jedziemy
+            
+            let totalOffset = 0;
+            l.stops.forEach(s => {
+                totalOffset += parseInt(s.time) || 0;
+                if(s.name === stopName) {
+                    const hoursStr = dayType === 'work' ? l.hours : (dayType === 'sat' ? l.hoursSat : l.hoursSun);
+                    const grouped = getGroupedHours(hoursStr, totalOffset);
+                    Object.values(grouped).flat().forEach(timeObj => {
+                        const [h, m] = timeObj.full.split(':');
+                        const d = new Date(); d.setHours(h, m, 0);
+                        if(d > now && (!closest || d < closest.time)) {
+                            closest = { time: d, num: l.num, type: l.type };
+                        }
+                    });
+                }
+            });
+        });
+
+        if(!closest) return null;
+        const diff = Math.floor((closest.time - now) / 60000);
+        return { diff, num: closest.num, type: closest.type };
+    }
+
+    function openStopDetails(stopName, backTo = 'home', backIdx = null, excludeLineNum = null) {
         show('stop-details');
         const head = document.getElementById('sd-head');
         const content = document.getElementById('sd-content');
         const backBtn = document.getElementById('sd-back-btn');
 
-        // Jakie linie tu stają?
         let linesHere = [];
         db.lines.forEach(l => {
             if(l.stops.some(s => s.name === stopName)) {
-                if(!linesHere.some(exist => exist.num === l.num)) linesHere.push({num: l.num, type: l.type});
+                // Jeśli excludeLineNum jest podane, nie pokazujemy go na liście głównej przesiadek w tej zakładce
+                if(excludeLineNum && l.num === excludeLineNum) return;
+                if(!linesHere.some(e => e.num === l.num)) linesHere.push({num: l.num, type: l.type});
             }
         });
 
         const det = db.stopDetails[stopName] || {nearby: "Brak dodatkowych informacji o przesiadkach.", isNz: false};
 
-        head.innerHTML = `
-            <div class="group-label">Szczegóły Przystanku</div>
-            <h1>${stopName} ${det.isNz ? '<span class="nz-badge">NŻ</span>' : ''}</h1>
-        `;
-
+        head.innerHTML = `<div class="group-label">Informacje o przystanku</div><h1>${stopName}</h1>`;
+        
         content.innerHTML = `
             <div class="app-card" style="display:block; cursor:default;">
-                <div class="group-label" style="margin-top:0">Obsługiwane linie</div>
-                <div style="margin-bottom:15px;">
-                    ${linesHere.map(ln => `<span class="stop-chip ${ln.type}">${ln.type==='tram'?'<i class="fa-solid fa-tram"></i>':'<i class="fa-solid fa-bus"></i>'} ${ln.num}</span>`).join('')}
+                <div class="group-label" style="margin-top:0">${excludeLineNum ? 'Inne linie (przesiadki)' : 'Wszystkie linie'}</div>
+                <div style="margin-bottom:20px;">
+                    ${linesHere.length > 0 ? linesHere.map(ln => `<span class="stop-chip ${ln.type}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('') : '<p style="font-size:0.8rem; opacity:0.5;">Brak innych linii.</p>'}
                 </div>
-                <div class="group-label">Informacje / Przesiadki</div>
-                <p style="font-size:0.9rem; line-height:1.4; color:var(--text-sec);">${det.nearby}</p>
+                <div class="group-label">Przesiadki i okolica</div>
+                <p style="font-size:0.9rem; color:var(--text-sec); line-height:1.5;">${det.nearby}</p>
             </div>
         `;
 
-        // Ustawienie powrotu
         backBtn.onclick = () => {
-            if(fromContext === 'tt') renderTimetable(backIdx);
-            else if(fromContext === 'stops') show('stops');
+            if(backTo === 'tt') renderTimetable(backIdx);
+            else if(backTo === 'stops') show('stops');
             else show('home');
         };
     }
@@ -193,48 +209,36 @@
     function renderTimetable(idx) {
         const line = db.lines[idx];
         show('tt');
-        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2><p style="font-size:0.7rem; color:var(--accent); margin-top:5px;">Kliknij przystanek, aby zobaczyć przesiadki</p>`;
+        const dayType = getDayType();
+        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num}</div><h2>${line.dir}</h2>`;
+        
         const body = document.getElementById('tt-body');
         body.innerHTML = '';
-        const dayType = getDayType();
-
         let totalOffset = 0;
+
         line.stops.forEach((stop, sIdx) => {
             totalOffset += parseInt(stop.time) || 0;
             const currentOffset = totalOffset;
-            
             const card = document.createElement('div');
             card.className = 'app-card';
             card.style.display = 'block';
-            
-            // Obliczamy najbliższy odjazd dla tego konkretnego przystanku
+
             const gWork = getGroupedHours(line.hours, currentOffset);
             const gSat = getGroupedHours(line.hoursSat, currentOffset);
             const gSun = getGroupedHours(line.hoursSun, currentOffset);
-            const currentGroups = dayType==='work' ? gWork : (dayType==='sat' ? gSat : gSun);
-            
-            const now = new Date();
-            let nextDisp = "Brak kursów";
-            let allCurrentTimes = Object.values(currentGroups).flat();
-            for(let t of allCurrentTimes) {
-                const [th, tm] = t.full.split(':');
-                const d = new Date(); d.setHours(th, tm, 0);
-                if(d > now) {
-                    const diff = Math.floor((d - now) / 60000);
-                    nextDisp = `Za ${diff} min (${t.full})`;
-                    break;
-                }
-            }
+            const allHours = [...new Set([...Object.keys(gWork), ...Object.keys(gSat), ...Object.keys(gSun)])].sort();
+
+            // Szukamy najbliższego INNEGO kursu
+            const other = getNextOtherLine(stop.name, line.num);
+            const otherHtml = other ? `<span class="other-info"><i class="fa-solid fa-shuffle"></i> Inna linia (${other.num}) za: <b>${other.diff} min</b></span>` : `<span class="other-info">Brak innych linii w pobliżu</span>`;
 
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <div>
                         <b style="font-size:1.1rem;">${stop.name} ${stop.nz?'<span class="nz-badge">NŻ</span>':''}</b>
-                        <div style="color:var(--warn); font-size:0.75rem; font-weight:600; margin-top:4px;">
-                            <i class="fa-solid fa-clock"></i> ${nextDisp}
-                        </div>
+                        ${otherHtml}
                     </div>
-                    <i class="fa-solid fa-circle-info" style="color:var(--accent); font-size:1.2rem;"></i>
+                    <i class="fa-solid fa-circle-info" style="color:var(--accent); font-size:1.2rem; margin-top:5px;"></i>
                 </div>
                 <div class="tt-container">
                     <div class="tt-row header">
@@ -243,7 +247,7 @@
                         <div class="tt-cell ${dayType==='sat'?'today-hl':''}">Sobota</div>
                         <div class="tt-cell ${dayType==='sun'?'today-hl':''}">Nd/Św</div>
                     </div>
-                    ${Object.keys({...gWork,...gSat,...gSun}).sort().map(h => `
+                    ${allHours.map(h => `
                         <div class="tt-row">
                             <div class="tt-cell hour">${h}</div>
                             <div class="tt-cell ${dayType==='work'?'today-hl':''}">${(gWork[h]||[]).map(m=>m.min).join(' ')}</div>
@@ -253,26 +257,46 @@
                     `).join('')}
                 </div>
             `;
-            
-            // Kliknięcie w kartę otwiera szczegóły przystanku
-            card.onclick = () => openStopDetails(stop.name, 'tt', idx);
+            // Przekazujemy line.num jako wykluczenie, aby nie duplikować rozkładu tej samej linii
+            card.onclick = () => openStopDetails(stop.name, 'tt', idx, line.num);
             body.appendChild(card);
         });
     }
 
-    // --- FUNKCJE PODSTAWOWE ---
+    function renderStopsList() {
+        const query = document.getElementById('stop-search').value.toLowerCase();
+        const list = document.getElementById('public-stops-list');
+        list.innerHTML = '';
+        let allStops = new Set();
+        db.lines.forEach(l => l.stops.forEach(s => allStops.add(s.name)));
+        [...allStops].sort().filter(s => s.toLowerCase().includes(query)).forEach(stopName => {
+            const d = document.createElement('div');
+            d.className = 'app-card';
+            d.innerHTML = `<b>${stopName}</b><i class="fa-solid fa-chevron-right" style="float:right; opacity:0.3;"></i>`;
+            d.onclick = () => openStopDetails(stopName, 'stops');
+            list.appendChild(d);
+        });
+    }
+
     function render() {
-        const sHome = document.getElementById('s-home'); 
-        sHome.innerHTML = '<div class="group-label">Linie</div>';
+        const sHome = document.getElementById('s-home');
+        sHome.innerHTML = '<div class="group-label">Linie komunikacyjne</div>';
         const grid = document.createElement('div'); grid.className = 'lines-grid';
-        let uniqueNums = [...new Set(db.lines.map(l => l.num))];
-        uniqueNums.sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
-            const l = db.lines.find(x => x.num === num);
-            const div = document.createElement('div'); div.className = `line-square ${l.type}`; div.innerText = num;
-            div.onclick = () => openVariants(num); grid.appendChild(div);
+        let unique = new Set();
+        db.lines.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).forEach(l => {
+            if(!unique.has(l.num)) {
+                unique.add(l.num);
+                const div = document.createElement('div');
+                div.className = `line-square ${l.type}`;
+                div.innerText = l.num;
+                div.onclick = () => openVariants(l.num);
+                grid.appendChild(div);
+            }
         });
         sHome.appendChild(grid);
-        renderAdmin();
+        document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card" style="display:block;"><small>${n.date}</small><h4>${n.title}</h4><p>${n.content}</p></div>`).join('');
+        document.getElementById('contact-display').innerText = db.contact;
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><b>${l.num}</b> ${l.dir} <button onclick="openLineForm(${i})" style="float:right; color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
     }
 
     function openVariants(num) {
@@ -281,30 +305,26 @@
         const list = document.getElementById('vars-list'); list.innerHTML = '';
         db.lines.forEach((l, idx) => {
             if(l.num == num) {
-                const d = document.createElement('div'); d.className = "app-card";
-                d.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; width:100%;"><b>Kierunek: ${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`;
+                const d = document.createElement('div'); d.className = 'app-card';
+                d.innerHTML = `<b>Kierunek: ${l.dir}</b>`;
                 d.onclick = () => renderTimetable(idx);
                 list.appendChild(d);
             }
         });
     }
 
-    function show(id) { 
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        const target = document.getElementById('s-'+id);
-        if(target) target.classList.add('active-sec'); 
-        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); 
-        const navItem = document.getElementById('n-'+(id==='tt' || id==='vars' || id==='stop-details' ? 'home' : id));
-        if(navItem) navItem.classList.add('active');
+    function show(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.getElementById('s-'+id).classList.add('active-sec');
+        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+        const navId = (id==='tt'||id==='vars'||id==='stop-details') ? 'home' : id;
+        if(document.getElementById('n-'+navId)) document.getElementById('n-'+navId).classList.add('active');
         window.scrollTo(0,0);
     }
 
-    // --- ADMIN & BACKUP ---
-    function renderAdmin() {
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><b>${l.num}</b> ${l.dir} <button onclick="openLineForm(${i})" style="float:right; color:var(--accent); background:none; border:none; font-weight:800;">EDYTUJ</button></div>`).join('');
-        document.getElementById('contact-display').innerText = db.contact;
-        document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card" style="display:block;"><small>${n.date}</small><h4>${n.title}</h4><p>${n.content}</p></div>`).join('');
-    }
+    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
+    function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
+    function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
 
     function openLineForm(idx) {
         curLineIdx = idx;
@@ -312,16 +332,50 @@
         document.getElementById('fl-num').value = l.num;
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
-        document.getElementById('fl-hours').value = l.hours || "";
+        document.getElementById('fl-hours').value = l.hours;
         document.getElementById('fl-hours-sat').value = l.hoursSat || "";
         document.getElementById('fl-hours-sun').value = l.hoursSun || "";
         document.getElementById('fl-stops-list').innerHTML = '';
-        (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
+        l.stops.forEach(s => addStopRow(s.name, s.time, s.nz));
         document.getElementById('form-line').style.display = 'block';
     }
 
-    function addStopRow(name = "", time = 2, nz = false) {
+    function addStopRow(name="", time=2, nz=false) {
         const div = document.createElement('div'); div.className = 'stop-edit-item';
         div.style.cssText = "display:grid; grid-template-columns: 1fr 60px 40px 40px; gap:5px; margin-bottom:8px;";
-        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name" placeholder="Nazwa"><input type="number" value="${time}" class="edit-stop-time"><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"><button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:8px;">X</button>`;
- 
+        div.innerHTML = `<input type="text" value="${name}" class="st-n"><input type="number" value="${time}" class="st-t"><input type="checkbox" ${nz?'checked':''} class="st-z"><button onclick="this.parentElement.remove()" style="background:var(--danger); color:white; border:none; border-radius:8px;">X</button>`;
+        document.getElementById('fl-stops-list').appendChild(div);
+    }
+
+    function saveLine() {
+        const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({
+            name: el.querySelector('.st-n').value,
+            time: parseInt(el.querySelector('.st-t').value),
+            nz: el.querySelector('.st-z').checked
+        }));
+        const data = { 
+            num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, 
+            type: document.getElementById('fl-type').value, hours: document.getElementById('fl-hours').value,
+            hoursSat: document.getElementById('fl-hours-sat').value, hoursSun: document.getElementById('fl-hours-sun').value,
+            stops: stops 
+        };
+        if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
+        save(); closeForms();
+    }
+
+    function exportFullBackup() {
+        const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = "mzk_backup.json"; a.click();
+    }
+
+    function importFullBackup(e) {
+        const reader = new FileReader();
+        reader.onload = (ev) => { db = JSON.parse(ev.target.result); save(); location.reload(); };
+        reader.readAsText(e.target.files[0]);
+    }
+
+    init();
+</script>
+</body>
+</html>

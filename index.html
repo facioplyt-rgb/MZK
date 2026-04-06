@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V63</title>
+    <title>MZK GORZÓW PRO V64</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -24,14 +24,17 @@
         .app-card:active { transform: scale(0.98); background: var(--surface-light); }
         
         .stop-name { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; }
-        .line-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; align-items: center; min-height: 24px; }
-        .transfer-icon { color: var(--accent); font-size: 0.9rem; margin-right: 6px; }
-        .line-badge { padding: 3px 8px; border-radius: 5px; font-weight: 800; font-size: 0.7rem; min-width: 32px; text-align: center; color: white; border: 1px solid rgba(0,0,0,0.1); display: flex; align-items: center; gap: 4px; }
-        .line-badge i { font-size: 0.6rem; }
+        .line-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; min-height: 24px; }
+        .transfer-icon { color: var(--accent); font-size: 0.9rem; margin-right: 4px; }
+        
+        /* Poprawione odznaki linii z ikonami */
+        .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.75rem; color: white; border: 1px solid rgba(0,0,0,0.1); white-space: nowrap; }
+        .line-badge i { font-size: 0.7rem; }
         .line-badge.bus { background: var(--bus-col); }
         .line-badge.tram { background: var(--tram-col); }
+        
         .eta-tag { font-size: 0.75rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.1); padding: 2px 6px; border-radius: 4px; }
-        .transfer-eta { font-size: 0.6rem; opacity: 0.9; font-weight: 600; margin-left: 2px; color: #fff; }
+        .transfer-eta { font-size: 0.65rem; opacity: 0.95; font-weight: 600; margin-left: 2px; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 3px; border-radius: 3px; }
 
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
@@ -175,15 +178,10 @@
         let dayType = 'working';
         if(dayOfWeek === 6) dayType = 'saturday';
         if(dayOfWeek === 0) dayType = 'sunday';
-
         const raw = dayType === 'working' ? line.hoursWorking : (dayType === 'saturday' ? line.hoursSat : line.hoursSun);
         if (!raw || raw.trim() === "") return null;
-
         let offset = 0;
-        for (let i = 0; i <= stopIdx; i++) {
-            offset += parseInt(line.stops[i].time || 0);
-        }
-
+        for (let i = 0; i <= stopIdx; i++) offset += parseInt(line.stops[i].time || 0);
         const times = raw.split(',').map(t => {
             const parts = t.trim().split(':');
             if(parts.length < 2) return null;
@@ -191,7 +189,6 @@
             d.setHours(parseInt(parts[0]), parseInt(parts[1]) + offset, 0, 0);
             return d;
         }).filter(d => d !== null && d > now).sort((a,b) => a - b);
-
         if (times.length === 0) return null;
         const diff = Math.floor((times[0] - now) / 60000);
         return diff < 60 ? diff : null;
@@ -229,7 +226,6 @@
                 h.appendChild(g);
             }
         });
-
         const nList = document.getElementById('public-news-list'); nList.innerHTML = '';
         if(db.news && db.news.length > 0) {
             (db.newsCategories || ["Ogólne"]).forEach(cat => {
@@ -242,10 +238,7 @@
                     });
                 }
             });
-        } else {
-            nList.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-sec);">Brak aktualności</div>';
         }
-
         document.getElementById('contact-display').innerText = db.contact || "";
         renderStopsList(); renderAdmin();
     }
@@ -365,31 +358,11 @@
     function upStop(name, val, field) { const key = cleanKey(name); if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", outZone:false, globalNz: false}; db.stopDetails[key][field] = val; dbRef.child('stopDetails').child(key).set(db.stopDetails[key]); }
     function openVars(num) { show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Linia ${num}</div>`; db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b></div>`; }); }
     function openNewsDetails(i) { const n = db.news[i]; document.getElementById('nd-title').innerText = n.title; document.getElementById('nd-date').innerText = n.date; document.getElementById('nd-body').innerText = n.body; show('news-details'); }
-    
-    function saveAllCategories() { 
-        const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c);
-        const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c);
-        dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("Zapisano kategorie!")); 
-    }
+    function saveAllCategories() { const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c); const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c); dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("Zapisano kategorie!")); }
     function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano info!")); }
-    
-    function openNewsForm(idx) { 
-        curNewsIdx = idx; 
-        const n = idx === -1 ? {title:"", date:"", category:"", body:""} : db.news[idx]; 
-        document.getElementById('fn-title').value = n.title; 
-        document.getElementById('fn-date').value = n.date; 
-        document.getElementById('fn-cat').innerHTML = (db.newsCategories || ["Ogólne"]).map(c => `<option value="${c}" ${n.category===c?'selected':''}>${c}</option>`).join('');
-        document.getElementById('fn-body').value = n.body; 
-        document.getElementById('btn-del-news').style.display = idx === -1 ? 'none' : 'block'; 
-        document.getElementById('form-news').style.display = 'block'; 
-    }
-    function saveNews() {
-        const data = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, category: document.getElementById('fn-cat').value, body: document.getElementById('fn-body').value };
-        if(curNewsIdx === -1) { if(!db.news) db.news=[]; db.news.push(data); } else db.news[curNewsIdx] = data;
-        dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); });
-    }
+    function openNewsForm(idx) { curNewsIdx = idx; const n = idx === -1 ? {title:"", date:"", category:"", body:""} : db.news[idx]; document.getElementById('fn-title').value = n.title; document.getElementById('fn-date').value = n.date; document.getElementById('fn-cat').innerHTML = (db.newsCategories || ["Ogólne"]).map(c => `<option value="${c}" ${n.category===c?'selected':''}>${c}</option>`).join(''); document.getElementById('fn-body').value = n.body; document.getElementById('btn-del-news').style.display = idx === -1 ? 'none' : 'block'; document.getElementById('form-news').style.display = 'block'; }
+    function saveNews() { const data = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, category: document.getElementById('fn-cat').value, body: document.getElementById('fn-body').value }; if(curNewsIdx === -1) { if(!db.news) db.news=[]; db.news.push(data); } else db.news[curNewsIdx] = data; dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); }); }
     function deleteNews() { if(confirm("Usunąć?")) { db.news.splice(curNewsIdx, 1); dbRef.update({ news: db.news }).then(closeForms); } }
-
     function openLineForm(idx) { curLineIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", category:"", stops:[], hoursWorking:"", hoursSat:"", hoursSun:""} : db.lines[idx]; document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; document.getElementById('fl-type').value = l.type || "bus"; document.getElementById('fl-cat').innerHTML = (db.lineCategories || []).map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join(''); document.getElementById('fl-h-work').value = l.hoursWorking || ""; document.getElementById('fl-h-sat').value = l.hoursSat || ""; document.getElementById('fl-h-sun').value = l.hoursSun || ""; document.getElementById('fl-list').innerHTML = ''; (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz)); document.getElementById('btn-del-line').style.display = idx === -1 ? 'none' : 'block'; document.getElementById('form-line').style.display = 'block'; }
     function addStopRow(name="", time=2, nz=false) { const div = document.createElement('div'); div.className = 'adm-stop-card'; div.innerHTML = `<button onclick="this.parentElement.remove()" style="float:right; border:none; background:none; color:var(--danger)">X</button><input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa"><div style="display:flex; align-items:center; gap:10px;"><input type="number" value="${time}" class="stop-time-in" style="width:60px;"> min <label><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label></div>`; document.getElementById('fl-list').prepend(div); }
     function processBulkImport() { document.getElementById('import-area').value.split('\n').filter(x => x.trim()).forEach(n => { let name = n.trim(); let nz = name.toLowerCase().includes(" nż"); if(nz) name = name.replace(/ nż\.?/i, "").trim(); addStopRow(name, 2, nz); }); document.getElementById('import-area').value = ""; }

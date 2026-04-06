@@ -17,10 +17,8 @@
         .active-sec { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Karty */
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         
-        /* Newsy */
         .news-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: inline-block; }
         .cat-rozkład { background: var(--info); color: white; }
         .cat-utrudnienia { background: var(--danger); color: white; }
@@ -33,7 +31,6 @@
         .line-square.bus { border-bottom-color: var(--accent); }
         .line-square.tram { border-bottom-color: var(--danger); }
         
-        /* Detale Newsa */
         .full-news-box { background: var(--surface); padding: 25px; border-radius: 24px; min-height: 300px; line-height: 1.6; }
 
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
@@ -46,6 +43,10 @@
         
         .stop-line-badge { display: inline-block; margin: 2px; padding: 4px 10px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.8rem; font-weight: 600; color: #fff; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
+
+        /* Style dla szybkiego importu */
+        .import-area { background: #232d38; border: 1px dashed var(--accent); padding: 15px; border-radius: 14px; margin-bottom: 15px; }
+        .import-area label { display: block; font-size: 0.7rem; color: var(--accent); margin-bottom: 8px; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -120,16 +121,26 @@
 </nav>
 
 <div id="form-line" class="overlay-form">
-    <input type="text" id="fl-num" placeholder="Numer">
+    <div class="group-label">Dane podstawowe</div>
+    <input type="text" id="fl-num" placeholder="Numer (np. 104)">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Robocze"></textarea>
+    
+    <div class="group-label">Rozkład jazdy (godziny po przecinku)</div>
+    <textarea id="fl-h-work" placeholder="Robocze (np. 06:10, 06:40)"></textarea>
     <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
+
+    <div class="import-area">
+        <label>SZYBKIE WKLEJANIE PRZYSTANKÓW</label>
+        <textarea id="fl-quick-import" style="height:100px; font-size:0.8rem; margin-bottom:8px;" placeholder="Wklej listę nazw (jeden pod drugim)"></textarea>
+        <button onclick="convertQuickStops()" class="main-btn" style="background:#1890ff; padding:10px; font-size:0.8rem;">KONWERTUJ NA LISTĘ</button>
+    </div>
+
     <div id="fl-stops-list"></div>
-    <button onclick="addStopRow()" class="main-btn">+ Dodaj przystanek</button>
-    <button onclick="saveLine()" class="main-btn" style="background:#2196F3">ZAPISZ</button>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj pojedynczy przystanek</button>
+    <button onclick="saveLine()" class="main-btn" style="background:var(--accent); margin-top:20px;">ZAPISZ CAŁĄ LINIĘ</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -184,7 +195,6 @@
         });
     }
 
-    // Otwieranie podstrony newsa
     function showNewsDetails(idx) {
         const n = db.news[idx];
         if(!n) return;
@@ -193,6 +203,22 @@
         document.getElementById('nd-date').innerText = n.date || '';
         document.getElementById('nd-body').innerText = n.content || '';
         show('news-details');
+    }
+
+    // FUNKCJA KONWERTUJĄCA WKLEJONY TEKST
+    function convertQuickStops() {
+        const text = document.getElementById('fl-quick-import').value;
+        if(!text.trim()) return;
+        const lines = text.split('\n');
+        lines.forEach(line => {
+            if(!line.trim()) return;
+            let parts = line.split(',');
+            let name = parts[0].trim();
+            let time = parts[1] ? parseInt(parts[1]) : 2;
+            let isNz = parts[2] ? (parts[2].toLowerCase().includes('nż') || parts[2].toLowerCase().includes('nz')) : false;
+            addStopRow(name, time, isNz);
+        });
+        document.getElementById('fl-quick-import').value = '';
     }
 
     function handleImport(input) {
@@ -323,8 +349,12 @@
     }
 
     function addStopRow(name = "", time = 2, nz = false) {
-        const div = document.createElement('div'); div.style = "display: flex; gap: 5px; margin-bottom: 5px;";
-        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name" style="flex:1"><input type="number" value="${time}" class="edit-stop-time" style="width:50px"><label><input type="checkbox" ${nz?'checked':''}> NŻ</label><button onclick="this.parentElement.remove()">X</button>`;
+        const div = document.createElement('div'); div.className = 'stop-edit-row'; div.style = "display: flex; gap: 5px; margin-bottom: 5px; align-items: center;";
+        div.innerHTML = `
+            <input type="text" value="${name}" class="edit-stop-name" style="flex:1; margin-bottom:0;" placeholder="Przystanek">
+            <input type="number" value="${time}" class="edit-stop-time" style="width:50px; margin-bottom:0;" placeholder="min">
+            <label style="font-size:0.6rem;"><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"> NŻ</label>
+            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); padding:0 5px;"><i class="fa-solid fa-trash"></i></button>`;
         document.getElementById('fl-stops-list').appendChild(div);
     }
 
@@ -344,10 +374,26 @@
     }
 
     function saveLine() {
-        const stops = Array.from(document.querySelectorAll('.edit-stop-name')).map((el, i) => ({ name: el.value.trim(), time: parseInt(document.querySelectorAll('.edit-stop-time')[i].value) || 0, nz: document.querySelectorAll('input[type="checkbox"]')[i].checked }));
-        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops };
+        const rows = document.querySelectorAll('.stop-edit-row');
+        const stops = Array.from(rows).map(row => ({
+            name: row.querySelector('.edit-stop-name').value.trim(),
+            time: parseInt(row.querySelector('.edit-stop-time').value) || 0,
+            nz: row.querySelector('.edit-stop-nz').checked
+        }));
+        
+        const data = { 
+            num: document.getElementById('fl-num').value, 
+            dir: document.getElementById('fl-dir').value, 
+            type: document.getElementById('fl-type').value, 
+            category: document.getElementById('fl-cat').value, 
+            hoursWorking: document.getElementById('fl-h-work').value, 
+            hoursSat: document.getElementById('fl-h-sat').value, 
+            hoursSun: document.getElementById('fl-h-sun').value, 
+            stops: stops 
+        };
+        
         if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
-        dbRef.update({ lines: db.lines }).then(() => { alert("Zapisano!"); closeForms(); });
+        dbRef.update({ lines: db.lines }).then(() => { alert("Linia została zapisana!"); closeForms(); });
     }
 
     function saveNews() {

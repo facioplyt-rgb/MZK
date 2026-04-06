@@ -44,7 +44,6 @@
         .stop-line-badge { display: inline-block; margin: 2px; padding: 4px 10px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.8rem; font-weight: 600; color: #fff; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
 
-        /* Style dla szybkiego importu */
         .import-area { background: #232d38; border: 1px dashed var(--accent); padding: 15px; border-radius: 14px; margin-bottom: 15px; }
         .import-area label { display: block; font-size: 0.7rem; color: var(--accent); margin-bottom: 8px; font-weight: 800; }
     </style>
@@ -71,9 +70,9 @@
     <div id="s-news-details" class="section">
         <div id="nd-content-area" class="full-news-box">
             <div id="nd-badge"></div>
-            <h2 id="nd-title" style="margin:10px 0 5px 0;"></h2>
+            <h2 id="nd-title" style="margin:10px 0 5px 0; color:white;"></h2>
             <div id="nd-date" style="font-size:0.8rem; color:var(--text-sec); margin-bottom:20px;"></div>
-            <div id="nd-body" style="font-size:1rem; white-space:pre-wrap;"></div>
+            <div id="nd-body" style="font-size:1rem; white-space:pre-wrap; color:#ced4da;"></div>
         </div>
         <button onclick="show('news')" class="main-btn" style="background:#333; margin-top:20px;">Wróć do komunikatów</button>
     </div>
@@ -97,17 +96,17 @@
         </div>
         <div id="adm-ui" style="display:none;">
             <div class="adm-nav-main" style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:15px;">
-                <button onclick="setTab('l')" id="mt-l" class="active">LINIE</button>
-                <button onclick="setTab('p')" id="mt-p">PRZYST</button>
-                <button onclick="setTab('n')" id="mt-n">NEWS</button>
-                <button onclick="setTab('c')" id="mt-c">INFO</button>
-                <button onclick="setTab('i')" id="mt-i">PLIK</button>
+                <button onclick="setTab('l')" id="mt-l" class="active" style="padding:10px 2px; font-size:0.6rem;">LINIE</button>
+                <button onclick="setTab('p')" id="mt-p" style="padding:10px 2px; font-size:0.6rem;">PRZYST</button>
+                <button onclick="setTab('n')" id="mt-n" style="padding:10px 2px; font-size:0.6rem;">NEWS</button>
+                <button onclick="setTab('c')" id="mt-c" style="padding:10px 2px; font-size:0.6rem;">INFO</button>
+                <button onclick="setTab('i')" id="mt-i" style="padding:10px 2px; font-size:0.6rem;">PLIK</button>
             </div>
             <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
             <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-i" class="adm-tab" style="display:none;"><div style="text-align:center; padding:20px; border: 2px dashed rgba(255,255,255,0.1); border-radius:20px;"><p>MERGE BACKUP</p><input type="file" id="import-file" style="display:none;" onchange="handleImport(this)"><button onclick="document.getElementById('import-file').click()" class="main-btn">Wybierz plik</button></div></div>
+            <div id="tab-i" class="adm-tab" style="display:none;"><div style="text-align:center; padding:20px; border: 2px dashed rgba(255,255,255,0.1); border-radius:20px;"><p>DODAWANIE DANYCH (Merge)</p><input type="file" id="import-file" style="display:none;" onchange="handleImport(this)"><button onclick="document.getElementById('import-file').click()" class="main-btn">Wybierz plik</button></div></div>
         </div>
     </div>
 </div>
@@ -121,26 +120,24 @@
 </nav>
 
 <div id="form-line" class="overlay-form">
-    <div class="group-label">Dane podstawowe</div>
-    <input type="text" id="fl-num" placeholder="Numer (np. 104)">
+    <div class="group-label">Dane linii</div>
+    <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    
-    <div class="group-label">Rozkład jazdy (godziny po przecinku)</div>
-    <textarea id="fl-h-work" placeholder="Robocze (np. 06:10, 06:40)"></textarea>
-    <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
-    <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
+    <textarea id="fl-h-work" placeholder="Godziny Robocze"></textarea>
+    <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
+    <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
 
     <div class="import-area">
-        <label>SZYBKIE WKLEJANIE PRZYSTANKÓW</label>
-        <textarea id="fl-quick-import" style="height:100px; font-size:0.8rem; margin-bottom:8px;" placeholder="Wklej listę nazw (jeden pod drugim)"></textarea>
-        <button onclick="convertQuickStops()" class="main-btn" style="background:#1890ff; padding:10px; font-size:0.8rem;">KONWERTUJ NA LISTĘ</button>
+        <label>SZYBKIE WKLEJANIE PRZYSTANKÓW (jeden pod drugim)</label>
+        <textarea id="fl-quick-import" style="height:120px; font-size:0.8rem; margin-bottom:10px;" placeholder="Wklej tutaj listę przystanków..."></textarea>
+        <button onclick="convertQuickStops()" class="main-btn" style="background:#1890ff; padding:12px;">KONWERTUJ NA LISTĘ</button>
     </div>
 
     <div id="fl-stops-list"></div>
-    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj pojedynczy przystanek</button>
-    <button onclick="saveLine()" class="main-btn" style="background:var(--accent); margin-top:20px;">ZAPISZ CAŁĄ LINIĘ</button>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj pojedynczo</button>
+    <button onclick="saveLine()" class="main-btn" style="background:var(--accent); margin-top:20px;">ZAPISZ LINIĘ</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -154,7 +151,7 @@
         <option value="Inne">Inne</option>
     </select>
     <textarea id="fn-content" style="height:200px" placeholder="Treść..."></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz</button>
+    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
     <button id="del-news-btn" class="main-btn" style="background:var(--danger); display:none;">USUŃ</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -195,6 +192,7 @@
         });
     }
 
+    // Wyświetlanie szczegółów newsa na nowej podstronie
     function showNewsDetails(idx) {
         const n = db.news[idx];
         if(!n) return;
@@ -205,18 +203,19 @@
         show('news-details');
     }
 
-    // FUNKCJA KONWERTUJĄCA WKLEJONY TEKST
+    // SZYBKI IMPORT PRZYSTANKÓW Z TEKSTU
     function convertQuickStops() {
         const text = document.getElementById('fl-quick-import').value;
         if(!text.trim()) return;
-        const lines = text.split('\n');
-        lines.forEach(line => {
-            if(!line.trim()) return;
-            let parts = line.split(',');
-            let name = parts[0].trim();
-            let time = parts[1] ? parseInt(parts[1]) : 2;
-            let isNz = parts[2] ? (parts[2].toLowerCase().includes('nż') || parts[2].toLowerCase().includes('nz')) : false;
-            addStopRow(name, time, isNz);
+        const rows = text.split('\n');
+        rows.forEach(r => {
+            if(!r.trim()) return;
+            // Obsługa formatu: Nazwa, czas, nż
+            let p = r.split(',');
+            let name = p[0].trim();
+            let time = p[1] ? parseInt(p[1]) : 2;
+            let nz = p[2] ? (p[2].toLowerCase().includes('nż') || p[2].toLowerCase().includes('nz')) : false;
+            addStopRow(name, time, nz);
         });
         document.getElementById('fl-quick-import').value = '';
     }
@@ -232,15 +231,15 @@
                     if (l.hours && !l.hoursWorking) l.hoursWorking = l.hours;
                     return l;
                 });
-                if (confirm(`Dodać ${newLines.length} linii?`)) {
+                if (confirm(`Dodać ${newLines.length} linii z pliku?`)) {
                     newLines.forEach(nl => {
                         if (!db.lines.some(ol => ol.num === nl.num && ol.dir === nl.dir)) db.lines.push(nl);
                     });
                     if (imported.news) imported.news.forEach(nn => db.news.push(nn));
                     if (imported.stopDetails) Object.assign(db.stopDetails, imported.stopDetails);
-                    dbRef.update({ lines: db.lines, news: db.news, stopDetails: db.stopDetails }).then(() => { alert("Dodano!"); input.value = ''; });
+                    dbRef.update({ lines: db.lines, news: db.news, stopDetails: db.stopDetails }).then(() => { alert("Dane zaimportowane!"); input.value = ''; });
                 }
-            } catch (err) { alert("Błąd pliku!"); }
+            } catch (err) { alert("Błąd formatu JSON!"); }
         };
         reader.readAsText(file);
     }
@@ -351,10 +350,10 @@
     function addStopRow(name = "", time = 2, nz = false) {
         const div = document.createElement('div'); div.className = 'stop-edit-row'; div.style = "display: flex; gap: 5px; margin-bottom: 5px; align-items: center;";
         div.innerHTML = `
-            <input type="text" value="${name}" class="edit-stop-name" style="flex:1; margin-bottom:0;" placeholder="Przystanek">
+            <input type="text" value="${name}" class="edit-stop-name" style="flex:1; margin-bottom:0;" placeholder="Nazwa">
             <input type="number" value="${time}" class="edit-stop-time" style="width:50px; margin-bottom:0;" placeholder="min">
             <label style="font-size:0.6rem;"><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"> NŻ</label>
-            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); padding:0 5px;"><i class="fa-solid fa-trash"></i></button>`;
+            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); padding:10px;"><i class="fa-solid fa-trash"></i></button>`;
         document.getElementById('fl-stops-list').appendChild(div);
     }
 
@@ -369,7 +368,7 @@
         document.getElementById('fn-title').value = n.title; document.getElementById('fn-date').value = n.date;
         document.getElementById('fn-cat').value = n.category; document.getElementById('fn-content').value = n.content;
         document.getElementById('del-news-btn').style.display = idx === -1 ? 'none' : 'block';
-        document.getElementById('del-news-btn').onclick = () => { if(confirm("Usunąć?")) { db.news.splice(idx, 1); dbRef.update({news: db.news}); closeForms(); } };
+        document.getElementById('del-news-btn').onclick = () => { if(confirm("Usunąć komunikat?")) { db.news.splice(idx, 1); dbRef.update({news: db.news}); closeForms(); } };
         document.getElementById('form-news').style.display = 'block';
     }
 
@@ -380,26 +379,20 @@
             time: parseInt(row.querySelector('.edit-stop-time').value) || 0,
             nz: row.querySelector('.edit-stop-nz').checked
         }));
-        
         const data = { 
-            num: document.getElementById('fl-num').value, 
-            dir: document.getElementById('fl-dir').value, 
-            type: document.getElementById('fl-type').value, 
-            category: document.getElementById('fl-cat').value, 
-            hoursWorking: document.getElementById('fl-h-work').value, 
-            hoursSat: document.getElementById('fl-h-sat').value, 
-            hoursSun: document.getElementById('fl-h-sun').value, 
-            stops: stops 
+            num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, 
+            type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, 
+            hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, 
+            hoursSun: document.getElementById('fl-h-sun').value, stops: stops 
         };
-        
         if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
-        dbRef.update({ lines: db.lines }).then(() => { alert("Linia została zapisana!"); closeForms(); });
+        dbRef.update({ lines: db.lines }).then(() => { alert("Zapisano!"); closeForms(); });
     }
 
     function saveNews() {
         const nData = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, category: document.getElementById('fn-cat').value, content: document.getElementById('fn-content').value };
         if(currentNewsIdx === -1) db.news.push(nData); else db.news[currentNewsIdx] = nData;
-        dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); });
+        dbRef.update({ news: db.news }).then(() => { alert("Komunikat zapisany!"); closeForms(); });
     }
 
     function setDay(d) { currentDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(currentLineIndex, focusedStopIdx); }

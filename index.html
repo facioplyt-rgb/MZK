@@ -67,7 +67,6 @@
     </div>
 
     <div id="s-news" class="section">
-        <div class="group-label">Aktualności</div>
         <div id="public-news-list"></div>
     </div>
 
@@ -77,20 +76,14 @@
             <h2 id="nd-title" style="color: var(--accent); margin-bottom: 15px;"></h2>
             <div id="nd-body" style="white-space: pre-wrap; line-height: 1.6;"></div>
         </div>
-        <button onclick="show('news')" class="main-btn" style="background:#333; margin-top:10px;">Wróć</button>
+        <button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
     </div>
 
     <div id="s-contact" class="section">
-        <div class="group-label">O MZK</div>
         <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
     </div>
 
-    <div id="s-vars" class="section">
-        <div id="vars-head"></div>
-        <div id="vars-list"></div>
-        <button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button>
-    </div>
-
+    <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
         <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
@@ -136,18 +129,18 @@
 
 <div id="form-line" class="overlay-form">
     <div class="group-label">Ustawienia Linii</div>
-    <input type="text" id="fl-num" placeholder="Numer (np. 124)">
-    <input type="text" id="fl-dir" placeholder="Kierunek (np. Ustronie)">
+    <input type="text" id="fl-num" placeholder="Numer">
+    <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Godziny robocze (HH:MM, HH:MM...)"></textarea>
+    <textarea id="fl-h-work" placeholder="Godziny robocze"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny niedziele"></textarea>
 
     <div class="import-box">
-        <div style="font-size:0.7rem; font-weight:800; color:var(--info); margin-bottom:5px;">IMPORT MASOWY (WKLEJ LISTĘ)</div>
-        <textarea id="import-area" style="height:80px; margin-bottom:5px; font-size:0.8rem;" placeholder="Wklej listę przystanków..."></textarea>
-        <button onclick="processBulkImport()" class="main-btn" style="background:var(--info); padding:10px; font-size:0.8rem;">KONWERTUJ NA PRZYSTANKI</button>
+        <div style="font-size:0.75rem; font-weight:800; color:var(--info); margin-bottom:8px;">IMPORT LISTY PRZYSTANKÓW</div>
+        <textarea id="import-area" style="height:120px; font-size:0.85rem; margin-bottom:10px;" placeholder="Wklej tutaj listę przystanków..."></textarea>
+        <button onclick="processBulkImport()" class="main-btn" style="background:var(--info); padding:12px;">KONWERTUJ NA PRZYSTANKI</button>
     </div>
 
     <div style="background: rgba(0,171,85,0.1); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
@@ -162,11 +155,8 @@
 </div>
 
 <div id="form-news" class="overlay-form">
-    <input type="text" id="fn-title" placeholder="Tytuł">
-    <input type="text" id="fn-date" placeholder="Data">
-    <textarea id="fn-body" style="height:200px;" placeholder="Treść..."></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
-    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
+    <input type="text" id="fn-title"><input type="text" id="fn-date"><textarea id="fn-body" style="height:200px;"></textarea>
+    <button onclick="saveNews()" class="main-btn">Zapisz</button><button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -189,7 +179,6 @@
     let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [];
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
-    
     function show(id) { 
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
         document.getElementById('s-'+id)?.classList.add('active-sec'); 
@@ -239,7 +228,6 @@
         document.getElementById('public-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card" onclick="openNewsDetails(${i})"><div><b>${n.title}</b><span style="font-size:0.7rem; color:var(--warn); display:block;">${n.date}</span></div><i class="fa-solid fa-chevron-right"></i></div>`).join('');
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><div><b>${l.num}</b> - ${l.dir}</div><button onclick="openLineForm(${i})" style="padding:5px 10px; background:#444; color:white; border:none; border-radius:5px;">E</button></div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><div><b>${n.title}</b></div><div><button onclick="openNewsForm(${i})" style="background:#444; color:white; border:none; padding:5px 8px; border-radius:5px;">E</button> <button onclick="deleteNews(${i})" style="background:var(--danger); color:white; border:none; padding:5px 8px; border-radius:5px;">X</button></div></div>`).join('');
-        
         document.getElementById('adm-stops-list').innerHTML = allStops.map(s => {
             const d = db.stopDetails[cleanKey(s)] || {nearby:"", outZone: false, alwaysNZ: false};
             return `<div class="app-card stop-card" style="border:1px solid #333;">
@@ -248,6 +236,23 @@
                 <div style="display:flex; gap:10px;"><label><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Strefa</label><label><input type="checkbox" ${d.alwaysNZ?'checked':''} onchange="upStopGlobal('${s}', this.checked)"> Zawsze NŻ</label></div>
             </div>`;
         }).join('');
+    }
+
+    function processBulkImport() {
+        const area = document.getElementById('import-area');
+        const lines = area.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if(lines.length === 0) return;
+        lines.forEach(rawName => {
+            let name = rawName;
+            let isNZ = false;
+            if(name.toLowerCase().includes(" nż.") || name.toLowerCase().includes(" nż") || name.toLowerCase().endsWith("nż.")) {
+                isNZ = true;
+                name = name.replace(/ nż\.?/i, "").trim();
+            }
+            addStopRow(name, 2, isNZ);
+        });
+        area.value = "";
+        alert("Dodano " + lines.length + " przystanków na listę!");
     }
 
     function renderStopsList() {
@@ -261,10 +266,7 @@
             const card = document.createElement('div');
             card.className = 'app-card'; card.style.display = 'block'; card.onclick = () => openStopLines(stopName);
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div style="font-weight:800; font-size:1.1rem; flex:1;">${stopName}</div>
-                    <i class="fa-solid fa-chevron-right" style="margin-top:5px; color:var(--text-sec);"></i>
-                </div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;"><div style="font-weight:800; font-size:1.1rem; flex:1;">${stopName}</div><i class="fa-solid fa-chevron-right" style="margin-top:5px; color:var(--text-sec);"></i></div>
                 <div class="stop-lines-wrap">${stopLines.map(num => `<span class="mini-line-pill">${num}</span>`).join('')}</div>
                 <div class="stop-info-sub">
                     ${isNZ ? '<span class="badge-inline bg-nz">Na żądanie</span>' : ''}
@@ -275,48 +277,19 @@
         });
     }
 
-    // --- LOGIKA IMPORTU MASOWEGO ---
-    function processBulkImport() {
-        const area = document.getElementById('import-area');
-        const lines = area.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        
-        if(lines.length === 0) return alert("Wklej jakąś listę!");
-
-        lines.forEach(rawName => {
-            let name = rawName;
-            let isNZ = false;
-
-            // Wykrywanie nż. na końcu lub w nazwie
-            if(name.toLowerCase().includes(" nż.") || name.toLowerCase().includes(" nż") || name.toLowerCase().endsWith("nż.")) {
-                isNZ = true;
-                name = name.replace(/ nż\.?/i, "").trim();
-            }
-
-            addStopRow(name, 2, isNZ);
-        });
-
-        area.value = ""; // Czyścimy pole po imporcie
-        alert("Zaimportowano " + lines.length + " przystanków!");
-    }
-
     function quickAddStop() {
         const input = document.getElementById('quick-stop-in');
-        const name = input.value.trim();
-        if(name) { addStopRow(name, 2, false); input.value = ''; input.focus(); }
+        if(input.value.trim()) { addStopRow(input.value.trim(), 2, false); input.value = ''; input.focus(); }
     }
 
     function openLineForm(idx) { 
         curLineIdx = idx; 
         const l = idx === -1 ? {num:"", dir:"", type:"bus", category:db.lineCategories[0], stops:[], hoursWorking:"", hoursSat:"", hoursSun:""} : db.lines[idx]; 
-        document.getElementById('fl-num').value = l.num; 
-        document.getElementById('fl-dir').value = l.dir; 
+        document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; 
         document.getElementById('fl-type').value = l.type || "bus"; 
         document.getElementById('fl-cat').innerHTML = (db.lineCategories || []).map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join(''); 
-        document.getElementById('fl-h-work').value = l.hoursWorking || ""; 
-        document.getElementById('fl-h-sat').value = l.hoursSat || ""; 
-        document.getElementById('fl-h-sun').value = l.hoursSun || ""; 
-        document.getElementById('fl-list').innerHTML = ''; 
-        document.getElementById('import-area').value = "";
+        document.getElementById('fl-h-work').value = l.hoursWorking || ""; document.getElementById('fl-h-sat').value = l.hoursSat || ""; document.getElementById('fl-h-sun').value = l.hoursSun || ""; 
+        document.getElementById('fl-list').innerHTML = ''; document.getElementById('import-area').value = "";
         (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz)); 
         document.getElementById('form-line').style.display = 'block'; 
     }
@@ -329,27 +302,12 @@
 
     function saveLine() { 
         const rows = Array.from(document.querySelectorAll('.stop-edit-row'));
-        const stops = rows.map(r => ({ 
-            name: r.querySelector('.stop-name-in').value.trim(), 
-            time: parseInt(r.querySelector('.stop-time-in').value) || 0, 
-            nz: r.querySelector('.stop-nz-in').checked 
-        })).reverse(); 
-
-        const data = { 
-            num: document.getElementById('fl-num').value, 
-            dir: document.getElementById('fl-dir').value, 
-            type: document.getElementById('fl-type').value, 
-            category: document.getElementById('fl-cat').value, 
-            hoursWorking: document.getElementById('fl-h-work').value, 
-            hoursSat: document.getElementById('fl-h-sat').value, 
-            hoursSun: document.getElementById('fl-h-sun').value, 
-            stops: stops 
-        }; 
+        const stops = rows.map(r => ({ name: r.querySelector('.stop-name-in').value.trim(), time: parseInt(r.querySelector('.stop-time-in').value) || 0, nz: r.querySelector('.stop-nz-in').checked })).reverse(); 
+        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops }; 
         if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data; 
         dbRef.update({ lines: db.lines }).then(() => { alert("Zapisano!"); closeForms(); }); 
     }
 
-    // --- RESZTA FUNKCJI (BEZ ZMIAN) ---
     function openStopLines(stopName) {
         show('stop-lines');
         document.getElementById('sl-head').innerHTML = `<div class="group-label">Linie na: ${stopName}</div>`;
@@ -363,20 +321,14 @@
     }
 
     function openVars(num) {
-        show('vars');
-        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
+        show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
         const v = document.getElementById('vars-list'); v.innerHTML = '';
-        db.lines.forEach((l, i) => {
-            if(String(l.num) === String(num)) {
-                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`;
-            }
-        });
+        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`; });
     }
 
     function renderTimetable(lIdx, sIdx = -1) {
         curLineIdx = lIdx; curStopIdx = sIdx; show('tt');
-        const l = db.lines[lIdx];
-        const ttBody = document.getElementById('tt-body');
+        const l = db.lines[lIdx]; const ttBody = document.getElementById('tt-body');
         document.getElementById('tt-day-sel').style.display = sIdx === -1 ? 'none' : 'flex';
         if (sIdx === -1) {
             document.getElementById('tt-head').innerHTML = `<div class="group-label">${l.num} -> ${l.dir}</div>`;
@@ -388,8 +340,7 @@
         } else {
             document.getElementById('tt-head').innerHTML = `<div class="group-label">${l.num} | ${l.stops[sIdx].name}</div>`;
             let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time || 0);
-            const hMap = {};
-            let raw = (curDay==='working' ? l.hoursWorking : curDay==='saturday' ? l.hoursSat : l.hoursSun) || "";
+            const hMap = {}; let raw = (curDay==='working' ? l.hoursWorking : curDay==='saturday' ? l.hoursSat : l.hoursSun) || "";
             let html = `<div class="timetable-container"><div class="tt-header-box"><b style="color:black;">Kierunek: ${l.dir}</b></div>`;
             if(!raw) html += '<div style="padding:15px; color:black">Brak kursów.</div>';
             else {

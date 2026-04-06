@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - System Pro V28</title>
+    <title>MZK GORZÓW - System Pro V29</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
@@ -41,7 +42,6 @@
         .bg-nz { background: var(--warn); color: #000; }
         .stop-edit-row { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); position: relative; }
         .btn-del-stop { background: var(--danger); color: white; border: none; width: 30px; height: 30px; border-radius: 8px; font-weight: bold; cursor: pointer; position: absolute; top: 10px; right: 10px; }
-        .news-date { font-size: 0.75rem; color: var(--warn); font-weight: 600; display: block; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -59,7 +59,7 @@
     
     <div id="s-news-details" class="section">
         <div class="app-card stop-card">
-            <span id="nd-date" style="font-size: 0.8rem; color: var(--text-sec); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; display: block;"></span>
+            <span id="nd-date" style="font-size: 0.8rem; color: var(--text-sec); display: block; margin-bottom: 10px;"></span>
             <h2 id="nd-title" style="color: var(--accent); margin-bottom: 15px;"></h2>
             <div id="nd-body" style="white-space: pre-wrap; line-height: 1.6;"></div>
         </div>
@@ -67,8 +67,23 @@
     </div>
 
     <div id="s-contact" class="section"><div class="group-label">O MZK</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
-    <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
-    <div id="s-tt" class="section"><div id="tt-head"></div><div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;"><button class="main-btn" id="btn-working" onclick="setDay('working')">Robocze</button><button class="main-btn" id="btn-saturday" style="background:#444" onclick="setDay('saturday')">Soboty</button><button class="main-btn" id="btn-sunday" style="background:#444" onclick="setDay('sunday')">Niedz</button></div><div id="tt-body"></div><button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button></div>
+    
+    <div id="s-vars" class="section">
+        <div id="vars-head"></div>
+        <div id="vars-list"></div>
+        <button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button>
+    </div>
+    
+    <div id="s-tt" class="section">
+        <div id="tt-head"></div>
+        <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
+            <button class="main-btn" id="btn-working" onclick="setDay('working')">Robocze</button>
+            <button class="main-btn" id="btn-saturday" style="background:#444" onclick="setDay('saturday')">Soboty</button>
+            <button class="main-btn" id="btn-sunday" style="background:#444" onclick="setDay('sunday')">Niedz</button>
+        </div>
+        <div id="tt-body"></div>
+        <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
+    </div>
 
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;"><input type="password" id="pass" placeholder="Hasło"><button onclick="login()" class="main-btn">Zaloguj</button></div>
@@ -104,10 +119,10 @@
 </nav>
 
 <div id="form-news" class="overlay-form">
-    <div class="group-label">Dodaj/Edytuj News</div>
+    <div class="group-label">News</div>
     <input type="text" id="fn-title" placeholder="Tytuł">
     <input type="text" id="fn-date" placeholder="Data">
-    <textarea id="fn-body" style="height:200px;" placeholder="Treść newsa..."></textarea>
+    <textarea id="fn-body" style="height:200px;" placeholder="Treść..."></textarea>
     <button onclick="saveNews()" class="main-btn">Zapisz News</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -117,7 +132,7 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Robocze"></textarea>
+    <textarea id="fl-h-work" placeholder="Robocze (HH:MM, HH:MM)"></textarea>
     <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
     <div id="fl-list"></div>
@@ -148,9 +163,11 @@
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
     function show(id) { 
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        document.getElementById('s-'+id).classList.add('active-sec'); 
+        const target = document.getElementById('s-'+id);
+        if(target) target.classList.add('active-sec'); 
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        document.getElementById('n-'+id).classList.add('active');
+        const navItem = document.getElementById('n-'+id);
+        if(navItem) navItem.classList.add('active');
     }
 
     init();
@@ -188,21 +205,15 @@
         document.getElementById('contact-display').innerText = db.contact || "";
         document.getElementById('edit-contact-text').value = db.contact || "";
         
-        // Newsy Publiczne
         document.getElementById('public-news-list').innerHTML = db.news.map((n, i) => `
             <div class="app-card" onclick="openNewsDetails(${i})">
-                <div><b>${n.title}</b><span class="news-date">${n.date}</span></div>
+                <div><b>${n.title}</b><span style="font-size:0.7rem; color:var(--warn); display:block;">${n.date}</span></div>
                 <i class="fa-solid fa-chevron-right"></i>
             </div>`).join('');
         
-        // Admin Listy
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><div><b>${l.num}</b> - ${l.dir}</div><button onclick="openLineForm(${i})" style="padding:5px 10px; background:#444; border:none; border-radius:5px; color:white;">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `
-            <div class="app-card">
-                <div><b>${n.title}</b></div>
-                <div><button onclick="openNewsForm(${i})" style="background:#444; border:none; padding:5px; border-radius:5px; color:white;">E</button> <button onclick="deleteNews(${i})" style="background:var(--danger); border:none; padding:5px; border-radius:5px; color:white;">X</button></div>
-            </div>`).join('');
-            
+            <div class="app-card"><div><b>${n.title}</b></div><div><button onclick="openNewsForm(${i})" style="background:#444; border:none; padding:5px; border-radius:5px; color:white;">E</button> <button onclick="deleteNews(${i})" style="background:var(--danger); border:none; padding:5px; border-radius:5px; color:white;">X</button></div></div>`).join('');
         renderStopsList();
     }
 
@@ -228,7 +239,57 @@
         }).join('');
     }
 
-    // NEWS FUNCTIONS
+    // WARIANTY I ROZKŁAD
+    function openVars(num) { 
+        show('vars'); 
+        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} - Wybierz kierunek</div>`; 
+        const v = document.getElementById('vars-list'); v.innerHTML = ''; 
+        db.lines.forEach((l, i) => { 
+            if(String(l.num) === String(num)) {
+                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`; 
+            }
+        }); 
+    }
+
+    function renderTimetable(lIdx, sIdx = -1) {
+        curLineIdx = lIdx; curStopIdx = sIdx; show('tt');
+        const l = db.lines[lIdx];
+        const ttBody = document.getElementById('tt-body');
+        document.getElementById('tt-day-sel').style.display = sIdx === -1 ? 'none' : 'flex';
+        
+        if (sIdx === -1) {
+            document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${l.num} -> ${l.dir}</div>`;
+            ttBody.innerHTML = l.stops.map((s, i) => {
+                const det = db.stopDetails[cleanKey(s.name)] || {outZone: false};
+                return `<div class="app-card stop-card" onclick="renderTimetable(${lIdx}, ${i})" style="cursor:pointer;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="background:var(--accent); width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem;">${i+1}</span>
+                        <div><b>${s.name}</b> ${s.nz ? '<span class="badge-inline bg-nz">NŻ</span>' : ''} ${det.outZone ? '<span class="badge-inline bg-strefa">Strefa</span>' : ''}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            document.getElementById('tt-head').innerHTML = `<div class="group-label">${l.num} | ${l.stops[sIdx].name}</div>`;
+            let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time || 0);
+            const hMap = {};
+            let raw = (curDay==='working' ? l.hoursWorking : curDay==='saturday' ? l.hoursSat : l.hoursSun) || "";
+            let html = `<div class="timetable-container"><div class="tt-header-box"><b style="color:black;">Kierunek: ${l.dir}</b></div>`;
+            if(!raw) html += '<div style="padding:15px; color:black">Brak kursów w tym dniu.</div>';
+            else {
+                raw.split(',').forEach(h => {
+                    let p = h.trim().split(':'); if(p.length < 2) return;
+                    let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
+                    let hr = d.getHours().toString().padStart(2, '0'), mn = d.getMinutes().toString().padStart(2, '0');
+                    if(!hMap[hr]) hMap[hr] = []; hMap[hr].push(mn);
+                });
+                Object.keys(hMap).sort().forEach(hr => html += `<div class="tt-row"><div class="tt-hour-col">${hr}</div><div class="tt-min-col">${hMap[hr].sort().map(m => `<span class="tt-min-val">${m}</span>`).join('')}</div></div>`);
+            }
+            ttBody.innerHTML = html + `</div>`;
+        }
+        document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);
+    }
+
+    // NEWSY
     function openNewsDetails(i) {
         const n = db.news[i];
         document.getElementById('nd-title').innerText = n.title;
@@ -251,7 +312,7 @@
     }
     function deleteNews(i) { if(confirm("Usunąć?")) { db.news.splice(i, 1); dbRef.update({ news: db.news }); } }
 
-    // SYSTEMOWE
+    // POZOSTAŁE
     function upStop(name, val, field) {
         const key = cleanKey(name);
         if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", outZone:false, alwaysNZ:false};
@@ -271,8 +332,8 @@
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
+    function setDay(d) { curDay=d; document.querySelectorAll('#tt-day-sel button').forEach(b=>b.style.background='#444'); document.getElementById('btn-'+d).style.background='var(--accent)'; renderTimetable(curLineIdx, curStopIdx); }
 
-    // LINIE I ROZKŁADY (ZACHOWANE)
     function openLineForm(idx) {
         curLineIdx = idx;
         const l = idx === -1 ? {num:"", dir:"", type:"bus", category:db.lineCategories[0], stops:[], hoursWorking:"", hoursSat:"", hoursSun:""} : db.lines[idx];
@@ -292,10 +353,7 @@
         div.className = 'stop-edit-row';
         div.innerHTML = `<button class="btn-del-stop" onclick="this.parentElement.remove()">X</button>
             <input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <input type="number" value="${time}" class="stop-time-in" style="width:50px; margin:0;">
-                <label style="font-size:0.7rem;"><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label>
-            </div>`;
+            <div style="display:flex; align-items:center; gap:10px;"><input type="number" value="${time}" class="stop-time-in" style="width:50px; margin:0;"><label style="font-size:0.7rem;"><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label></div>`;
         document.getElementById('fl-list').appendChild(div);
     }
     function saveLine() {
@@ -308,48 +366,7 @@
         if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
         dbRef.update({ lines: db.lines }).then(() => { alert("Zapisano!"); closeForms(); });
     }
-    function openVars(num) { 
-        show('vars'); 
-        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`; 
-        const v = document.getElementById('vars-list'); v.innerHTML = ''; 
-        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`; }); 
-    }
-    function renderTimetable(lIdx, sIdx = -1) {
-        curLineIdx = lIdx; curStopIdx = sIdx; show('tt');
-        const l = db.lines[lIdx];
-        const ttBody = document.getElementById('tt-body');
-        document.getElementById('tt-day-sel').style.display = sIdx === -1 ? 'none' : 'flex';
-        if (sIdx === -1) {
-            ttBody.innerHTML = l.stops.map((s, i) => {
-                const det = db.stopDetails[cleanKey(s.name)] || {outZone: false};
-                return `<div class="app-card stop-card" onclick="renderTimetable(${lIdx}, ${i})">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <span style="background:var(--accent); width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem;">${i+1}</span>
-                        <div><b>${s.name}</b> ${s.nz ? '<span class="badge-inline bg-nz">NŻ</span>' : ''} ${det.outZone ? '<span class="badge-inline bg-strefa">Gr. strefy</span>' : ''}</div>
-                    </div>
-                </div>`;
-            }).join('');
-        } else {
-            let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time);
-            const hMap = {};
-            let raw = (curDay==='working' ? l.hoursWorking : curDay==='saturday' ? l.hoursSat : l.hoursSun) || "";
-            let html = `<div class="timetable-container"><div class="tt-header-box"><b style="color:black;">${l.stops[sIdx].name}</b></div>`;
-            if(!raw) html += '<div style="padding:15px; color:black">Brak odjazdów.</div>';
-            else {
-                raw.split(',').forEach(h => {
-                    let p = h.trim().split(':'); if(p.length < 2) return;
-                    let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
-                    let hr = d.getHours().toString().padStart(2, '0'), mn = d.getMinutes().toString().padStart(2, '0');
-                    if(!hMap[hr]) hMap[hr] = []; hMap[hr].push(mn);
-                });
-                Object.keys(hMap).sort().forEach(hr => html += `<div class="tt-row"><div class="tt-hour-col">${hr}</div><div class="tt-min-col">${hMap[hr].sort().map(m => `<span class="tt-min-val">${m}</span>`).join('')}</div></div>`);
-            }
-            ttBody.innerHTML = html + `</div>`;
-        }
-        document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);
-    }
-    function setDay(d) { curDay=d; document.querySelectorAll('#tt-day-sel button').forEach(b=>b.style.background='#444'); document.getElementById('btn-'+d).style.background='var(--accent)'; renderTimetable(curLineIdx, curStopIdx); }
-    function exportDB() { const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); const a = document.createElement('a'); a.href = data; a.download = "mzk_backup.json"; a.click(); }
+    function exportDB() { const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); const a = document.createElement('a'); a.href = data; a.download = "backup_gorzow.json"; a.click(); }
 </script>
 </body>
 </html>

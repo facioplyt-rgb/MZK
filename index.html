@@ -175,6 +175,7 @@
     }
 
     function render() {
+        // Render Linii na Home
         const home = document.getElementById('s-home'); home.innerHTML = '';
         db.lineCategories.forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
@@ -188,25 +189,30 @@
             }
         });
 
+        // Render News
         document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card news-card"><h3>${n.title}</h3><p style="font-size:0.85rem; color:var(--text-sec); margin-top:5px;">${n.content}</p></div>`).join('');
+        
+        // Render Przystanków (Publiczna lista)
+        filterStops();
+
+        // Admin
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "";
         renderAdminStops();
     }
 
-    function openNewsForm(idx) {
-        currentNewsIdx = idx;
-        const n = idx === -1 ? {title:"", content:""} : db.news[idx];
-        document.getElementById('fn-title').value = n.title;
-        document.getElementById('fn-content').value = n.content;
-        document.getElementById('form-news').style.display = 'block';
-    }
-
-    function saveNews() {
-        const nData = { title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value };
-        if(currentNewsIdx === -1) db.news.push(nData); else db.news[currentNewsIdx] = nData;
-        dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); });
+    function filterStops() {
+        const q = document.getElementById('stop-search').value.toLowerCase();
+        const list = document.getElementById('public-stops-list');
+        list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => {
+            const det = db.stopDetails[cleanKey(s)] || {nearby:""};
+            return `<div class="app-card" style="display:block">
+                <b>${s}</b>
+                ${det.nearby?`<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>`:''}
+                <div class="stop-lines-row">${getOtherLines(s, "")}</div>
+            </div>`;
+        }).join('');
     }
 
     function renderTimetable(lineIdx, stopIdx = -1) {
@@ -244,6 +250,7 @@
     }
 
     function updateNearby(stopName, val) { dbRef.child('stopDetails').child(cleanKey(stopName)).set({ nearby: val }); }
+    
     function saveLine() {
         const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({ name: el.querySelector('.edit-stop-name').value.trim(), time: parseInt(el.querySelector('.edit-stop-time').value) || 0, nz: el.querySelector('input[type="checkbox"]').checked }));
         const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops };
@@ -251,9 +258,10 @@
         dbRef.update({ lines: db.lines }).then(() => { alert("ZAPISANO!"); closeForms(); });
     }
 
-    function filterStops() {
-        const q = document.getElementById('stop-search').value.toLowerCase();
-        document.getElementById('public-stops-list').innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => `<div class="app-card" style="display:block"><b>${s}</b><div class="stop-lines-row">${getOtherLines(s, "")}</div></div>`).join('');
+    function saveNews() {
+        const nData = { title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value };
+        if(currentNewsIdx === -1) db.news.push(nData); else db.news[currentNewsIdx] = nData;
+        dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); });
     }
 
     function renderAdminStops() {
@@ -288,6 +296,14 @@
         show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
         const list = document.getElementById('vars-list'); list.innerHTML = '';
         db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>Kierunek: ${l.dir}</b></div>`; });
+    }
+
+    function openNewsForm(idx) {
+        currentNewsIdx = idx;
+        const n = idx === -1 ? {title:"", content:""} : db.news[idx];
+        document.getElementById('fn-title').value = n.title;
+        document.getElementById('fn-content').value = n.content;
+        document.getElementById('form-news').style.display = 'block';
     }
 
     function setDay(d) { currentDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(currentLineIndex, focusedStopIdx); }

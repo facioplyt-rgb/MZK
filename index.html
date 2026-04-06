@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V95</title>
+    <title>MZK GORZÓW PRO V97</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -23,11 +23,19 @@
         .app-card { background: var(--surface); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; }
         .app-card:active { transform: scale(0.98); background: var(--surface-light); }
         
+        /* Nowy styl szerokiej karty linii na ekranie głównym */
+        .line-full-card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
+        .line-full-header { display: flex; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); }
+        .line-full-num { font-size: 1.6rem; font-weight: 900; margin-right: 15px; min-width: 50px; }
+        .line-variant-row { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .line-variant-row:last-child { border-bottom: none; }
+        .line-variant-row:active { background: var(--surface-light); }
+        .variant-dir { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+
         .stop-name { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; }
         .line-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; min-height: 24px; }
         
         .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.75rem; color: white; border: 1px solid rgba(0,0,0,0.1); white-space: nowrap; }
-        /* Klasy kolorów wymuszane w JS dla pewności przy dużej ilości */
         .line-badge.bus { background-color: var(--bus-col) !important; }
         .line-badge.tram { background-color: var(--tram-col) !important; }
         
@@ -51,9 +59,6 @@
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.2rem; margin-bottom: 4px; }
 
-        .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 10px; }
-        .line-square { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-bottom: 4px solid transparent; }
-        
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
         .tt-hour-col { background: rgba(255,255,255,0.03); width: 60px; padding: 15px 0; text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--accent); border-right: 1px solid var(--border); }
@@ -220,7 +225,7 @@
     }
 
     function getETA(line, stopIdx) {
-        if(!line || !line.stops || line.stops.length === 0) return null;
+        if(!line || !line.stops || line.stops.length === 0 || stopIdx < 0) return null;
         const now = new Date();
         const dayOfWeek = now.getDay();
         let dayType = 'working';
@@ -243,17 +248,18 @@
 
     function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
-        db.lines.forEach(l => { 
-            const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1;
+        db.lines.forEach((l, idx) => { 
+            const sIdx = l.stops ? l.stops.findIndex(st => st.name.trim() === stopName.trim()) : -1;
             if(sIdx !== -1) { 
                 const eta = getETA(l, sIdx);
-                found.push({num: l.num, type: l.type, eta: eta, dir: l.dir, lIdx: db.lines.indexOf(l), sIdx: sIdx}); 
+                found.push({num: l.num, type: l.type, eta: eta, dir: l.dir, lIdx: idx, sIdx: sIdx}); 
             } 
         });
         let unique = {};
         found.forEach(f => {
-            if(!unique[f.num] || (f.eta !== null && (unique[f.num].eta === null || f.eta < unique[f.num].eta))) {
-                unique[f.num] = f;
+            const key = String(f.num);
+            if(!unique[key] || (f.eta !== null && (unique[key].eta === null || f.eta < unique[key].eta))) {
+                unique[key] = f;
             }
         });
         return Object.values(unique).filter(f => excludeLineNum === null || String(f.num) !== String(excludeLineNum)).sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
@@ -276,7 +282,7 @@
                 if(!db.news) db.news = [];
                 if(!db.customAbbrs) db.customAbbrs = {};
                 let sSet = new Set(); 
-                db.lines.forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name)); }); 
+                db.lines.forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name.trim())); }); 
                 allStops = [...sSet].sort(); 
                 render(); 
             }
@@ -286,18 +292,46 @@
     function render() {
         const h = document.getElementById('s-home'); h.innerHTML = '';
         (db.lineCategories || []).forEach(cat => {
-            const lines = db.lines.filter(l => l.category === cat);
-            if(lines.length) {
+            const linesInCategory = db.lines.filter(l => l.category === cat);
+            if(linesInCategory.length) {
                 h.innerHTML += `<div class="group-label">${cat}</div>`;
-                const g = document.createElement('div'); g.className = 'lines-grid';
-                [...new Set(lines.map(l => String(l.num)))].sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
-                    const lObj = lines.find(x => String(x.num) === num);
-                    const colorClass = lObj.type === 'tram' ? 'tram' : 'bus';
-                    g.innerHTML += `<div class="line-square" style="border-bottom-color:var(--${colorClass}-col)" onclick="openVars('${num}', 'home')">${num}</div>`;
+                
+                // Unikalne numery linii w tej kategorii
+                const uniqueNums = [...new Set(linesInCategory.map(l => String(l.num)))].sort((a,b) => parseInt(a)-parseInt(b));
+                
+                uniqueNums.forEach(num => {
+                    const variants = linesInCategory.filter(l => String(l.num) === num);
+                    const lType = variants[0].type;
+                    const typeColorClass = lType === 'tram' ? 'tram' : 'bus';
+                    
+                    let cardHtml = `
+                    <div class="line-full-card">
+                        <div class="line-full-header">
+                            <span class="line-badge ${typeColorClass} line-full-num">${num}</span>
+                            <span style="font-weight:800; font-size:0.8rem; color:var(--text-sec); text-transform:uppercase;">${lType === 'tram' ? 'Tramwaj' : 'Autobus'}</span>
+                        </div>
+                        <div class="line-variants-list">`;
+                    
+                    variants.forEach(v => {
+                        const eta = getETA(v, 0);
+                        const etaStr = eta === 0 ? '<span class="eta-now">>>></span>' : eta !== null ? formatETA(eta) : "---";
+                        const vIdx = db.lines.indexOf(v);
+                        cardHtml += `
+                        <div class="line-variant-row" onclick="renderTimetable(${vIdx})">
+                            <div class="variant-dir">
+                                <span class="dir-abbr">${getDirAbbr(v.dir)}</span>
+                                <span>${v.dir}</span>
+                            </div>
+                            <span class="eta-tag">${etaStr}</span>
+                        </div>`;
+                    });
+                    
+                    cardHtml += `</div></div>`;
+                    h.innerHTML += cardHtml;
                 });
-                h.appendChild(g);
             }
         });
+        
         const nDiv = document.getElementById('public-news-list'); nDiv.innerHTML = '';
         (db.newsCategories || []).forEach(cat => {
             const news = (db.news || []).filter(n => n.category === cat);
@@ -318,23 +352,24 @@
         const listDiv = document.getElementById('public-stops-list'); listDiv.innerHTML = ''; 
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
             const d = db.stopDetails[cleanKey(name)] || {};
-            let uniqueLines = {};
+            let stopLines = {};
             db.lines.forEach(l => {
-                const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1;
+                const sIdx = l.stops ? l.stops.findIndex(st => st.name.trim() === name.trim()) : -1;
                 if(sIdx !== -1) {
                     const eta = getETA(l, sIdx);
-                    if(!uniqueLines[l.num] || (eta !== null && (uniqueLines[l.num].eta === null || eta < uniqueLines[l.num].eta))) {
-                        uniqueLines[l.num] = { num: l.num, type: l.type, eta: eta, dirs: [l.dir] };
-                    } else if (eta === uniqueLines[l.num].eta && eta !== null) {
-                        if(!uniqueLines[l.num].dirs.includes(l.dir)) uniqueLines[l.num].dirs.push(l.dir);
+                    if(!stopLines[l.num] || (eta !== null && (stopLines[l.num].eta === null || eta < stopLines[l.num].eta))) {
+                        stopLines[l.num] = { num: l.num, type: l.type, eta: eta, dirs: [l.dir] };
+                    } else if (eta === stopLines[l.num].eta && eta !== null) {
+                        if(!stopLines[l.num].dirs.includes(l.dir)) stopLines[l.num].dirs.push(l.dir);
                     }
                 }
             });
+
             listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')">
                     <div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
                     ${d.nearby ? `<div class="nearby-box"><i class="fa-solid fa-location-dot"></i> ${d.nearby}</div>` : ''}
-                    <div class="line-badges">${Object.values(uniqueLines).map(l => {
-                            const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(l.eta)})`;
+                    <div class="line-badges">${Object.values(stopLines).map(l => {
+                            const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : l.eta !== null ? `(${formatETA(l.eta)})` : '(---)';
                             const abbrs = l.dirs.map(dr => `<span class="dir-abbr">${getDirAbbr(dr)}</span>`).join('<span class="abbr-joiner">i</span>');
                             const typeClass = l.type === 'tram' ? 'tram' : 'bus';
                             return `<span class="line-badge ${typeClass}">${l.num}${abbrs}<span class="transfer-eta">${etaStr}</span></span>`;
@@ -347,7 +382,7 @@
         list.innerHTML = `<div class="group-label" style="color:var(--accent)">Odjazdy z: ${name}</div>`; 
         let variants = []; 
         db.lines.forEach((l, i) => { 
-            const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
+            const sIdx = l.stops ? l.stops.findIndex(st => st.name.trim() === name.trim()) : -1; 
             if(sIdx !== -1) variants.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
         });
         variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
@@ -371,13 +406,15 @@
                 const currentEtaHtml = currentLineETA !== null ? `<span class="eta-tag">${currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)}</span>` : `<span class="eta-tag" style="background:rgba(255,255,255,0.05); color:var(--text-sec)">---</span>`;
                 const sd = db.stopDetails[cleanKey(s.name)] || {};
                 const badges = `${(s.nz || sd.globalNz) ? '<span class="badge badge-nz">NŻ</span>' : ''} ${sd.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}`;
+                
                 const transfers = getLinesForStop(s.name, l.num);
-                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.9;">` + transfers.slice(0,12).map(t => {
+                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.9;">` + transfers.map(t => {
                     const tType = t.type === 'tram' ? 'tram' : 'bus';
                     return `<span class="line-badge ${tType}" style="font-size:0.6rem; padding:2px 4px;" onclick="event.stopPropagation(); openInterTransfer('${t.num}', '${s.name}', ${lIdx})">
                         ${t.num} <span class="dir-abbr">${getDirAbbr(t.dir)}</span>
-                        <span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span>
+                        <span class="transfer-eta">${t.eta===0?'>>>':t.eta!==null?formatETA(t.eta):'---'}</span>
                     </span>`}).join('') + `</div>` : "";
+                
                 return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
                             <div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-weight:bold;">${s.name} ${badges}</div>${currentEtaHtml}</div>${transHtml}</div>`;
             }).join('');
@@ -397,7 +434,7 @@
             Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().map(m => `<span class="tt-min-val">${m}</span>`).join(' ')}</div></div>`);
             ttBody.innerHTML = html + `</div>`;
         }
-        document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);
+        document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('home') : renderTimetable(lIdx, -1);
     }
 
     /* --- ADMIN --- */
@@ -523,7 +560,10 @@
     function exportDB() { const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); const a = document.createElement('a'); a.href = data; a.download = "mzk_backup.json"; a.click(); }
     function openInterTransfer(lineNum, stopName, backLineIdx) {
         show('transfer-view'); const cont = document.getElementById('transfer-view-content'); cont.innerHTML = `<div class="group-label">Linia ${lineNum} z przystanku ${stopName}</div>`;
-        let found = []; db.lines.forEach((l, i) => { if(String(l.num) === String(lineNum)) { const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1; if(sIdx !== -1) found.push({ line: l, lIdx: i, sIdx: sIdx, eta: getETA(l, sIdx) }); } });
+        let found = []; db.lines.forEach((l, i) => { if(String(l.num) === String(lineNum)) { 
+            const sIdx = l.stops ? l.stops.findIndex(st => st.name.trim() === stopName.trim()) : -1; 
+            if(sIdx !== -1) found.push({ line: l, lIdx: i, sIdx: sIdx, eta: getETA(l, sIdx) }); 
+        } });
         found.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
         found.forEach(f => { 
             const etaLabel = f.eta === 0 ? '<span class="eta-now">>>></span>' : f.eta !== null ? formatETA(f.eta) : "---"; 

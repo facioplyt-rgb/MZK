@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V124</title>
+    <title>MZK GORZÓW PRO V125</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -34,7 +34,6 @@
         header { background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); padding: 25px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         
-        /* KARTY */
         .app-card { background: var(--surface); padding: 22px; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
         .app-card:active { transform: scale(0.98); }
 
@@ -52,7 +51,6 @@
         .eta-tag { font-size: 0.85rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0, 171, 85, 0.2); display: flex; align-items: center; gap: 5px; }
         .transfer-eta { font-size: 0.75rem; font-weight: 900; margin-left: 8px; color: #fff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
         
-        /* MINI SKRÓT W BOXIE PRZYSTANKU */
         .mini-dir { font-size: 0.65rem; opacity: 0.9; margin-left: 6px; background: rgba(0,0,0,0.25); padding: 2px 5px; border-radius: 4px; font-weight: 600; }
 
         .badge { font-size: 0.7rem; padding: 3px 7px; border-radius: 6px; font-weight: 800; text-transform: uppercase; margin-left: 8px; }
@@ -114,13 +112,13 @@
             <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none; margin-top:20px;">
-            <button onclick="showTab('tab-lines')" class="main-btn">Linie</button>
+            <button onclick="showTab('tab-lines')" class="main-btn">Zarządzaj Liniami</button>
             <button onclick="showTab('tab-stops')" class="main-btn">Przystanki</button>
-            <button onclick="showTab('tab-news')" class="main-btn">News/Kontakt</button>
+            <button onclick="showTab('tab-news')" class="main-btn">Kontakt/Info</button>
             
-            <div id="tab-lines" style="display:none; margin-top:20px;">
-                <h4>Linia</h4>
-                <input type="text" id="l-num" placeholder="Nr">
+            <div id="tab-lines" style="display:none; margin-top:15px;">
+                <h4>Dodaj/Edytuj Linię</h4>
+                <input type="text" id="l-num" placeholder="Nr linii">
                 <input type="text" id="l-dir" placeholder="Kierunek">
                 <select id="l-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
                 <input type="text" id="l-cat" placeholder="Kategoria">
@@ -128,19 +126,19 @@
                 <textarea id="l-hw" placeholder="Godziny Robocze"></textarea>
                 <textarea id="l-hs" placeholder="Godziny Soboty"></textarea>
                 <textarea id="l-hn" placeholder="Godziny Niedz"></textarea>
-                <button onclick="saveLine()" class="main-btn">Zapisz</button>
+                <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
                 <div id="adm-lines-list"></div>
             </div>
-            
-            <div id="tab-stops" style="display:none; margin-top:20px;">
-                <input type="text" id="st-name-set" placeholder="Nazwa przystanku">
-                <label><input type="checkbox" id="st-nz"> NŻ</label>
-                <button onclick="saveStopDetail()" class="main-btn">Zapisz</button>
+
+            <div id="tab-stops" style="display:none; margin-top:15px;">
+                <input type="text" id="st-name-set" placeholder="Pełna nazwa przystanku">
+                <label><input type="checkbox" id="st-nz"> Globalne NŻ</label>
+                <button onclick="saveStopDetail()" class="main-btn">Zapisz ustawienia</button>
             </div>
-            
-            <div id="tab-news" style="display:none; margin-top:20px;">
-                <textarea id="adm-contact" placeholder="Kontakt..."></textarea>
-                <button onclick="saveContact()" class="main-btn">Zapisz</button>
+
+            <div id="tab-news" style="display:none; margin-top:15px;">
+                <textarea id="adm-contact" style="height:150px;" placeholder="Treść sekcji Info"></textarea>
+                <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
             </div>
         </div>
     </div>
@@ -293,7 +291,6 @@
 
     function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
     
-    // ADMIN FUNCTIONS
     function saveLine() {
         const stopsArr = document.getElementById('l-stops').value.split(',').map(s => { const p = s.split('|'); return { name: p[0].trim(), time: p[1]||0 }; });
         const l = { num: document.getElementById('l-num').value, dir: document.getElementById('l-dir').value, type: document.getElementById('l-type').value, category: document.getElementById('l-cat').value, stops: stopsArr, hoursWorking: document.getElementById('l-hw').value, hoursSat: document.getElementById('l-hs').value, hoursSun: document.getElementById('l-hn').value };
@@ -301,7 +298,7 @@
         db.lines.push(l); dbRef.set(db).then(()=>alert("OK"));
     }
     function renderAdmLines() { const list = document.getElementById('adm-lines-list'); if(list) list.innerHTML = db.lines.map((l, i) => `<div style="padding:5px;">${l.num} -> ${l.dir} <button onclick="db.lines.splice(${i},1);dbRef.set(db)">X</button></div>`).join(''); }
-    function saveStopDetail() { const name = document.getElementById('st-name-set').value; if(!db.stopDetails) db.stopDetails = {}; db.stopDetails[cleanKey(name)] = { globalNz: document.getElementById('st-nz').checked }; dbRef.set(db).then(()=>alert("Zapisano")); }
+    function saveStopDetail() { const name = document.getElementById('st-name-set').value; if(!db.stopDetails) db.stopDetails = {}; db.stopDetails[cleanKey(name)] = { globalNz: document.getElementById('st-nz').checked }; dbRef.set(db).then(()=>alert("OK")); }
     function saveContact() { db.contact = document.getElementById('adm-contact').value; dbRef.set(db); }
 
     setInterval(() => {

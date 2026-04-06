@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW</title>
+    <title>MZK GORZÓW PRO V94</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -153,11 +153,9 @@
     <textarea id="fl-h-work" placeholder="Godziny Robocze (HH:MM, HH:MM...)"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
-    
     <div class="group-label">Szybki import przystanków</div>
-    <textarea id="import-area" style="height:80px;" placeholder="Wklej listę nazw przystanków..."></textarea>
+    <textarea id="import-area" style="height:80px;" placeholder="Wklej listę nazw..."></textarea>
     <button onclick="importStopsFromText()" class="main-btn" style="background:#1e293b; border: 1px dashed var(--accent);">Dodaj listę (+1 min interwał)</button>
-
     <div id="fl-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Pojedynczy Przystanek</button>
     <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
@@ -401,17 +399,20 @@
     function renderAdmin() {
         const lList = document.getElementById('adm-lines-list'); lList.innerHTML = '';
         db.lines.forEach((l, i) => {
-            const endStop = (l.stops && l.stops.length > 0) ? l.stops[l.stops.length-1].name : "Brak przystanków";
+            const endStop = (l.stops && l.stops.length > 0) ? l.stops[l.stops.length-1].name : "Brak";
             lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})"><b>${l.num}</b> &raquo; ${l.dir} <br><small style="color:var(--text-sec)">Koniec: ${endStop}</small></div>`;
         });
         const sList = document.getElementById('adm-stops-list'); sList.innerHTML = '';
-        allStops.forEach(s => sList.innerHTML += `<div class="app-card" onclick="openGlobalStopForm('${s}')">${s}</div>`);
+        allStops.forEach(s => {
+            const d = db.stopDetails[cleanKey(s)] || {};
+            const nearbyMark = d.nearby ? ' <i class="fa-solid fa-location-dot" style="color:var(--warn)"></i>' : '';
+            sList.innerHTML += `<div class="app-card" onclick="openGlobalStopForm('${s}')">${s}${nearbyMark}</div>`;
+        });
         const nList = document.getElementById('adm-news-list'); nList.innerHTML = '';
         (db.news || []).forEach((n, i) => nList.innerHTML += `<div class="app-card" onclick="openNewsForm(${i})">${n.title}</div>`);
         document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
         document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
         document.getElementById('edit-contact-text').value = db.contact || "";
-        
         const abm = document.getElementById('abbr-manager'); abm.innerHTML = '';
         if(db.customAbbrs) { Object.entries(db.customAbbrs).forEach(([k, v]) => addAbbrRow(k, v)); }
     }
@@ -433,30 +434,19 @@
     }
 
     function importStopsFromText() {
-        const text = document.getElementById('import-area').value.trim();
-        if(!text) return;
+        const text = document.getElementById('import-area').value.trim(); if(!text) return;
         const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-        lines.forEach((name, i) => {
-            const listLen = document.querySelectorAll('#fl-list > .adm-stop-card').length;
-            addStopRow(name, (i === 0 && listLen === 0) ? 0 : 1, false);
-        });
+        lines.forEach((name, i) => { const listLen = document.querySelectorAll('#fl-list > .adm-stop-card').length; addStopRow(name, (i === 0 && listLen === 0) ? 0 : 1, false); });
         document.getElementById('import-area').value = "";
     }
 
     function openLineForm(idx) {
-        curLineIdx = idx;
-        const l = idx === -1 ? {num:"", dir:"", type:"bus", category:"", stops:[], hoursWorking:"", hoursSat:"", hoursSun:""} : db.lines[idx];
-        document.getElementById('fl-num').value = l.num;
-        document.getElementById('fl-dir').value = l.dir;
-        document.getElementById('fl-type').value = l.type || "bus";
+        curLineIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", category:"", stops:[], hoursWorking:"", hoursSat:"", hoursSun:""} : db.lines[idx];
+        document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; document.getElementById('fl-type').value = l.type || "bus";
         document.getElementById('fl-cat').innerHTML = (db.lineCategories || []).map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
-        document.getElementById('fl-h-work').value = l.hoursWorking || "";
-        document.getElementById('fl-h-sat').value = l.hoursSat || "";
-        document.getElementById('fl-h-sun').value = l.hoursSun || "";
-        document.getElementById('fl-list').innerHTML = '';
-        (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
-        document.getElementById('btn-del-line').style.display = idx === -1 ? 'none' : 'block';
-        document.getElementById('form-line').style.display = 'block';
+        document.getElementById('fl-h-work').value = l.hoursWorking || ""; document.getElementById('fl-h-sat').value = l.hoursSat || ""; document.getElementById('fl-h-sun').value = l.hoursSun || "";
+        document.getElementById('fl-list').innerHTML = ''; (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
+        document.getElementById('btn-del-line').style.display = idx === -1 ? 'none' : 'block'; document.getElementById('form-line').style.display = 'block';
     }
 
     function addStopRow(name="", time=2, nz=false) {
@@ -477,19 +467,15 @@
     }
 
     function openNewsForm(idx) {
-        curNewsIdx = idx;
-        const n = idx === -1 ? {title:"", body:"", category:""} : db.news[idx];
-        document.getElementById('fn-title').value = n.title;
-        document.getElementById('fn-body').value = n.body;
+        curNewsIdx = idx; const n = idx === -1 ? {title:"", body:"", category:""} : db.news[idx];
+        document.getElementById('fn-title').value = n.title; document.getElementById('fn-body').value = n.body;
         document.getElementById('fn-cat').innerHTML = (db.newsCategories || []).map(c => `<option value="${c}" ${n.category===c?'selected':''}>${c}</option>`).join('');
-        document.getElementById('btn-del-news').style.display = idx === -1 ? 'none' : 'block';
-        document.getElementById('form-news').style.display = 'block';
+        document.getElementById('btn-del-news').style.display = idx === -1 ? 'none' : 'block'; document.getElementById('form-news').style.display = 'block';
     }
 
     function saveNews() {
         const data = { title: document.getElementById('fn-title').value, body: document.getElementById('fn-body').value, category: document.getElementById('fn-cat').value, date: new Date().toLocaleDateString() };
-        if(!db.news) db.news = [];
-        if(curNewsIdx === -1) db.news.push(data); else db.news[curNewsIdx] = data;
+        if(!db.news) db.news = []; if(curNewsIdx === -1) db.news.push(data); else db.news[curNewsIdx] = data;
         dbRef.update({ news: db.news }).then(() => closeForms());
     }
 
@@ -504,8 +490,16 @@
 
     function saveGlobalStop() {
         if(!db.stopDetails) db.stopDetails = {};
-        db.stopDetails[cleanKey(document.getElementById('fsg-name').innerText)] = { globalNz: document.getElementById('fsg-nz').checked, outZone: document.getElementById('fsg-zone').checked, nearby: document.getElementById('fsg-nearby').value };
-        dbRef.update({ stopDetails: db.stopDetails }).then(() => closeForms());
+        const stopName = document.getElementById('fsg-name').innerText;
+        db.stopDetails[cleanKey(stopName)] = { 
+            globalNz: document.getElementById('fsg-nz').checked, 
+            outZone: document.getElementById('fsg-zone').checked, 
+            nearby: document.getElementById('fsg-nearby').value 
+        };
+        dbRef.update({ stopDetails: db.stopDetails }).then(() => {
+            alert("Ustawienia przystanku zapisane!");
+            closeForms();
+        });
     }
 
     function openNewsDetails(idx) { const n = db.news[idx]; document.getElementById('nd-title').innerText = n.title; document.getElementById('nd-date').innerText = n.date; document.getElementById('nd-body').innerText = n.body; show('news-details'); }
@@ -515,16 +509,9 @@
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
     
     function openVars(num, backTo, backIdx) { 
-        show('vars'); const v = document.getElementById('vars-list'); 
-        v.innerHTML = `<div class="group-label">Warianty linii ${num}</div>`; 
-        db.lines.forEach((l, i) => { 
-            if(String(l.num) === String(num)) {
-                const eta = getETA(l, 0);
-                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><b><span class="dir-abbr">${getDirAbbr(l.dir)}</span> DO: ${l.dir}</b><span class="eta-tag" style="margin-left:10px;">${eta!==null?formatETA(eta):'---'}</span></div></div>`; 
-            }
-        }); 
-        const backBtn = document.getElementById('vars-back-btn');
-        if(backTo === 'tt') backBtn.onclick = () => renderTimetable(backIdx); else backBtn.onclick = () => show('home');
+        show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Warianty linii ${num}</div>`; 
+        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) { const eta = getETA(l, 0); v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><b><span class="dir-abbr">${getDirAbbr(l.dir)}</span> DO: ${l.dir}</b><span class="eta-tag" style="margin-left:10px;">${eta!==null?formatETA(eta):'---'}</span></div></div>`; } }); 
+        const backBtn = document.getElementById('vars-back-btn'); if(backTo === 'tt') backBtn.onclick = () => renderTimetable(backIdx); else backBtn.onclick = () => show('home');
     }
 
     function deleteLine() { if(confirm("Usunąć linię?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ lines: db.lines }).then(closeForms); } }
@@ -533,14 +520,10 @@
     function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano info!")); }
     function exportDB() { const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); const a = document.createElement('a'); a.href = data; a.download = "mzk_backup.json"; a.click(); }
     function openInterTransfer(lineNum, stopName, backLineIdx) {
-        show('transfer-view'); const cont = document.getElementById('transfer-view-content');
-        cont.innerHTML = `<div class="group-label">Linia ${lineNum} z przystanku ${stopName}</div>`;
-        let found = [];
-        db.lines.forEach((l, i) => { if(String(l.num) === String(lineNum)) { const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1; if(sIdx !== -1) found.push({ line: l, lIdx: i, sIdx: sIdx, eta: getETA(l, sIdx) }); } });
+        show('transfer-view'); const cont = document.getElementById('transfer-view-content'); cont.innerHTML = `<div class="group-label">Linia ${lineNum} z przystanku ${stopName}</div>`;
+        let found = []; db.lines.forEach((l, i) => { if(String(l.num) === String(lineNum)) { const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1; if(sIdx !== -1) found.push({ line: l, lIdx: i, sIdx: sIdx, eta: getETA(l, sIdx) }); } });
         found.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
-        found.forEach(f => { const etaLabel = f.eta === 0 ? '<span class="eta-now">>>></span>' : f.eta !== null ? formatETA(f.eta) : "---";
-            cont.innerHTML += `<div class="app-card" onclick="renderTimetable(${f.lIdx}, ${f.sIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="dir-abbr">${getDirAbbr(f.line.dir)}</span> <b>${f.line.dir}</b></div><span class="eta-tag">${etaLabel}</span></div></div>`;
-        });
+        found.forEach(f => { const etaLabel = f.eta === 0 ? '<span class="eta-now">>>></span>' : f.eta !== null ? formatETA(f.eta) : "---"; cont.innerHTML += `<div class="app-card" onclick="renderTimetable(${f.lIdx}, ${f.sIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="dir-abbr">${getDirAbbr(f.line.dir)}</span> <b>${f.line.dir}</b></div><span class="eta-tag">${etaLabel}</span></div></div>`; });
         document.getElementById('transfer-view-back').onclick = () => renderTimetable(backLineIdx, -1);
     }
 </script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V86</title>
+    <title>MZK GORZÓW PRO V88</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -39,7 +39,13 @@
         .eta-now { animation: blink 0.8s infinite; color: var(--warn); font-weight: 800; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        .adm-stop-card { background: var(--surface-light); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
+        .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
+        
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--surface); display: flex; height: 75px; border-top: 1px solid var(--border); z-index: 2000; }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.65rem; cursor: pointer; }
+        nav div.active { color: var(--accent); }
+        nav i { font-size: 1.2rem; margin-bottom: 4px; }
+
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
@@ -47,12 +53,6 @@
         .badge { font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
         .badge-nz { background: var(--warn); color: #000; }
         .badge-strefa { background: #444; color: #fff; }
-        .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
-        
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--surface); display: flex; height: 75px; border-top: 1px solid var(--border); z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.65rem; cursor: pointer; }
-        nav div.active { color: var(--accent); }
-        nav i { font-size: 1.2rem; margin-bottom: 4px; }
 
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
@@ -166,7 +166,7 @@
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
     let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "", customAbbrs: {} };
-    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [];
+    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [], activeSection = 'home';
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
     
@@ -222,11 +222,30 @@
         return Object.values(unique).filter(f => excludeLineNum === null || String(f.num) !== String(excludeLineNum)).sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
     }
 
+    function getAllTransfersForLine(lineNum) {
+        let allTransfers = {};
+        db.lines.filter(l => String(l.num) === String(lineNum)).forEach(variant => {
+            if(variant.stops) {
+                variant.stops.forEach(st => {
+                    const stopTransfers = getLinesForStop(st.name, lineNum);
+                    stopTransfers.forEach(t => {
+                        if(!allTransfers[t.num] || (t.eta !== null && (allTransfers[t.num].eta === null || t.eta < allTransfers[t.num].eta))) {
+                            allTransfers[t.num] = t;
+                        }
+                    });
+                });
+            }
+        });
+        return Object.values(allTransfers).sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta))).slice(0, 6);
+    }
+
     function show(id) { 
+        activeSection = id;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
         document.getElementById('s-'+id)?.classList.add('active-sec'); 
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); 
         document.getElementById('n-'+id)?.classList.add('active'); 
+        render(); // Wymuś render przy zmianie sekcji
     }
 
     init();
@@ -240,10 +259,24 @@
                 render(); 
             }
         });
+        // AUTOMATYCZNE ODŚWIEŻANIE CO 10 SEKUND
+        setInterval(() => {
+            if (document.querySelectorAll('.overlay-form[style*="block"]').length === 0) {
+                render();
+            }
+        }, 10000);
     }
 
     function render() {
-        // GŁÓWNA LISTA LINII
+        if(activeSection === 'home') renderHome();
+        if(activeSection === 'stops') renderStopsList();
+        if(activeSection === 'news') renderNews();
+        if(activeSection === 'adm') renderAdmin();
+        if(activeSection === 'vars') openVars(curLineIdxNum); 
+        // Note: curLineIdxNum musi być zapisany globalnie przy openVars
+    }
+
+    function renderHome() {
         const h = document.getElementById('s-home'); h.innerHTML = '';
         (db.lineCategories || []).forEach(cat => {
             const linesInCat = db.lines.filter(l => l.category === cat);
@@ -258,8 +291,9 @@
                 Object.values(grouped).sort((a,b) => parseInt(a.num) - parseInt(b.num)).forEach(lObj => {
                     const bestEta = lObj.variants.reduce((min, v) => (v.eta !== null && (min === null || v.eta < min)) ? v.eta : min, null);
                     const etaLabel = bestEta === 0 ? '<span class="eta-now">>>></span>' : bestEta !== null ? `(${formatETA(bestEta)})` : "";
-                    // Skróty kierunków na pierwszy rzut oka
                     const abbrsHtml = lObj.variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('<span class="abbr-joiner">|</span>');
+                    const transfers = getAllTransfersForLine(lObj.num);
+                    const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:8px; opacity:0.85;">` + transfers.map(t => `<span class="line-badge ${t.type}" style="font-size:0.65rem; padding:2px 5px;">${t.num}<span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
 
                     h.innerHTML += `
                         <div class="app-card" onclick="openVars('${lObj.num}')">
@@ -267,29 +301,16 @@
                             <div class="line-badges">
                                 <span class="line-badge ${lObj.type}">${lObj.num}${abbrsHtml}<span class="transfer-eta">${etaLabel}</span></span>
                             </div>
+                            ${transHtml}
                         </div>`;
                 });
             }
         });
-
-        const nDiv = document.getElementById('public-news-list'); nDiv.innerHTML = '';
-        (db.newsCategories || []).forEach(cat => {
-            const news = (db.news || []).filter(n => n.category === cat);
-            if(news.length) {
-                nDiv.innerHTML += `<div class="group-label">${cat}</div>`;
-                news.forEach(item => {
-                    nDiv.innerHTML += `<div class="app-card" onclick="openNewsDetails(${db.news.indexOf(item)})"><b>${item.title}</b><br><small>${item.date || ''}</small></div>`;
-                });
-            }
-        });
-        document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
-        renderStopsList();
-        renderAdmin();
     }
 
     function renderStopsList() { 
         const q = document.getElementById('stop-search').value.toLowerCase(); 
-        const listDiv = document.getElementById('public-stops-list'); listDiv.innerHTML = ''; 
+        const listDiv = document.getElementById('public-stops-list'); if(!listDiv) return; listDiv.innerHTML = ''; 
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
             const d = db.stopDetails[cleanKey(name)] || {};
             let uniqueLines = {};
@@ -316,6 +337,20 @@
                     </div>
                 </div>`; 
         }); 
+    }
+
+    function renderNews() {
+        const nDiv = document.getElementById('public-news-list'); if(!nDiv) return; nDiv.innerHTML = '';
+        (db.newsCategories || []).forEach(cat => {
+            const news = (db.news || []).filter(n => n.category === cat);
+            if(news.length) {
+                nDiv.innerHTML += `<div class="group-label">${cat}</div>`;
+                news.forEach(item => {
+                    nDiv.innerHTML += `<div class="app-card" onclick="openNewsDetails(${db.news.indexOf(item)})"><b>${item.title}</b><br><small>${item.date || ''}</small></div>`;
+                });
+            }
+        });
+        document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
     }
 
     function openStopLines(name) { 
@@ -361,7 +396,7 @@
     }
 
     function renderAdmin() {
-        const lList = document.getElementById('adm-lines-list'); lList.innerHTML = '';
+        const lList = document.getElementById('adm-lines-list'); if(!lList) return; lList.innerHTML = '';
         (db.lines || []).forEach((l, i) => lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})">${l.num} -> ${l.dir}</div>`);
         const sList = document.getElementById('adm-stops-list'); sList.innerHTML = '';
         allStops.forEach(s => sList.innerHTML += `<div class="app-card" onclick="openGlobalStopForm('${s}')">${s}</div>`);
@@ -425,8 +460,9 @@
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
     
-    // ZAWSZE OTWIERA WARIANTY
+    let curLineIdxNum = "";
     function openVars(num) { 
+        curLineIdxNum = num;
         show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
         db.lines.forEach((l, i) => { 
             if(String(l.num) === String(num)) {

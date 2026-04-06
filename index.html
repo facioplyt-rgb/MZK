@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V92</title>
+    <title>MZK GORZÓW</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -61,7 +61,6 @@
         .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
 
-        /* Admin Styles */
         .adm-stop-card { background: var(--surface-light); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
@@ -69,6 +68,8 @@
         
         .abbr-row { display: flex; gap: 8px; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; }
         .abbr-row input { margin-bottom: 0; }
+        
+        .nearby-box { font-size: 0.75rem; color: var(--warn); margin-top: 4px; display: flex; align-items: center; gap: 4px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -153,8 +154,8 @@
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
     
-    <div class="group-label" style="border-top:1px solid var(--border); padding-top:10px;">Szybki import przystanków</div>
-    <textarea id="import-area" style="height:80px;" placeholder="Wklej listę nazw przystanków (jeden pod drugim)..."></textarea>
+    <div class="group-label">Szybki import przystanków</div>
+    <textarea id="import-area" style="height:80px;" placeholder="Wklej listę nazw przystanków..."></textarea>
     <button onclick="importStopsFromText()" class="main-btn" style="background:#1e293b; border: 1px dashed var(--accent);">Dodaj listę (+1 min interwał)</button>
 
     <div id="fl-list"></div>
@@ -175,8 +176,11 @@
 
 <div id="form-stop-global" class="overlay-form">
     <h3 id="fsg-name"></h3>
+    <div class="group-label">Ustawienia Przystanku</div>
     <label><input type="checkbox" id="fsg-nz"> Przystanek NŻ (cały dzień)</label><br><br>
     <label><input type="checkbox" id="fsg-zone"> Granica Strefy</label><br><br>
+    <div class="group-label">Co w pobliżu?</div>
+    <textarea id="fsg-nearby" placeholder="Np. Galeria, Dworzec, Szpital..." style="height:80px;"></textarea>
     <button onclick="saveGlobalStop()" class="main-btn">Zapisz Ustawienia</button>
     <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
 </div>
@@ -328,6 +332,7 @@
             });
             listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')">
                     <div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
+                    ${d.nearby ? `<div class="nearby-box"><i class="fa-solid fa-location-dot"></i> ${d.nearby}</div>` : ''}
                     <div class="line-badges">${Object.values(uniqueLines).map(l => {
                             const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(l.eta)})`;
                             const abbrs = l.dirs.map(dr => `<span class="dir-abbr">${getDirAbbr(dr)}</span>`).join('<span class="abbr-joiner">i</span>');
@@ -407,11 +412,8 @@
         document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
         document.getElementById('edit-contact-text').value = db.contact || "";
         
-        // Skróty
         const abm = document.getElementById('abbr-manager'); abm.innerHTML = '';
-        if(db.customAbbrs) {
-            Object.entries(db.customAbbrs).forEach(([k, v]) => addAbbrRow(k, v));
-        }
+        if(db.customAbbrs) { Object.entries(db.customAbbrs).forEach(([k, v]) => addAbbrRow(k, v)); }
     }
 
     function addAbbrRow(k="", v="") {
@@ -436,8 +438,7 @@
         const lines = text.split('\n').map(l => l.trim()).filter(l => l);
         lines.forEach((name, i) => {
             const listLen = document.querySelectorAll('#fl-list > .adm-stop-card').length;
-            const time = (i === 0 && listLen === 0) ? 0 : 1;
-            addStopRow(name, time, false);
+            addStopRow(name, (i === 0 && listLen === 0) ? 0 : 1, false);
         });
         document.getElementById('import-area').value = "";
     }
@@ -460,9 +461,9 @@
 
     function addStopRow(name="", time=2, nz=false) {
         const div = document.createElement('div'); div.className = 'adm-stop-card';
-        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa przystanku">
+        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa">
         <div style="display:flex; align-items:center; gap:10px;"><input type="number" value="${time}" class="stop-time-in" style="width:70px; margin-bottom:0;"> <span>min</span> 
-        <label style="font-size:0.8rem;"><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label>
+        <label><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label>
         <button onclick="this.parentElement.remove()" style="margin-left:auto; background:var(--danger); border:none; color:white; border-radius:6px; padding:5px 10px;">X</button></div>`;
         document.getElementById('fl-list').appendChild(div);
     }
@@ -497,12 +498,13 @@
         document.getElementById('fsg-name').innerText = name;
         document.getElementById('fsg-nz').checked = d.globalNz || false;
         document.getElementById('fsg-zone').checked = d.outZone || false;
+        document.getElementById('fsg-nearby').value = d.nearby || "";
         document.getElementById('form-stop-global').style.display = 'block';
     }
 
     function saveGlobalStop() {
         if(!db.stopDetails) db.stopDetails = {};
-        db.stopDetails[cleanKey(document.getElementById('fsg-name').innerText)] = { globalNz: document.getElementById('fsg-nz').checked, outZone: document.getElementById('fsg-zone').checked };
+        db.stopDetails[cleanKey(document.getElementById('fsg-name').innerText)] = { globalNz: document.getElementById('fsg-nz').checked, outZone: document.getElementById('fsg-zone').checked, nearby: document.getElementById('fsg-nearby').value };
         dbRef.update({ stopDetails: db.stopDetails }).then(() => closeForms());
     }
 

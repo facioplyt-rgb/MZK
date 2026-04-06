@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - System Pro V33</title>
+    <title>MZK GORZÓW - System Pro V34</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
@@ -36,11 +36,12 @@
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: #1c252e; border: 1px solid var(--border); color: white; font-family: inherit; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-        .badge-inline { display: inline-block; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle; text-transform: uppercase; }
-        .bg-strefa { background: #555; color: white; }
+        .badge-inline { display: inline-block; font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 6px; margin-right: 5px; text-transform: uppercase; }
+        .bg-strefa { background: #444; color: white; }
         .bg-nz { background: var(--warn); color: #000; }
-        .stop-info-sub { font-size: 0.75rem; color: var(--text-sec); margin-top: 4px; }
-        .stop-lines-pill { display: inline-block; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 4px; margin-right: 4px; color: var(--accent); font-weight: 600; }
+        .stop-info-sub { font-size: 0.8rem; color: var(--text-sec); margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; }
+        .stop-lines-wrap { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+        .mini-line-pill { background: rgba(0, 171, 85, 0.15); color: var(--accent); padding: 2px 8px; border-radius: 5px; font-weight: 800; font-size: 0.8rem; border: 1px solid rgba(0, 171, 85, 0.2); }
         .stop-edit-row { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); position: relative; }
         .btn-del-stop { background: var(--danger); color: white; border: none; width: 30px; height: 30px; border-radius: 8px; font-weight: bold; cursor: pointer; position: absolute; top: 10px; right: 10px; }
     </style>
@@ -53,15 +54,15 @@
     <div id="s-home" class="section active-sec"></div>
     
     <div id="s-stops" class="section">
-        <div class="group-label">Przystanki</div>
-        <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="renderStopsList()">
+        <div class="group-label">Szukaj Przystanku</div>
+        <input type="text" id="stop-search" placeholder="Wpisz nazwę..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
 
     <div id="s-stop-lines" class="section">
         <div id="sl-head"></div>
         <div id="sl-list"></div>
-        <button onclick="show('stops')" class="main-btn" style="background:#333">Wróć do przystanków</button>
+        <button onclick="show('stops')" class="main-btn" style="background:#333">Wróć do listy</button>
     </div>
 
     <div id="s-news" class="section">
@@ -70,7 +71,7 @@
     </div>
 
     <div id="s-news-details" class="section">
-        <div id="nd-cont" class="app-card stop-card">
+        <div class="app-card stop-card">
             <span id="nd-date" style="font-size: 0.8rem; color: var(--text-sec); display: block; margin-bottom: 10px;"></span>
             <h2 id="nd-title" style="color: var(--accent); margin-bottom: 15px;"></h2>
             <div id="nd-body" style="white-space: pre-wrap; line-height: 1.6;"></div>
@@ -114,9 +115,9 @@
             <div id="tab-s" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;">
-                <input type="text" id="edit-cats-input" placeholder="Kategorie po przecinku">
+                <input type="text" id="edit-cats-input">
                 <button onclick="saveCategories()" class="main-btn">Zapisz Kategorie</button>
-                <textarea id="edit-contact-text" style="height:100px" placeholder="Info"></textarea>
+                <textarea id="edit-contact-text" style="height:100px"></textarea>
                 <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
             </div>
             <div id="tab-i" class="adm-tab" style="display:none;"><button onclick="exportDB()" class="main-btn">Eksportuj JSON</button></div>
@@ -145,9 +146,9 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Godziny robocze"></textarea>
-    <textarea id="fl-h-sat" placeholder="Godziny soboty"></textarea>
-    <textarea id="fl-h-sun" placeholder="Godziny niedziele"></textarea>
+    <textarea id="fl-h-work" placeholder="Robocze"></textarea>
+    <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
+    <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
     <div id="fl-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444;">+ Przystanek</button>
     <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
@@ -199,12 +200,6 @@
         });
     }
 
-    function getLinesForStop(stopName) {
-        const lines = db.lines.filter(l => l.stops?.some(s => s.name === stopName));
-        const nums = [...new Set(lines.map(l => l.num))].sort((a,b) => parseInt(a)-parseInt(b));
-        return nums.map(n => `<span class="stop-lines-pill">${n}</span>`).join('');
-    }
-
     function render() {
         const h = document.getElementById('s-home'); h.innerHTML = '';
         (db.lineCategories || []).forEach(cat => {
@@ -219,43 +214,65 @@
                 h.appendChild(g);
             }
         });
-
         document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
         document.getElementById('contact-display').innerText = db.contact || "";
         document.getElementById('edit-contact-text').value = db.contact || "";
+        renderStopsList();
+        renderAdminAndNews();
+    }
+
+    function renderAdminAndNews() {
         document.getElementById('public-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card" onclick="openNewsDetails(${i})"><div><b>${n.title}</b><span style="font-size:0.7rem; color:var(--warn); display:block;">${n.date}</span></div><i class="fa-solid fa-chevron-right"></i></div>`).join('');
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><div><b>${l.num}</b> - ${l.dir}</div><button onclick="openLineForm(${i})" style="padding:5px 10px; background:#444; color:white; border:none; border-radius:5px;">E</button></div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><div><b>${n.title}</b></div><div><button onclick="openNewsForm(${i})" style="background:#444; color:white; border:none; padding:5px 8px; border-radius:5px;">E</button> <button onclick="deleteNews(${i})" style="background:var(--danger); color:white; border:none; padding:5px 8px; border-radius:5px;">X</button></div></div>`).join('');
-        renderStopsList();
-    }
-
-    function renderStopsList() {
-        const q = document.getElementById('stop-search').value.toLowerCase();
-        document.getElementById('public-stops-list').innerHTML = allStops.filter(s => s.toLowerCase().includes(q)).map(s => {
-            const d = db.stopDetails[cleanKey(s)] || {outZone: false, alwaysNZ: false, nearby: ""};
-            const linePills = getLinesForStop(s);
-            return `<div class="app-card" onclick="openStopLines('${s}')" style="display:block;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <div style="font-weight:800; font-size:1.1rem;">${s}</div>
-                    <i class="fa-solid fa-chevron-right" style="color:var(--text-sec);"></i>
-                </div>
-                <div style="margin-bottom:8px;">${linePills}</div>
-                <div class="stop-info-sub">
-                    ${d.alwaysNZ ? '<span class="badge-inline bg-nz">Na żądanie</span>' : ''}
-                    ${d.outZone ? '<span class="badge-inline bg-strefa">Granica strefy</span>' : ''}
-                    ${d.nearby ? `<div style="color:var(--warn); margin-top:5px;"><i class="fa-solid fa-location-dot"></i> ${d.nearby}</div>` : ''}
-                </div>
-            </div>`;
-        }).join('');
         
         document.getElementById('adm-stops-list').innerHTML = allStops.map(s => {
             const d = db.stopDetails[cleanKey(s)] || {nearby:"", outZone: false, alwaysNZ: false};
             return `<div class="app-card stop-card" style="border:1px solid #333;">
                 <div style="font-weight:bold; color:var(--accent);">${s}</div>
                 <input type="text" value="${d.nearby}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="Co w pobliżu?">
-                <div style="display:flex; gap:10px;"><label><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Granica strefy</label><label><input type="checkbox" ${d.alwaysNZ?'checked':''} onchange="upStopGlobal('${s}', this.checked)"> Zawsze NŻ</label></div>
+                <div style="display:flex; gap:10px;"><label><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Strefa</label><label><input type="checkbox" ${d.alwaysNZ?'checked':''} onchange="upStopGlobal('${s}', this.checked)"> Zawsze NŻ</label></div>
             </div>`;
         }).join('');
+    }
+
+    function renderStopsList() {
+        const q = document.getElementById('stop-search').value.toLowerCase();
+        const listDiv = document.getElementById('public-stops-list');
+        listDiv.innerHTML = '';
+
+        allStops.filter(s => s.toLowerCase().includes(q)).forEach(stopName => {
+            const details = db.stopDetails[cleanKey(stopName)] || {nearby:"", outZone:false, alwaysNZ:false};
+            
+            // Pobieranie unikalnych numerów linii dla tego przystanku
+            const stopLines = [...new Set(db.lines.filter(l => l.stops?.some(st => st.name === stopName)).map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b));
+            
+            // Sprawdzanie czy przystanek jest NŻ (na żądanie) w którejkolwiek linii LUB globalnie
+            const isNZ = details.alwaysNZ || db.lines.some(l => l.stops?.some(st => st.name === stopName && st.nz));
+
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.style.display = 'block';
+            card.onclick = () => openStopLines(stopName);
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="font-weight:800; font-size:1.1rem; flex:1;">${stopName}</div>
+                    <i class="fa-solid fa-chevron-right" style="margin-top:5px; color:var(--text-sec);"></i>
+                </div>
+                
+                <div class="stop-lines-wrap">
+                    ${stopLines.map(num => `<span class="mini-line-pill">${num}</span>`).join('')}
+                </div>
+
+                <div class="stop-info-sub">
+                    ${isNZ ? '<span class="badge-inline bg-nz">Na żądanie</span>' : ''}
+                    ${details.outZone ? '<span class="badge-inline bg-strefa">Granica strefy</span>' : ''}
+                    ${details.nearby ? `<div style="margin-top:5px; color:var(--warn); font-weight:600;"><i class="fa-solid fa-location-dot"></i> ${details.nearby}</div>` : ''}
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
     }
 
     function openStopLines(stopName) {
@@ -274,7 +291,7 @@
 
     function openVars(num) {
         show('vars');
-        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} - Wybierz kierunek</div>`;
+        document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} - Kierunek</div>`;
         const v = document.getElementById('vars-list'); v.innerHTML = '';
         db.lines.forEach((l, i) => {
             if(String(l.num) === String(num)) {

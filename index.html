@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V51</title>
+    <title>MZK GORZÓW PRO V52</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -22,7 +22,6 @@
         .app-card { background: var(--surface); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
         .app-card:active { transform: scale(0.98); background: var(--surface-light); }
         
-        /* LINIE I PRZYSTANKI */
         .stop-header { margin-bottom: 10px; }
         .stop-name { font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
         .line-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -30,19 +29,16 @@
         .line-badge.bus { background: var(--bus-col); }
         .line-badge.tram { background: var(--tram-col); }
 
-        /* ROZKŁAD TT */
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
         .tt-hour-col { background: rgba(255,255,255,0.03); width: 60px; padding: 15px 0; text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--accent); border-right: 1px solid var(--border); }
         .tt-min-col { flex: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
         .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.1rem; color: #fff; }
 
-        /* ADMIN */
         .adm-stop-card { background: var(--surface-light); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
         .adm-opt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .adm-opt-label { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; border: 1px solid var(--border); }
+        .adm-opt-label { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; border: 1px solid var(--border); cursor: pointer; }
 
-        /* UI */
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
@@ -68,27 +64,21 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
-    
     <div id="s-stops" class="section">
         <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
-
     <div id="s-stop-lines" class="section">
         <div id="sl-list"></div>
         <button onclick="show('stops')" class="main-btn" style="background:#333; margin-top:10px;">Wróć</button>
     </div>
-
     <div id="s-news" class="section"><div id="public-news-list"></div></div>
     <div id="s-news-details" class="section">
         <div class="app-card" style="display:block;"><h2 id="nd-title"></h2><small id="nd-date" style="color:var(--warn)"></small><p id="nd-body" style="margin-top:15px; white-space:pre-wrap;"></p></div>
         <button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
     </div>
-
     <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
-    
     <div id="s-vars" class="section"><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
-
     <div id="s-tt" class="section">
         <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
@@ -98,7 +88,6 @@
         <div id="tt-body"></div>
         <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
     </div>
-
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;"><input type="password" id="pass" placeholder="Hasło"><button onclick="login()" class="main-btn">Zaloguj</button></div>
         <div id="adm-ui" style="display:none;">
@@ -139,7 +128,7 @@
     <textarea id="fl-h-work" placeholder="Robocze"></textarea>
     <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Niedziele i Święta"></textarea>
-    <textarea id="import-area" style="height:60px;" placeholder="Wklej przystanki (jeden pod drugim)"></textarea>
+    <textarea id="import-area" style="height:60px;" placeholder="Wklej przystanki"></textarea>
     <button onclick="processBulkImport()" class="main-btn" style="background:#444">Importuj</button>
     <div id="fl-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj stop</button>
@@ -209,7 +198,7 @@
         document.getElementById('adm-news-list').innerHTML = (db.news || []).map((n, i) => `<div class="app-card"><div><b>${n.title}</b></div><button onclick="openNewsForm(${i})" style="padding:5px; border-radius:5px; border:none; background:#444; color:white;">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-stops-list').innerHTML = allStops.map(s => {
             const key = cleanKey(s); const d = db.stopDetails[key] || {nearby:"", outZone: false, globalNz: false};
-            return `<div class="adm-stop-card"><span style="font-weight:bold; color:var(--accent)">${s}</span><input type="text" value="${d.nearby || ''}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="Pobliże"><div class="adm-opt-row"><label class="adm-opt-label"><input type="checkbox" ${d.globalNz?'checked':''} onchange="upStop('${s}', this.checked, 'globalNz')"> NŻ</label><label class="adm-opt-label"><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Strefa</label></div></div>`;
+            return `<div class="adm-stop-card"><span style="font-weight:bold; color:var(--accent)">${s}</span><input type="text" value="${d.nearby || ''}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="Pobliże"><div class="adm-opt-row"><label class="adm-opt-label"><input type="checkbox" ${d.globalNz?'checked':''} onchange="upStop('${s}', this.checked, 'globalNz')"> NŻ</label><label class="adm-opt-label"><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Gr. Strefy</label></div></div>`;
         }).join('');
     }
 
@@ -220,7 +209,7 @@
             const stopLines = [];
             db.lines.forEach(l => { if(l.stops?.some(st => st.name === name)) { if(!stopLines.find(x => x.num === l.num)) stopLines.push({num: l.num, type: l.type}); } });
             stopLines.sort((a,b) => parseInt(a.num) - parseInt(b.num));
-            listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')"><div class="stop-header"><div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">STREFA</span>':''}</div>${d.nearby ? `<small style="color:var(--accent)">${d.nearby}</small>` : ''}</div><div class="line-badges">${stopLines.map(l => `<span class="line-badge ${l.type}">${l.num}</span>`).join('')}</div></div>`; 
+            listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')"><div class="stop-header"><div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>${d.nearby ? `<small style="color:var(--accent)">${d.nearby}</small>` : ''}</div><div class="line-badges">${stopLines.map(l => `<span class="line-badge ${l.type}">${l.num}</span>`).join('')}</div></div>`; 
         }); 
     }
 
@@ -236,7 +225,7 @@
                 const stopLines = [];
                 db.lines.forEach(line => { if(line.stops?.some(st => st.name === s.name)) { if(!stopLines.find(x => x.num === line.num)) stopLines.push({num: line.num, type: line.type}); } });
                 stopLines.sort((a,b) => parseInt(a.num) - parseInt(b.num));
-                return `<div class="app-card" style="display:block" onclick="renderTimetable(${lIdx}, ${i})"><div class="stop-name"><b>${i+1}.</b> ${s.name} ${d.globalNz || s.nz ? '<span class="badge badge-nz">NŻ</span>' : ''} ${d.outZone ? '<span class="badge badge-strefa">STREFA</span>' : ''}</div>${d.nearby ? `<small style="color:var(--accent)">${d.nearby}</small>` : ''}<div class="line-badges">${stopLines.map(badge => `<span class="line-badge ${badge.type}">${badge.num}</span>`).join('')}</div></div>`;
+                return `<div class="app-card" style="display:block" onclick="renderTimetable(${lIdx}, ${i})"><div class="stop-name"><b>${i+1}.</b> ${s.name} ${d.globalNz || s.nz ? '<span class="badge badge-nz">NŻ</span>' : ''} ${d.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}</div>${d.nearby ? `<small style="color:var(--accent)">${d.nearby}</small>` : ''}<div class="line-badges">${stopLines.map(badge => `<span class="line-badge ${badge.type}">${badge.num}</span>`).join('')}</div></div>`;
             }).join('');
             document.getElementById('tt-back-btn').onclick = () => show('vars');
         } else {

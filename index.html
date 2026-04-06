@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V65</title>
+    <title>MZK GORZÓW PRO V66</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -35,7 +35,6 @@
         .eta-tag { font-size: 0.75rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.1); padding: 2px 6px; border-radius: 4px; }
         .transfer-eta { font-size: 0.65rem; opacity: 0.95; font-weight: 600; margin-left: 2px; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 3px; border-radius: 3px; }
 
-        /* Animacja dla 0 minut */
         .eta-now { animation: blink 0.8s infinite; color: var(--warn); font-weight: 800; letter-spacing: 1px; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
@@ -166,10 +165,29 @@
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
     let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "" };
-    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [];
+    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [], currentSection = 'home', currentStopName = "";
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
-    function show(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); document.getElementById('s-'+id)?.classList.add('active-sec'); document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); document.getElementById('n-'+id)?.classList.add('active'); }
+    
+    // Zapamiętywanie gdzie jest użytkownik do auto-odświeżania
+    function show(id) { 
+        currentSection = id;
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
+        document.getElementById('s-'+id)?.classList.add('active-sec'); 
+        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); 
+        document.getElementById('n-'+id)?.classList.add('active'); 
+    }
+
+    // Auto-odświeżanie czasu co 30 sekund
+    setInterval(() => {
+        if(currentSection === 'stops') renderStopsList();
+        if(currentSection === 'stop-lines' && currentStopName) openStopLines(currentStopName);
+        if(currentSection === 'tt' && curLineIdx !== -1) {
+            if(curStopIdx === -1) renderLineStops(curLineIdx);
+            else renderTimetable(curLineIdx, curStopIdx);
+        }
+    }, 30000);
+
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
@@ -325,6 +343,7 @@
     }
 
     function openStopLines(name) { 
+        currentStopName = name;
         show('stop-lines'); const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label" style="color:var(--accent)">${name}</div>`; 
         db.lines.forEach((l, i) => { 

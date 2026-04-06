@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V121</title>
+    <title>MZK GORZÓW PRO V122</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -34,12 +34,10 @@
         header { background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); padding: 25px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         
-        /* KARTY LINII */
         .line-main-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .line-main-card:active { transform: scale(0.98); }
         .line-main-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         
-        /* SZTYWNE KOLORY DLA KLAS */
         .line-badge { display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border-radius: 12px; font-weight: 800; color: white; white-space: nowrap; }
         .badge-bus { background: linear-gradient(135deg, var(--bus-col), #008a45) !important; }
         .badge-tram { background: linear-gradient(135deg, var(--tram-col), #d63933) !important; }
@@ -50,7 +48,6 @@
         .dir-abbr { background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text); border: 1px solid var(--border); font-weight: 800; }
 
         .app-card { background: var(--surface); padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--border); cursor: pointer; }
-
         .eta-tag { font-size: 0.85rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0, 171, 85, 0.2); display: flex; align-items: center; gap: 5px; }
         .transfer-eta { font-size: 0.75rem; font-weight: 900; margin-left: 8px; color: #fff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
 
@@ -60,10 +57,9 @@
         
         .group-label { font-size: 0.85rem; color: var(--text-sec); text-transform: uppercase; margin: 30px 0 15px 5px; font-weight: 700; letter-spacing: 2px; border-left: 3px solid var(--accent); padding-left: 10px; }
         
-        /* NAWIGACJA */
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(20px); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.75rem; cursor: pointer; transition: 0.3s; }
-        nav div.active { color: var(--accent); transform: translateY(-3px); }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.75rem; cursor: pointer; }
+        nav div.active { color: var(--accent); }
         nav i { font-size: 1.4rem; margin-bottom: 6px; }
 
         .tt-container { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; margin-top: 20px; }
@@ -75,6 +71,8 @@
         .day-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #212b36; color: white; font-weight: 800; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
         .main-btn { background: #333; width: 100%; padding: 18px; border-radius: 15px; border: none; color: white; font-weight: 800; cursor: pointer; margin-top: 10px; }
+
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-light); color: white; }
     </style>
 </head>
 <body>
@@ -83,22 +81,18 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
-
     <div id="s-stops" class="section">
-        <input type="text" id="stop-search" placeholder="🔍 Szukaj przystanku..." oninput="renderStopsList()" style="width:100%; padding:15px; border-radius:12px; background:var(--surface-light); border:1px solid var(--border); color:white; margin-bottom:15px;">
+        <input type="text" id="stop-search" placeholder="🔍 Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
-
     <div id="s-vars" class="section">
         <div id="vars-list"></div>
         <button id="vars-back-btn" class="main-btn">Wróć</button>
     </div>
-
     <div id="s-stop-lines" class="section">
         <div id="sl-list"></div>
-        <button onclick="show('stops')" class="main-btn">Wróć do listy</button>
+        <button onclick="show('stops')" class="main-btn">Wróć</button>
     </div>
-
     <div id="s-tt" class="section">
         <div id="tt-day-sel" style="display:none; gap:10px; margin-bottom:15px;">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
@@ -108,15 +102,56 @@
         <div id="tt-body"></div>
         <button id="tt-back-btn" class="main-btn">Wróć</button>
     </div>
-
     <div id="s-news" class="section"><div id="public-news-list"></div></div>
-    <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="white-space:pre-wrap; line-height:1.6;"></div></div>
+    
+    <div id="s-contact" class="section">
+        <div id="contact-display" class="app-card" style="white-space:pre-wrap;"></div>
+        <div class="app-card" style="margin-top:20px;">
+            <h3>Panel Admina</h3>
+            <input type="password" id="pass" placeholder="Hasło">
+            <button onclick="login()" class="main-btn">Zaloguj</button>
+        </div>
+        <div id="adm-ui" style="display:none; margin-top:20px;">
+            <div class="app-card">
+                <h4>Zarządzaj</h4>
+                <button onclick="showTab('tab-lines')" class="main-btn">Linie</button>
+                <button onclick="showTab('tab-stops')" class="main-btn">Przystanki</button>
+                <button onclick="showTab('tab-news')" class="main-btn">Newsy/Kontakt</button>
+            </div>
+            
+            <div id="tab-lines" style="display:none;">
+                <h4>Dodaj/Edytuj Linię</h4>
+                <input type="text" id="l-num" placeholder="Numer (np. 124)">
+                <input type="text" id="l-dir" placeholder="Kierunek">
+                <select id="l-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
+                <input type="text" id="l-cat" placeholder="Kategoria (np. Dzienne)">
+                <textarea id="l-stops" placeholder="Przystanki (Nazwa|Czas) po przecinku"></textarea>
+                <textarea id="l-hw" placeholder="Godziny Robocze (HH:MM, HH:MM)"></textarea>
+                <textarea id="l-hs" placeholder="Godziny Soboty"></textarea>
+                <textarea id="l-hn" placeholder="Godziny Niedz"></textarea>
+                <button onclick="saveLine()" class="main-btn" style="background:var(--accent)">Zapisz Linię</button>
+                <div id="adm-lines-list"></div>
+            </div>
+
+            <div id="tab-stops" style="display:none;">
+                <h4>Ustawienia Przystanków</h4>
+                <input type="text" id="st-name-set" placeholder="Pełna nazwa przystanku">
+                <label><input type="checkbox" id="st-nz"> Na Żądanie (Globalnie)</label>
+                <button onclick="saveStopDetail()" class="main-btn">Zapisz</button>
+            </div>
+
+            <div id="tab-news" style="display:none;">
+                <textarea id="adm-contact" placeholder="Treść Info/Kontakt"></textarea>
+                <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <nav>
     <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus-simple"></i><span>Linie</span></div>
     <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-location-dot"></i><span>Przystanki</span></div>
-    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bullhorn"></i><span>Komunikaty</span></div>
+    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bullhorn"></i><span>News</span></div>
     <div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
 </nav>
 
@@ -138,8 +173,7 @@
         const cleanDir = dir.trim();
         if(db.customAbbrs && db.customAbbrs[cleanKey(cleanDir)]) return db.customAbbrs[cleanKey(cleanDir)].toUpperCase();
         const words = cleanDir.split(/\s+/);
-        if(words.length === 1) return words[0].substring(0,2).toUpperCase();
-        return (words[0][0] + words[words.length-1].substring(0,2)).toUpperCase();
+        return words.length === 1 ? words[0].substring(0,2).toUpperCase() : (words[0][0] + words[words.length-1].substring(0,2)).toUpperCase();
     }
 
     function getETA(line, stopIdx) {
@@ -163,6 +197,12 @@
         document.getElementById('n-'+id)?.classList.add('active'); 
     }
 
+    function showTab(tid) {
+        ['tab-lines', 'tab-stops', 'tab-news'].forEach(t => document.getElementById(t).style.display = t === tid ? 'block' : 'none');
+    }
+
+    function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
+
     dbRef.on('value', (s) => {
         const val = s.val(); if(val) { 
             db = val; if(!db.lines) db.lines = []; 
@@ -182,30 +222,26 @@
                 const uniqueNums = [...new Set(linesInCategory.map(l => String(l.num)))].sort((a,b) => parseInt(a)-parseInt(b));
                 uniqueNums.forEach(num => {
                     const variants = linesInCategory.filter(l => String(l.num) === num);
-                    // NAPRAWA KOLORÓW: Sprawdzenie typu pierwszego wariantu
                     const isTram = variants[0].type === 'tram';
                     const colorClass = isTram ? 'badge-tram' : 'badge-bus';
-                    
                     html += `<div class="line-main-card" onclick="openVars('${num}', 'home')">
-                        <div class="line-main-top">
-                            <span class="line-badge ${colorClass} line-main-num">${num}</span>
-                            <span class="line-main-type">${isTram?'Tramwaj':'Autobus'}</span>
-                        </div>
+                        <div class="line-main-top"><span class="line-badge ${colorClass} line-main-num">${num}</span><span class="line-main-type">${isTram?'Tramwaj':'Autobus'}</span></div>
                         <div class="line-main-abbrs">${variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('')}</div>
                     </div>`;
                 });
             }
         });
         h.innerHTML = html;
-        document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
+        document.getElementById('contact-display').innerText = db.contact || "";
         renderStopsList();
+        renderAdmLines();
     }
 
-    function renderStopsList() { 
-        const q = document.getElementById('stop-search').value.toLowerCase(); 
+    function renderStopsList() {
+        const q = document.getElementById('stop-search').value.toLowerCase();
         const listDiv = document.getElementById('public-stops-list'); if(!listDiv) return;
         let html = '';
-        allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
+        allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => {
             const d = db.stopDetails[cleanKey(name)] || {};
             let stopLines = {}; db.lines.forEach(l => {
                 const sIdx = (l.stops||[]).findIndex(st => st.name === name);
@@ -220,20 +256,16 @@
                     <div style="font-weight:800;">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''}</div>
                     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
                         ${Object.values(stopLines).map(l => `<span class="line-badge ${l.type==='tram'?'badge-tram':'badge-bus'}" style="padding:4px 8px; font-size:0.75rem;">${l.num}<span class="transfer-eta">${l.eta!==null?l.eta+'m':'--'}</span></span>`).join('')}
-                    </div></div>`; 
-        }); 
+                    </div></div>`;
+        });
         listDiv.innerHTML = html;
     }
 
-    function openVars(num, backTo) { 
+    function openVars(num, back) { 
         curLineNumForVars = num; show('vars'); const v = document.getElementById('vars-list'); 
         v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
-        db.lines.forEach((l, i) => { 
-            if(String(l.num) === String(num)) { 
-                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>DO: ${l.dir}</b></div>`; 
-            } 
-        }); 
-        document.getElementById('vars-back-btn').onclick = () => show(backTo);
+        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>DO: ${l.dir}</b></div>`; }); 
+        document.getElementById('vars-back-btn').onclick = () => show(back);
     }
 
     function openStopLines(name) { 
@@ -246,8 +278,7 @@
                 list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i}, ${sIdx})">
                     <div style="display:flex; align-items:center;">
                         <span class="line-badge ${l.type==='tram'?'badge-tram':'badge-bus'}" style="margin-right:12px;">${l.num}</span>
-                        <div><b>${l.dir}</b></div>
-                        <span class="eta-tag">${eta!==null?eta+' min':'--'}</span>
+                        <b>${l.dir}</b><span class="eta-tag">${eta!==null?eta+'m':'--'}</span>
                     </div></div>`;
             }
         });
@@ -275,19 +306,37 @@
         document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? openVars(l.num, 'home') : renderTimetable(lIdx, -1);
     }
 
-    function setDay(d) { 
-        curDay = d; 
-        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); 
-        document.getElementById('btn-'+d).classList.add('active'); 
-        renderTimetable(curLineIdx, curStopIdx); 
+    function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
+
+    // FUNKCJE ADMINA
+    function saveLine() {
+        const stops = document.getElementById('l-stops').value.split(',').map(s => { const p = s.split('|'); return { name: p[0].trim(), time: p[1]||0 }; });
+        const newLine = {
+            num: document.getElementById('l-num').value,
+            dir: document.getElementById('l-dir').value,
+            type: document.getElementById('l-type').value,
+            category: document.getElementById('l-cat').value,
+            stops: stops,
+            hoursWorking: document.getElementById('l-hw').value,
+            hoursSat: document.getElementById('l-hs').value,
+            hoursSun: document.getElementById('l-hn').value
+        };
+        if(!db.lineCategories.includes(newLine.category)) db.lineCategories.push(newLine.category);
+        db.lines.push(newLine);
+        dbRef.set(db).then(() => alert("Zapisano!"));
     }
 
-    // AUTOMATYCZNE ODŚWIEŻANIE ETA (Co 15 sek)
+    function renderAdmLines() {
+        const list = document.getElementById('adm-lines-list'); if(!list) return;
+        list.innerHTML = db.lines.map((l, i) => `<div style="padding:10px; border:1px solid #444; margin-top:5px;">${l.num} -> ${l.dir} <button onclick="deleteLine(${i})">Usuń</button></div>`).join('');
+    }
+    function deleteLine(i) { db.lines.splice(i, 1); dbRef.set(db); }
+    function saveContact() { db.contact = document.getElementById('adm-contact').value; dbRef.set(db); }
+
     setInterval(() => {
         const activeSec = document.querySelector('.section.active-sec')?.id;
         if(activeSec === 's-home') render();
         if(activeSec === 's-stops') renderStopsList();
-        if(activeSec === 's-stop-lines' && lastOpenedStopName) openStopLines(lastOpenedStopName);
     }, 15000);
 </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V116</title>
+    <title>MZK GORZÓW PRO V117</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -166,30 +166,36 @@
     init();
 
     function render() {
-        const h = document.getElementById('s-home'); h.innerHTML = '';
+        const h = document.getElementById('s-home'); if(!h) return;
+        let html = '';
         (db.lineCategories || []).forEach(cat => {
             const linesInCategory = db.lines.filter(l => l.category === cat);
             if(linesInCategory.length) {
-                h.innerHTML += `<div class="group-label">${cat}</div>`;
+                html += `<div class="group-label">${cat}</div>`;
                 const uniqueNums = [...new Set(linesInCategory.map(l => String(l.num)))].sort((a,b) => parseInt(a)-parseInt(b));
                 uniqueNums.forEach(num => {
                     const variants = linesInCategory.filter(l => String(l.num) === num);
-                    const lType = variants[0].type; const typeClass = lType === 'tram' ? 'tram' : 'bus';
-                    const typeName = lType === 'tram' ? 'Tramwaj' : 'Autobus';
+                    // NAPRAWIONY BŁĄD KOLORÓW: Dynamiczne przypisanie klasy dla każdej grupy linii
+                    const currentType = variants[0].type;
+                    const typeClass = currentType === 'tram' ? 'tram' : 'bus';
+                    const typeName = currentType === 'tram' ? 'Tramwaj' : 'Autobus';
                     const abbrsHtml = variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('');
-                    h.innerHTML += `<div class="line-main-card" onclick="openVars('${num}', 'home')">
+                    
+                    html += `<div class="line-main-card" onclick="openVars('${num}', 'home')">
                         <div class="line-main-top"><span class="line-badge ${typeClass} line-main-num">${num}</span><span class="line-main-type">${typeName}</span></div>
                         <div class="line-main-abbrs">${abbrsHtml}</div></div>`;
                 });
             }
         });
+        h.innerHTML = html;
         document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
         renderStopsList();
     }
 
     function renderStopsList() { 
         const q = document.getElementById('stop-search').value.toLowerCase(); 
-        const listDiv = document.getElementById('public-stops-list'); listDiv.innerHTML = ''; 
+        const listDiv = document.getElementById('public-stops-list'); if(!listDiv) return;
+        let html = '';
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
             const d = db.stopDetails[cleanKey(name)] || {};
             let stopLines = {}; db.lines.forEach(l => {
@@ -199,11 +205,12 @@
                     if(!stopLines[l.num] || (eta !== null && (stopLines[l.num].eta === null || eta < stopLines[l.num].eta))) stopLines[l.num] = { num: l.num, type: l.type, eta: eta };
                 }
             });
-            listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')">
+            html += `<div class="app-card" onclick="openStopLines('${name}')">
                     <div style="font-weight:900; font-size:1.1rem;">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
                     ${d.nearby ? `<div class="nearby-box"><i class="fa-solid fa-location-dot"></i> ${d.nearby}</div>` : ''}
                     <div class="line-badges">${Object.values(stopLines).map(l => `<span class="line-badge ${l.type==='tram'?'tram':'bus'}">${l.num}<span class="transfer-eta">${l.eta===0?'>>>':l.eta!==null?formatETA(l.eta):'---'}</span></span>`).join('')}</div></div>`; 
         }); 
+        listDiv.innerHTML = html;
     }
 
     function openVars(num, backTo) { 
@@ -211,7 +218,6 @@
         v.innerHTML = `<div class="group-label" style="color:var(--accent)">Kierunki linii ${num}</div>`; 
         db.lines.forEach((l, i) => { 
             if(String(l.num) === String(num)) { 
-                // OBLICZANIE CAŁKOWITEGO CZASU TRASY (SUMA CZASÓW MIĘDZY PRZYSTANKAMI)
                 let totalTripTime = 0;
                 l.stops.forEach(st => totalTripTime += parseInt(st.time || 0));
                 

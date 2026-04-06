@@ -224,7 +224,6 @@
         return Math.floor((times[0] - now) / 60000);
     }
 
-    // PRZYWRÓCONA FUNKCJA PRZESIADEK
     function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
         db.lines.forEach(l => { 
@@ -364,29 +363,43 @@
         });
     }
 
-    // PRZYWRÓCONY WIDOK TRASY Z PRZESIADKAMI
     function renderTimetable(lIdx, sIdx = -1) {
         curLineIdx = lIdx; curStopIdx = sIdx; show('tt'); const l = db.lines[lIdx]; const ttBody = document.getElementById('tt-body');
         if (sIdx === -1) { 
             document.getElementById('tt-day-sel').style.display = 'none'; 
             ttBody.innerHTML = `<div class="group-label">Trasa: ${l.dir}</div>`;
             ttBody.innerHTML += l.stops.map((s, i) => {
+                const currentLineETA = getETA(l, i);
+                const currentEtaHtml = currentLineETA !== null ? `<span class="eta-tag">${currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)}</span>` : `<span class="eta-tag" style="background:rgba(255,255,255,0.05); color:var(--text-sec)">---</span>`;
                 const transfers = getLinesForStop(s.name, l.num);
                 const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.8;">` + transfers.slice(0,6).map(t => `<span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;">${t.num}<span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
-                return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})"><div>${s.name}</div>${transHtml}</div>`;
+                return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="font-weight:bold;">${s.name}</div>
+                                ${currentEtaHtml}
+                            </div>
+                            ${transHtml}
+                        </div>`;
             }).join('');
         } else {
             document.getElementById('tt-day-sel').style.display = 'flex';
             let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time || 0);
+            const currentLineETA = getETA(l, sIdx);
+            const currentEtaHtml = currentLineETA !== null ? `<span class="eta-tag">${currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)}</span>` : `<span class="eta-tag" style="background:rgba(255,255,255,0.05); color:var(--text-sec)">---</span>`;
             const hMap = {}; let rawTimes = (curDay==='working'?l.hoursWorking : curDay==='saturday'?l.hoursSat : l.hoursSun) || "";
-            let html = `<div class="app-card"><b>${l.num}</b> - ${l.stops[sIdx].name}</div><div class="tt-container">`;
+            let html = `<div class="app-card">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div><b>${l.num}</b> - ${l.stops[sIdx].name}</div>
+                                ${currentEtaHtml}
+                            </div>
+                        </div><div class="tt-container">`;
             rawTimes.split(',').forEach(entry => {
                 let parts = entry.trim().split(':'); if(parts.length < 2) return;
                 let d = new Date(); d.setHours(parseInt(parts[0]), parseInt(parts[1]) + offset);
                 let hh = d.getHours().toString().padStart(2, '0'), mm = d.getMinutes().toString().padStart(2, '0');
                 if(!hMap[hh]) hMap[hh] = []; hMap[hh].push(mm);
             });
-            Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().join(' ')}</div></div>`);
+            Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().map(m => `<span class="tt-min-val">${m}</span>`).join(' ')}</div></div>`);
             ttBody.innerHTML = html + `</div>`;
         }
         document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);

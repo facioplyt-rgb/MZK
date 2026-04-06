@@ -3,66 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW ULTIMATE V160</title>
-    
+    <title>MZK GORZÓW - MASTER RECOVERY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --accent: #00ab55; --bg: #05080f; --surface: #121926; --surface-light: #1c2536; 
-            --text: #ffffff; --text-sec: #94a3b8; --border: rgba(255,255,255,0.06); 
-            --bus: #00ab55; --tram: #ef4444; --shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 90px; line-height: 1.5; }
+        :root { --accent: #00ab55; --bg: #05080f; --surf: #121926; --text: #fff; --bus: #00ab55; --tram: #ef4444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
         
-        /* HEADER & NAV */
-        header { 
-            background: rgba(5, 8, 15, 0.8); backdrop-filter: blur(15px);
-            padding: 20px; position: sticky; top: 0; z-index: 1000;
-            border-bottom: 1px solid var(--border); text-align: center;
-        }
-        header h1 { font-size: 1.1rem; font-weight: 900; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+        header { padding: 25px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(5,8,15,0.9); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; }
+        header h1 { font-weight: 900; letter-spacing: 2px; color: var(--accent); font-size: 1.2rem; }
 
-        nav { 
-            position: fixed; bottom: 0; width: 100%; background: var(--surface);
-            display: flex; height: 75px; border-top: 1px solid var(--border); z-index: 2000;
-        }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.65rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        nav div.active { color: var(--accent); }
-        nav i { font-size: 1.4rem; margin-bottom: 4px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s; }
+        
+        .line-badge { min-width: 50px; height: 40px; background: var(--bus); display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; font-size: 1.1rem; margin-right: 15px; }
+        
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--surf); display: flex; height: 80px; border-top: 1px solid rgba(255,255,255,0.1); z-index: 2000; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; opacity: 0.5; transition: 0.3s; cursor: pointer; }
+        .nav-item.active { opacity: 1; color: var(--accent); }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 5px; }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 16px; }
-        .section { display: none; animation: pageIn 0.3s ease; }
+        .section { display: none; animation: slideUp 0.4s ease; }
         .active-sec { display: block; }
-        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* CARDS */
-        .card { 
-            background: var(--surface); border-radius: 20px; padding: 18px; 
-            margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow);
-        }
-        .line-badge { 
-            min-width: 50px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 12px; font-weight: 900; color: white; margin-right: 15px; font-size: 1.1rem;
-        }
+        input, textarea, select { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 15px; background: #1c2536; color: #fff; border: 1px solid rgba(255,255,255,0.1); font-size: 1rem; }
+        .btn { background: var(--accent); color: #fff; padding: 16px; border: none; border-radius: 15px; width: 100%; font-weight: 800; cursor: pointer; box-shadow: 0 5px 15px rgba(0,171,85,0.3); }
         
-        .group-label { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin: 25px 0 12px 5px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
-        .group-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-
-        /* DETAILS & STOPS */
-        .stop-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .stop-time { width: 45px; font-weight: 800; color: var(--accent); }
-        .sched-item { background: var(--surface-light); padding: 12px; border-radius: 12px; margin-top: 10px; font-size: 0.85rem; border-left: 4px solid var(--accent); white-space: pre-wrap; }
-
-        /* ADMIN */
-        input, select, textarea { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface-light); color: white; font-family: inherit; }
-        .btn { background: var(--accent); color: white; border: none; padding: 16px; width: 100%; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn:active { transform: scale(0.97); }
-        .btn-small { padding: 8px 12px; font-size: 0.7rem; width: auto; background: var(--surface-light); }
-        .admin-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--surface-light); margin-bottom: 8px; border-radius: 12px; }
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; background: rgba(255,255,255,0.1); margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -71,82 +40,46 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec">
-        <div id="render-home"></div>
-    </div>
-
-    <div id="s-stops" class="section">
-        <input type="text" id="stop-search" placeholder="Gdzie jedziemy?" oninput="renderStops()">
-        <div id="render-stops"></div>
-    </div>
-
-    <div id="s-news" class="section">
-        <div id="render-news"></div>
+        <div id="data-render">
+            <div class="card">Łączenie z serwerem danych...</div>
+        </div>
     </div>
 
     <div id="s-admin" class="section">
         <div id="adm-auth" class="card">
-            <h3 style="margin-bottom:15px">Panel Administratora</h3>
-            <input type="password" id="adm-key" placeholder="Hasło">
-            <button class="btn" onclick="checkAuth()">Zaloguj</button>
+            <h3>Autoryzacja</h3>
+            <input type="password" id="adm-pass" placeholder="Hasło">
+            <button class="btn" onclick="tryLogin()">WEJDŹ</button>
         </div>
 
-        <div id="adm-main" style="display:none">
-            <div style="display:flex; gap:10px; margin-bottom:20px">
-                <button class="btn btn-small" onclick="setTab('l')">Linie</button>
-                <button class="btn btn-small" onclick="setTab('n')">News</button>
-                <button class="btn btn-small" onclick="setTab('c')">Kategorie</button>
+        <div id="adm-panel" style="display:none">
+            <div class="card" style="border: 2px solid var(--accent)">
+                <h4 style="margin-bottom:10px">USTAWIENIA BAZY (RECOVERY)</h4>
+                <p style="font-size:0.8rem; margin-bottom:10px; opacity:0.7">Jeśli nie widzisz swoich linii, zmień nazwę poniżej:</p>
+                <input type="text" id="db-key-field" value="mzk_v12_pro" onchange="switchDB(this.value)">
+                <div style="display:flex; gap:5px; flex-wrap:wrap">
+                    <button class="btn" style="padding:5px; font-size:0.7rem; background:#444" onclick="switchDB('mzk_v12_pro')">v12_pro</button>
+                    <button class="btn" style="padding:5px; font-size:0.7rem; background:#444" onclick="switchDB('mzk_v12')">v12</button>
+                    <button class="btn" style="padding:5px; font-size:0.7rem; background:#444" onclick="switchDB('mzk_integrated_v15')">v15</button>
+                </div>
             </div>
 
-            <div id="tab-l">
-                <div class="card" style="border-color: var(--accent)">
-                    <h4 id="form-head">Dodaj/Edytuj Linię</h4>
-                    <input type="hidden" id="edit-id" value="-1">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                        <input type="text" id="f-num" placeholder="Numer">
-                        <input type="text" id="f-abbr" placeholder="Skrót (np. WPK)">
-                    </div>
-                    <input type="text" id="f-dir" placeholder="Kierunek docelowy">
-                    <select id="f-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-                    <select id="f-cat"></select>
-                    <textarea id="f-stops" rows="4" placeholder="Przystanek|Czas (po przecinku: A|0, B|3)"></textarea>
-                    <textarea id="f-h1" rows="2" placeholder="Dni robocze"></textarea>
-                    <textarea id="f-h2" rows="2" placeholder="Soboty"></textarea>
-                    <textarea id="f-h3" rows="2" placeholder="Niedziele"></textarea>
-                    <button class="btn" onclick="saveLine()">Zapisz Linię</button>
-                </div>
-                <div id="adm-list-lines"></div>
+            <div class="card">
+                <h4>Dodaj/Edytuj Linię</h4>
+                <input type="text" id="f-num" placeholder="Nr (np. 124)">
+                <input type="text" id="f-dir" placeholder="Kierunek">
+                <select id="f-cat"></select>
+                <textarea id="f-stops" rows="3" placeholder="Przystanek|Czas, Przystanek|Czas"></textarea>
+                <button class="btn" onclick="saveLine()">ZAPISZ DO TEJ BAZY</button>
             </div>
-
-            <div id="tab-n" style="display:none">
-                <div class="card">
-                    <input type="text" id="n-title" placeholder="Tytuł newsa">
-                    <textarea id="n-body" placeholder="Treść..."></textarea>
-                    <button class="btn" onclick="saveNews()">Opublikuj News</button>
-                </div>
-                <div id="adm-list-news"></div>
-            </div>
-
-            <div id="tab-c" style="display:none">
-                <div class="card">
-                    <input type="text" id="new-cat" placeholder="Nazwa kategorii">
-                    <button class="btn" onclick="addCat()">Dodaj Kategorię</button>
-                </div>
-                <div id="adm-list-cats"></div>
-            </div>
+            <div id="adm-list"></div>
         </div>
-    </div>
-
-    <div id="s-details" class="section">
-        <div id="render-details"></div>
-        <button class="btn" style="background:#222; margin-top:20px" onclick="show('home')">Powrót</button>
     </div>
 </div>
 
 <nav>
-    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
-    <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-location-dot"></i><span>Przystanki</span></div>
-    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bullhorn"></i><span>News</span></div>
-    <div onclick="show('admin')" id="n-admin"><i class="fa-solid fa-user-shield"></i><span>Admin</span></div>
+    <div class="nav-item active" id="n-home" onclick="show('home')"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
+    <div class="nav-item" id="n-admin" onclick="show('admin')"><i class="fa-solid fa-screwdriver-wrench"></i><span>Odzyskiwanie</span></div>
 </nav>
 
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -159,212 +92,110 @@
         projectId: "mzk-by-facio" 
     };
     firebase.initializeApp(firebaseConfig);
-    const dbRef = firebase.database().ref('mzk_v16_final');
 
-    let state = { lines: [], categories: ["Dzienne", "Tramwaje"], news: [] };
+    let state = { lines: [], categories: ["Dzienne", "Tramwaje", "Nocne"], news: [] };
+    let currentKey = localStorage.getItem('mzk_key') || "mzk_v12_pro"; // Zapamiętuje wybór
+    document.getElementById('db-key-field').value = currentKey;
 
-    dbRef.on('value', (snap) => {
-        const val = snap.val();
-        if(val) {
-            state = { ...state, ...val };
-            if(!state.lines) state.lines = [];
-            if(!state.news) state.news = [];
-            renderAll();
+    function connect() {
+        firebase.database().ref(currentKey).on('value', (snap) => {
+            const data = snap.val();
+            if(data) {
+                state = data;
+                render();
+            } else {
+                document.getElementById('data-render').innerHTML = `
+                    <div class="card" style="text-align:center">
+                        <i class="fa-solid fa-circle-exclamation" style="font-size:2rem; color:var(--tram)"></i>
+                        <p style="margin-top:10px">Brak danych w gałęzi <b>${currentKey}</b></p>
+                        <p style="font-size:0.8rem; opacity:0.6">Wejdź w "Odzyskiwanie" i zmień klucz.</p>
+                    </div>`;
+            }
+        });
+    }
+
+    function switchDB(newKey) {
+        currentKey = newKey;
+        localStorage.setItem('mzk_key', newKey);
+        location.reload(); // Najbezpieczniejsze przeładowanie przy zmianie bazy
+    }
+
+    function render() {
+        const target = document.getElementById('data-render');
+        target.innerHTML = '';
+
+        if(!state.lines || state.lines.length === 0) {
+            target.innerHTML = `<div class="card">Baza połączona (${currentKey}), ale brak linii.</div>`;
+            return;
         }
-    });
 
-    function show(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.getElementById('s-'+id).classList.add('active-sec');
-        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        document.getElementById('n-'+id)?.classList.add('active');
-    }
-
-    function setTab(t) {
-        ['l','n','c'].forEach(x => document.getElementById('tab-'+x).style.display = (x===t?'block':'none'));
-    }
-
-    function checkAuth() {
-        if(document.getElementById('adm-key').value === '123') {
-            document.getElementById('adm-auth').style.display = 'none';
-            document.getElementById('adm-main').style.display = 'block';
-        }
-    }
-
-    function renderAll() {
-        // HOME
-        const home = document.getElementById('render-home');
-        home.innerHTML = '';
-        state.categories.forEach(cat => {
-            const lines = state.lines.filter(l => l.cat === cat);
-            if(lines.length > 0) {
-                home.innerHTML += `<div class="group-label">${cat}</div>`;
-                const nums = [...new Set(lines.map(l => l.num))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-                nums.forEach(n => {
-                    const v = lines.filter(l => l.num === n)[0];
-                    const variants = lines.filter(l => l.num === n);
-                    home.innerHTML += `
-                        <div class="card" onclick="openLine('${n}')" style="display:flex; align-items:center">
-                            <div class="line-badge" style="background:${v.type==='tram'?'var(--tram)':'var(--bus)'}">${n}</div>
-                            <div style="flex:1">
-                                <div style="font-weight:700">${v.type==='bus'?'AUTOBUS':'TRAMWAJ'}</div>
-                                <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:5px">
-                                    ${variants.map(varnt => `<span style="font-size:0.6rem; padding:2px 6px; background:rgba(255,255,255,0.05); border-radius:4px">${varnt.abbr}</span>`).join('')}
-                                </div>
-                            </div>
-                            <i class="fa-solid fa-chevron-right" style="opacity:0.2"></i>
-                        </div>`;
+        const cats = state.categories || ["Ogólne"];
+        cats.forEach(c => {
+            const lns = state.lines.filter(l => l.cat === c);
+            if(lns.length > 0) {
+                target.innerHTML += `<div style="font-weight:900; color:var(--accent); margin:10px 5px; font-size:0.8rem; letter-spacing:1px">${c.toUpperCase()}</div>`;
+                lns.forEach(l => {
+                    target.innerHTML += `
+                    <div class="card" style="display:flex; align-items:center">
+                        <div class="line-badge">${l.num}</div>
+                        <div>
+                            <div style="font-weight:800">${l.dir}</div>
+                            <div class="status-pill">${l.stops ? l.stops.length : 0} przystanków</div>
+                        </div>
+                    </div>`;
                 });
             }
         });
 
-        // NEWS
-        document.getElementById('render-news').innerHTML = state.news.map(n => `
-            <div class="card">
-                <h3 style="color:var(--accent); margin-bottom:10px">${n.title}</h3>
-                <p style="font-size:0.9rem; color:var(--text-sec)">${n.body}</p>
+        // Admin list
+        document.getElementById('f-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('adm-list').innerHTML = state.lines.map((l, i) => `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center">
+                <span><b>${l.num}</b> ${l.dir}</span>
+                <i class="fa-solid fa-trash" style="color:var(--tram)" onclick="deleteLine(${i})"></i>
             </div>`).join('');
-
-        // ADMIN LISTS
-        document.getElementById('f-cat').innerHTML = state.categories.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('adm-list-lines').innerHTML = state.lines.map((l, i) => `
-            <div class="admin-item">
-                <span><b>${l.num}</b> ${l.abbr} → ${l.dir}</span>
-                <div style="display:flex; gap:10px">
-                    <i class="fa-solid fa-pen" style="color:var(--accent)" onclick="editLine(${i})"></i>
-                    <i class="fa-solid fa-trash" style="color:var(--tram)" onclick="delItem('lines',${i})"></i>
-                </div>
-            </div>`).join('');
-        
-        document.getElementById('adm-list-news').innerHTML = state.news.map((n, i) => `
-            <div class="admin-item"><span>${n.title}</span> <i class="fa-solid fa-trash" onclick="delItem('news',${i})"></i></div>`).join('');
-        
-        document.getElementById('adm-list-cats').innerHTML = state.categories.map((c, i) => `
-            <div class="admin-item"><span>${c}</span> <i class="fa-solid fa-trash" onclick="delItem('categories',${i})"></i></div>`).join('');
-
-        renderStops();
-    }
-
-    function openLine(num) {
-        show('details');
-        const variants = state.lines.filter(l => l.num === num);
-        let h = `<h2 style="text-align:center; margin-bottom:20px">LINIA ${num}</h2>`;
-        variants.forEach(v => {
-            h += `
-                <div class="card">
-                    <div style="display:flex; align-items:center; margin-bottom:15px">
-                        <div class="line-badge" style="background:${v.type==='tram'?'var(--tram)':'var(--bus)'}; height:30px; font-size:0.8rem">${v.abbr}</div>
-                        <b>${v.dir}</b>
-                    </div>
-                    <div style="margin-bottom:15px">
-                        ${v.stops ? v.stops.map(st => `
-                            <div class="stop-row">
-                                <div class="stop-time">${st.time}'</div>
-                                <div class="stop-name">${st.name}</div>
-                            </div>`).join('') : ''}
-                    </div>
-                    ${v.h1 ? `<div class="sched-item"><b>Robocze:</b>\n${v.h1}</div>` : ''}
-                    ${v.h2 ? `<div class="sched-item"><b>Soboty:</b>\n${v.h2}</div>` : ''}
-                    ${v.h3 ? `<div class="sched-item"><b>Niedziele:</b>\n${v.h3}</div>` : ''}
-                </div>`;
-        });
-        document.getElementById('render-details').innerHTML = h;
-    }
-
-    function renderStops() {
-        const q = document.getElementById('stop-search').value.toLowerCase();
-        const map = {};
-        state.lines.forEach(l => {
-            if(l.stops) l.stops.forEach(st => {
-                if(!map[st.name]) map[st.name] = [];
-                if(!map[st.name].includes(l.num)) map[st.name].push(l.num);
-            });
-        });
-        const filter = Object.keys(map).sort().filter(n => n.toLowerCase().includes(q));
-        document.getElementById('render-stops').innerHTML = filter.map(name => `
-            <div class="card" onclick="openStopDetails('${name.replace(/'/g, "\\'")}')">
-                <div style="font-weight:800; margin-bottom:10px">${name}</div>
-                <div style="display:flex; gap:5px">
-                    ${map[name].map(n => `<span style="font-size:0.6rem; padding:3px 8px; background:var(--accent); border-radius:5px; font-weight:900">${n}</span>`).join('')}
-                </div>
-            </div>`).join('');
-    }
-
-    function openStopDetails(name) {
-        show('details');
-        const lines = state.lines.filter(l => l.stops && l.stops.some(s => s.name === name));
-        let h = `<h3 style="text-align:center; margin-bottom:15px">${name}</h3>`;
-        lines.forEach(l => {
-            h += `
-                <div class="card" onclick="openLine('${l.num}')">
-                    <div style="display:flex; align-items:center">
-                        <div class="line-badge" style="background:${l.type==='tram'?'var(--tram)':'var(--bus)'}; height:25px; width:40px; font-size:0.7rem">${l.num}</div>
-                        <b>${l.dir}</b>
-                    </div>
-                </div>`;
-        });
-        document.getElementById('render-details').innerHTML = h;
     }
 
     function saveLine() {
-        const id = parseInt(document.getElementById('edit-id').value);
-        const stopsArr = document.getElementById('f-stops').value.split(',').filter(x => x.includes('|')).map(s => {
+        const stops = document.getElementById('f-stops').value.split(',').filter(x => x.includes('|')).map(s => {
             const p = s.split('|');
             return { name: p[0].trim(), time: p[1].trim() };
         });
-        const data = {
+
+        const l = {
             num: document.getElementById('f-num').value,
-            abbr: document.getElementById('f-abbr').value.toUpperCase(),
             dir: document.getElementById('f-dir').value,
-            type: document.getElementById('f-type').value,
             cat: document.getElementById('f-cat').value,
-            stops: stopsArr,
-            h1: document.getElementById('f-h1').value,
-            h2: document.getElementById('f-h2').value,
-            h3: document.getElementById('f-h3').value
+            stops: stops
         };
-        if(id === -1) state.lines.push(data); else state.lines[id] = data;
-        dbRef.set(state).then(() => { alert("Zapisano!"); resetForm(); });
+
+        if(!state.lines) state.lines = [];
+        state.lines.push(l);
+        firebase.database().ref(currentKey).set(state).then(() => alert("Dodano do " + currentKey));
     }
 
-    function editLine(i) {
-        const l = state.lines[i];
-        document.getElementById('edit-id').value = i;
-        document.getElementById('f-num').value = l.num;
-        document.getElementById('f-abbr').value = l.abbr;
-        document.getElementById('f-dir').value = l.dir;
-        document.getElementById('f-stops').value = l.stops.map(s => `${s.name}|${s.time}`).join(', ');
-        document.getElementById('f-h1').value = l.h1 || '';
-        document.getElementById('f-h2').value = l.h2 || '';
-        document.getElementById('f-h3').value = l.h3 || '';
-        document.getElementById('form-head').innerText = "Edycja: " + l.num;
-        window.scrollTo(0,0);
-    }
-
-    function resetForm() {
-        document.getElementById('edit-id').value = "-1";
-        ['f-num','f-abbr','f-dir','f-stops','f-h1','f-h2','f-h3'].forEach(id => document.getElementById(id).value = '');
-    }
-
-    function saveNews() {
-        const t = document.getElementById('n-title').value;
-        const b = document.getElementById('n-body').value;
-        if(t && b) { state.news.unshift({title:t, body:b}); dbRef.set(state); }
-    }
-
-    function addCat() {
-        const n = document.getElementById('new-cat').value;
-        if(n) { state.categories.push(n); dbRef.set(state); }
-    }
-
-    function delItem(type, i) {
+    function deleteLine(i) {
         if(confirm("Usunąć?")) {
-            if(type === 'categories') state.categories.splice(i,1);
-            else if(type === 'lines') state.lines.splice(i,1);
-            else if(type === 'news') state.news.splice(i,1);
-            dbRef.set(state);
+            state.lines.splice(i,1);
+            firebase.database().ref(currentKey).set(state);
         }
     }
+
+    function tryLogin() {
+        if(document.getElementById('adm-pass').value === '123') {
+            document.getElementById('adm-auth').style.display = 'none';
+            document.getElementById('adm-panel').style.display = 'block';
+        }
+    }
+
+    function show(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.getElementById('s-'+id).classList.add('active-sec');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('n-'+id).classList.add('active');
+    }
+
+    connect();
 </script>
 </body>
 </html>

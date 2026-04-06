@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V47</title>
+    <title>MZK GORZÓW PRO V48</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -52,7 +52,7 @@
         nav i { font-size: 1.2rem; margin-bottom: 4px; }
         
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-        .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
+        .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
         .day-btn.active { background: var(--accent); }
         
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: #1c252e; border: 1px solid var(--border); color: white; }
@@ -85,7 +85,7 @@
         <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
             <button class="day-btn" id="btn-saturday" onclick="setDay('saturday')">Soboty</button>
-            <button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedz</button>
+            <button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedz i Św</button>
         </div>
         <div id="tt-body"></div><button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:10px;">Wróć</button>
     </div>
@@ -123,7 +123,7 @@
     <select id="fl-cat"></select>
     <textarea id="fl-h-work" placeholder="Godziny Robocze"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
-    <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
+    <textarea id="fl-h-sun" placeholder="Godziny Niedziele i Święta"></textarea>
     <textarea id="import-area" style="height:80px;" placeholder="Wklej listę przystanków"></textarea>
     <button onclick="processBulkImport()" class="main-btn" style="background:var(--info)">Importuj Przystanki</button>
     <div id="fl-list"></div><button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj stop</button>
@@ -188,12 +188,10 @@
         }).join('');
     }
 
-    // LISTA PRZYSTANKÓW DLA PASAŻERA - NOWY WYGLĄD LINII
     function renderStopsList() { 
         const q = document.getElementById('stop-search').value.toLowerCase(); const listDiv = document.getElementById('public-stops-list'); listDiv.innerHTML = ''; 
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
             const d = db.stopDetails[cleanKey(name)] || {};
-            // Pobieramy unikalne linie dla przystanku i ich typy
             const stopLines = [];
             db.lines.forEach(l => {
                 if(l.stops?.some(st => st.name === name)) {
@@ -201,26 +199,11 @@
                 }
             });
             stopLines.sort((a,b) => parseInt(a.num) - parseInt(b.num));
-
-            listDiv.innerHTML += `
-                <div class="stop-card" onclick="openStopLines('${name}')">
-                    <div class="stop-info">
-                        <div class="stop-name">
-                            ${name} 
-                            ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} 
-                            ${d.outZone?'<span class="badge badge-strefa">STREFA</span>':''}
-                        </div>
-                        ${d.nearby ? `<small style="color:var(--accent); font-weight:600;">${d.nearby}</small>` : ''}
-                    </div>
-                    <div class="line-badges">
-                        ${stopLines.map(l => `<span class="line-badge ${l.type}">${l.num}</span>`).join('')}
-                    </div>
-                </div>`; 
+            listDiv.innerHTML += `<div class="stop-card" onclick="openStopLines('${name}')"><div class="stop-info"><div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">STREFA</span>':''}</div>${d.nearby ? `<small style="color:var(--accent); font-weight:600;">${d.nearby}</small>` : ''}</div><div class="line-badges">${stopLines.map(l => `<span class="line-badge ${l.type}">${l.num}</span>`).join('')}</div></div>`; 
         }); 
     }
 
     function openStopLines(name) { show('stop-lines'); const list = document.getElementById('sl-list'); list.innerHTML = `<div class="group-label">${name}</div>`; db.lines.forEach((l, i) => { const sIdx = l.stops?.findIndex(st => st.name === name); if(sIdx !== -1) list.innerHTML += `<div class="stop-card" onclick="renderTimetable(${i}, ${sIdx})"><div><span class="line-badge ${l.type}" style="margin-right:10px">${l.num}</span><b>${l.dir}</b></div><i class="fa-solid fa-chevron-right"></i></div>`; }); }
-    
     function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-' + (d==='sunday'?'sunday':d==='saturday'?'saturday':'working')).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
 
     function renderTimetable(lIdx, sIdx = -1) {

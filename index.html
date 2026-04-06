@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V68</title>
+    <title>MZK GORZÓW PRO V69</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -274,6 +274,23 @@
         document.getElementById('edit-contact-text').value = db.contact || "";
     }
 
+    // --- POPRAWIONY ALGORYTM SORTOWANIA ---
+    function sortLinesByETA(arr) {
+        return arr.sort((a, b) => {
+            const etaA = a.eta;
+            const etaB = b.eta;
+            // Obaj mają null - sortuj po numerze linii
+            if (etaA === null && etaB === null) return parseInt(a.num) - parseInt(b.num);
+            // Jeden ma null - ten z nullem idzie na koniec
+            if (etaA === null) return 1;
+            if (etaB === null) return -1;
+            // Obaj mają czas - sortuj rosnąco (0 min, 1 min, 2 min...)
+            if (etaA !== etaB) return etaA - etaB;
+            // Czasy równe - sortuj po numerze
+            return parseInt(a.num) - parseInt(b.num);
+        });
+    }
+
     function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
         db.lines.forEach(l => { 
@@ -286,13 +303,7 @@
                 }
             } 
         });
-        // SORTOWANIE PO CZASIE ODJAZDU (najbliższy pierwszy)
-        return found.sort((a, b) => {
-            if (a.eta === null && b.eta === null) return parseInt(a.num) - parseInt(b.num);
-            if (a.eta === null) return 1;
-            if (b.eta === null) return -1;
-            return a.eta - b.eta;
-        });
+        return sortLinesByETA(found);
     }
 
     function renderStopsList() { 
@@ -355,24 +366,15 @@
         db.lines.forEach((l, i) => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
             if(sIdx !== -1) {
-                foundLines.push({ line: l, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
+                foundLines.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
             }
         });
 
-        // SORTOWANIE PO CZASIE ODJAZDU (najbliższy pierwszy)
-        foundLines.sort((a, b) => {
-            if (a.eta === null && b.eta === null) return parseInt(a.line.num) - parseInt(b.line.num);
-            if (a.eta === null) return 1;
-            if (b.eta === null) return -1;
-            return a.eta - b.eta;
-        });
-
-        foundLines.forEach(item => {
-            const l = item.line;
-            const eta = item.eta;
-            const icon = l.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
-            const etaLabel = eta === 0 ? '<span class="eta-now">>>></span>' : `za ${eta} min`;
-            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${item.originalIdx}, ${item.stopIdx})"><div><span class="line-badge ${l.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${l.num}</span><b>${l.dir}</b></div> ${eta !== null ? `<span class="eta-tag">${etaLabel}</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
+        // SORTOWANIE (identyczna logika co w badge'ach)
+        sortLinesByETA(foundLines).forEach(item => {
+            const icon = item.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
+            const etaLabel = item.eta === 0 ? '<span class="eta-now">>>></span>' : `za ${item.eta} min`;
+            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${item.originalIdx}, ${item.stopIdx})"><div><span class="line-badge ${item.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${item.num}</span><b>${item.dir}</b></div> ${item.eta !== null ? `<span class="eta-tag">${etaLabel}</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
         });
     }
 

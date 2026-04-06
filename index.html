@@ -33,14 +33,13 @@
         .tt-min-col { flex: 1; padding: 12px 15px; display: flex; flex-wrap: wrap; gap: 12px; background: #fff; }
         .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.1rem; color: #333; }
 
-        .news-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; background: var(--info); color: white; }
-        
         nav { position: fixed; bottom: 0; width: 100%; background: #161c24; display: flex; height: 75px; border-top: 1px solid var(--border); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.2rem; margin-bottom: 4px; }
         
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+        .danger-btn { background: var(--danger) !important; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: #1c252e; border: 1px solid var(--border); color: white; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         
@@ -157,8 +156,7 @@
         projectId: "mzk-by-facio",
         storageBucket: "mzk-by-facio.firebasestorage.app",
         messagingSenderId: "676970411647",
-        appId: "1:676970411647:web:5703d5fb5fb499ff83714a",
-        measurementId: "G-EZ1WKZXX6K"
+        appId: "1:676970411647:web:5703d5fb5fb499ff83714a"
     };
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
@@ -202,7 +200,7 @@
         const nl = document.getElementById('public-news-list');
         nl.innerHTML = db.news.map((n, i) => `
             <div class="app-card" onclick="showNewsDet(${i})">
-                <div style="flex:1"><span class="news-badge">${n.category || 'INFO'}</span><h3 style="color:white; margin-top:5px;">${n.title}</h3></div>
+                <div style="flex:1"><span class="news-badge" style="background:var(--info); color:white; font-size:0.6rem; padding:3px 6px; border-radius:4px;">${n.category || 'INFO'}</span><h3 style="color:white; margin-top:5px;">${n.title}</h3></div>
                 <i class="fa-solid fa-chevron-right" style="color:var(--accent)"></i>
             </div>`).join('') || '<div class="app-card">Brak newsów</div>';
 
@@ -210,11 +208,24 @@
         document.getElementById('edit-contact-text').value = db.contact || "";
 
         filterStops();
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `
+            <div class="app-card" style="display:flex; flex-direction:column; align-items:stretch; gap:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><b>${l.num}</b> -> ${l.dir}</span>
+                    <button onclick="openLineForm(${i})" style="padding:6px 12px; border-radius:6px; background:#444; color:white; border:none; cursor:pointer;">EDYTUJ</button>
+                </div>
+                <button onclick="deleteLine(${i})" class="main-btn danger-btn" style="padding:8px; margin:0; font-size:0.7rem;">USUŃ LINIĘ</button>
+            </div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
     }
 
-    // PRZYSTANKI Z IKONAMI
+    function deleteLine(idx) {
+        if(confirm("Czy na pewno chcesz usunąć tę linię?")) {
+            db.lines.splice(idx, 1);
+            dbRef.update({ lines: db.lines }).then(() => alert("Linia usunięta."));
+        }
+    }
+
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
@@ -296,7 +307,7 @@
 
     function addStopRow(name = "", time = 2, nz = false) {
         const div = document.createElement('div'); div.className = 'stop-edit-row';
-        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" style="flex:1; margin:0;"><input type="number" value="${time}" class="stop-time-in" style="width:50px; margin:0;"><label style="font-size:0.7rem; color:white;"><input type="checkbox" ${nz?'checked':''}> NŻ</label><button class="btn-del-stop" onclick="this.parentElement.remove()">X</button>`;
+        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" style="flex:1; margin:0;"><input type="number" value="${time}" class="stop-time-in" style="width:40px; margin:0;"><label style="font-size:0.6rem;"><input type="checkbox" ${nz?'checked':''}> NŻ</label><button class="btn-del-stop" onclick="this.parentElement.remove()">X</button>`;
         document.getElementById('fl-list').appendChild(div);
     }
 

@@ -1,325 +1,398 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MZK GORZÓW PRO V109</title>
-<meta name="theme-color" content="#0b0f19">
-<link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
-<style>
-:root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --surface-light: #1c252e; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; --warn: #feca05; --border: rgba(255,255,255,0.08); --bus-col: #00ab55; --tram-col: #ff4842; }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 120px; overflow-x: hidden; }
-.section { display: none; }
-.active-sec { display: block !important; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-header { background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); padding: 25px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
-.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-.app-card { background: var(--surface); padding: 22px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-.app-card:active { transform: scale(0.97); background: var(--surface-light); }
-.line-main-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; cursor: pointer; transition: 0.2s; }
-.line-main-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-.line-main-num { min-width: 55px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 1.1rem; color: white; }
-.line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; color: white; border: 1px solid rgba(255,255,255,0.1); }
-.line-badge.bus { background: linear-gradient(135deg, var(--bus-col), #008a45) !important; }
-.line-badge.tram { background: linear-gradient(135deg, var(--tram-col), #d63933) !important; }
-.line-badges { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 25px; padding-top: 20px; border-top: 2px solid rgba(255,255,255,0.05); }
-.dir-abbr { background: rgba(255,255,255,0.08); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; color: var(--text); border: 1px solid var(--border); font-weight: 800; }
-.eta-tag { font-size: 0.9rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 8px 14px; border-radius: 10px; }
-.transfer-eta { font-size: 0.8rem; font-weight: 900; margin-left: 12px; color: #fff; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; }
-.badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 6px; font-weight: 900; text-transform: uppercase; margin-left: 8px; display: inline-block; }
-.badge-nz { background: var(--warn); color: #000; }
-.badge-strefa { background: #444; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-.group-label { font-size: 0.9rem; color: var(--text-sec); text-transform: uppercase; margin: 35px 0 20px 5px; font-weight: 700; letter-spacing: 2px; border-left: 4px solid var(--accent); padding-left: 15px; }
-nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.98); backdrop-filter: blur(25px); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
-nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.75rem; cursor: pointer; transition: 0.3s; }
-nav div.active { color: var(--accent); }
-nav i { font-size: 1.4rem; margin-bottom: 6px; }
-.tt-container { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; margin-top: 25px; }
-.tt-row { display: flex; border-bottom: 1px solid var(--border); }
-.tt-hour-col { background: rgba(255,255,255,0.02); width: 75px; padding: 22px 0; text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--accent); border-right: 1px solid var(--border); }
-.tt-min-col { flex: 1; padding: 22px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
-.tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.2rem; color: #fff; font-weight: 600; }
-.overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:25px; overflow-y:auto; }
-textarea, input, select { width: 100%; padding: 18px; margin-bottom: 18px; border-radius: 12px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-size: 1rem; }
-.main-btn { background: var(--accent); color: white; width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; margin-bottom: 15px; text-transform: uppercase; }
-.day-btn { flex: 1; padding: 18px; border-radius: 12px; border: none; background: #212b36; color: white; font-weight: 800; cursor: pointer; }
-.day-btn.active { background: var(--accent); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MZK GORZÓW PRO V110</title>
+    <meta name="theme-color" content="#0b0f19">
+    <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --surface-light: #1c252e; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; --warn: #feca05; --border: rgba(255,255,255,0.08); --bus-col: #00ab55; --tram-col: #ff4842; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 120px; overflow-x: hidden; }
+        .section { display: none; }
+        .active-sec { display: block !important; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        header { background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); padding: 25px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .app-card { background: var(--surface); padding: 22px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .line-main-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; cursor: pointer; }
+        .line-main-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .line-main-num { min-width: 55px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 1.1rem; color: white; }
+        .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; color: white; border: 1px solid rgba(255,255,255,0.1); }
+        .line-badge.bus { background: linear-gradient(135deg, var(--bus-col), #008a45) !important; }
+        .line-badge.tram { background: linear-gradient(135deg, var(--tram-col), #d63933) !important; }
+        .line-badges { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 25px; padding-top: 20px; border-top: 2px solid rgba(255,255,255,0.05); }
+        .dir-abbr { background: rgba(255,255,255,0.08); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; color: var(--text); border: 1px solid var(--border); font-weight: 800; margin-right: 5px; }
+        .eta-tag { font-size: 0.9rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 8px 14px; border-radius: 10px; }
+        .transfer-eta { font-size: 0.8rem; font-weight: 900; margin-left: 12px; color: #fff; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; }
+        
+        /* NOWE OZNACZENIA */
+        .badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 6px; font-weight: 900; text-transform: uppercase; margin-left: 8px; display: inline-block; vertical-align: middle; }
+        .badge-nz { background: var(--warn); color: #000; }
+        .badge-strefa { background: #444; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+
+        .group-label { font-size: 0.9rem; color: var(--text-sec); text-transform: uppercase; margin: 35px 0 20px 5px; font-weight: 700; letter-spacing: 2px; border-left: 4px solid var(--accent); padding-left: 15px; }
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.98); backdrop-filter: blur(25px); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.75rem; cursor: pointer; transition: 0.3s; }
+        nav div.active { color: var(--accent); }
+        nav i { font-size: 1.4rem; margin-bottom: 6px; }
+
+        .tt-container { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; margin-top: 25px; }
+        .tt-row { display: flex; border-bottom: 1px solid var(--border); }
+        .tt-hour-col { background: rgba(255,255,255,0.02); width: 75px; padding: 22px 0; text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--accent); border-right: 1px solid var(--border); }
+        .tt-min-col { flex: 1; padding: 22px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+        .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.2rem; color: #fff; font-weight: 600; }
+
+        .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:25px; overflow-y:auto; }
+        textarea, input, select { width: 100%; padding: 18px; margin-bottom: 18px; border-radius: 12px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-size: 1rem; }
+        .main-btn { background: var(--accent); color: white; width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: 800; cursor: pointer; margin-bottom: 15px; text-transform: uppercase; }
+        .day-btn { flex: 1; padding: 18px; border-radius: 12px; border: none; background: #212b36; color: white; font-weight: 800; cursor: pointer; }
+        .day-btn.active { background: var(--accent); }
+        .adm-row { display: flex; justify-content: space-between; align-items: center; background: var(--surface-light); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
+    </style>
 </head>
 <body>
+
 <header>MZK GORZÓW</header>
+
 <div class="container">
-<div id="s-home" class="section active-sec"></div>
-<div id="s-stops" class="section">
-<input type="text" id="stop-search" placeholder="🔍 Szukaj przystanku..." oninput="renderStopsList()">
-<div id="public-stops-list"></div>
+    <div id="s-home" class="section active-sec"></div>
+    <div id="s-stops" class="section">
+        <input type="text" id="stop-search" placeholder="🔍 Szukaj przystanku..." oninput="renderStopsList()">
+        <div id="public-stops-list"></div>
+    </div>
+    <div id="s-stop-lines" class="section"><div id="sl-list"></div><button onclick="show('stops')" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button></div>
+    <div id="s-vars" class="section"><div id="vars-list"></div><button id="vars-back-btn" class="main-btn" style="background:#333">Wróć</button></div>
+    <div id="s-tt" class="section">
+        <div id="tt-day-sel" style="display:none; gap:12px; margin-bottom:25px;">
+            <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
+            <button class="day-btn" id="btn-saturday" onclick="setDay('saturday')">Soboty</button>
+            <button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedz/Św</button>
+        </div>
+        <div id="tt-body"></div>
+        <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:30px;">Wróć</button>
+    </div>
+    <div id="s-news" class="section"><div id="public-news-list"></div></div>
+    <div id="s-news-details" class="section">
+        <div class="app-card" style="display:block;"><h2 id="nd-title"></h2><small id="nd-date" style="color:var(--warn)"></small><p id="nd-body" style="margin-top:15px; white-space:pre-wrap; color:var(--text-sec); line-height:1.7;"></p></div>
+        <button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
+    </div>
+    <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; color:var(--text-sec);"></div></div>
+
+    <div id="s-adm" class="section">
+        <div id="adm-login" class="app-card" style="display:block; text-align:center;"><div class="group-label">Panel Sterowania</div><input type="password" id="pass" placeholder="Hasło"><button onclick="login()" class="main-btn">Zaloguj</button></div>
+        <div id="adm-ui" style="display:none;">
+            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:20px;">
+                <button onclick="setTab('lines')" class="main-btn" style="padding:15px; font-size:0.8rem;">Linie</button>
+                <button onclick="setTab('news')" class="main-btn" style="padding:15px; font-size:0.8rem;">Newsy</button>
+                <button onclick="setTab('stops')" class="main-btn" style="padding:15px; font-size:0.8rem;">Przystanki</button>
+                <button onclick="setTab('settings')" class="main-btn" style="padding:15px; font-size:0.8rem;">Ustawienia</button>
+            </div>
+
+            <div id="tab-lines" class="adm-tab">
+                <button onclick="openLineForm(-1)" class="main-btn">+ Nowa Linia</button>
+                <div id="adm-lines-list"></div>
+            </div>
+            <div id="tab-news" class="adm-tab" style="display:none;">
+                <button onclick="openNewsForm(-1)" class="main-btn">+ Nowy Komunikat</button>
+                <div id="adm-news-list"></div>
+            </div>
+            <div id="tab-stops" class="adm-tab" style="display:none;">
+                <div id="adm-stops-settings"></div>
+            </div>
+            <div id="tab-settings" class="adm-tab" style="display:none;">
+                <div class="group-label">Kategorie Linii (po przecinku)</div>
+                <input type="text" id="set-line-cats">
+                <div class="group-label">Kategorie Newsów (po przecinku)</div>
+                <input type="text" id="set-news-cats">
+                <div class="group-label">Informacje kontaktowe</div>
+                <textarea id="set-contact" style="height:150px;"></textarea>
+                <button onclick="saveSettings()" class="main-btn">Zapisz Konfigurację</button>
+                <button onclick="console.log(JSON.stringify(db))" class="main-btn" style="background:#444">Export JSON (Konsola)</button>
+            </div>
+        </div>
+    </div>
 </div>
-<div id="s-stop-lines" class="section"><div id="sl-list"></div><button onclick="show('stops')" class="main-btn" style="background:#333; margin-top:20px;">Wróć do listy</button></div>
-<div id="s-vars" class="section"><div id="vars-list"></div><button id="vars-back-btn" class="main-btn" style="background:#333">Wróć</button></div>
-<div id="s-tt" class="section">
-<div id="tt-day-sel" style="display:none; gap:12px; margin-bottom:25px;">
-<button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
-<button class="day-btn" id="btn-saturday" onclick="setDay('saturday')">Soboty</button>
-<button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedz / Św</button>
-</div>
-<div id="tt-body"></div>
-<button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:30px;">Wróć</button>
-</div>
-<div id="s-news" class="section"><div id="public-news-list"></div></div>
-<div id="s-news-details" class="section">
-<div class="app-card" style="display:block;"><h2 id="nd-title"></h2><small id="nd-date" style="color:var(--warn)"></small><p id="nd-body" style="margin-top:15px; white-space:pre-wrap; color:var(--text-sec); line-height:1.7;"></p></div>
-<button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
-</div>
-<div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; color:var(--text-sec); line-height:1.7;"></div></div>
-<div id="s-adm" class="section">
-<div id="adm-login" class="app-card" style="display:block; text-align:center;"><div class="group-label">Autoryzacja</div><input type="password" id="pass" placeholder="Hasło"><button onclick="login()" class="main-btn">Zaloguj</button></div>
-<div id="adm-ui" style="display:none;">
-<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px;">
-<button onclick="setTab('l')" class="main-btn" style="padding:10px; font-size:0.7rem;">LINIE</button>
-<button onclick="setTab('n')" class="main-btn" style="padding:10px; font-size:0.7rem; background:#333;">NEWS</button>
-<button onclick="setTab('c')" class="main-btn" style="padding:10px; font-size:0.7rem; background:#333;">USTAW</button>
-<button onclick="exportDB()" class="main-btn" style="padding:10px; font-size:0.7rem; background:#333;">JSON</button>
-</div>
-<div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
-<div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
-<div id="tab-c" class="adm-tab" style="display:none;">
-<div class="group-label">Kategorie Linii</div><input type="text" id="edit-cats-input" placeholder="Kat1, Kat2...">
-<div class="group-label">Kategorie Newsów</div><input type="text" id="edit-news-cats-input" placeholder="Kat1, Kat2...">
-<div class="group-label">Info o MZK</div><textarea id="edit-contact-text" style="height:150px;"></textarea>
-<button onclick="saveAllSettings()" class="main-btn">Zapisz Wszystko</button>
-</div>
-</div>
-</div>
-</div>
+
 <div id="form-line" class="overlay-form">
-<h2>Edycja Linii</h2>
-<div style="display:flex; gap:10px;"><input type="text" id="fl-num" placeholder="Nr" style="width:80px;"><input type="text" id="fl-dir" placeholder="Kierunek"></div>
-<select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-<select id="fl-cat"></select>
-<textarea id="fl-h-work" placeholder="Godziny Robocze"></textarea>
-<textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
-<textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
-<div id="fl-list"></div>
-<button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj Przystanek</button>
-<button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
-<button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
+    <h2 id="fl-title">Edycja Linii</h2>
+    <div style="display:flex; gap:10px;"><input type="text" id="fl-num" placeholder="Nr" style="width:80px;"><input type="text" id="fl-dir" placeholder="Kierunek"></div>
+    <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
+    <select id="fl-cat"></select>
+    <textarea id="fl-h-work" placeholder="Godziny Robocze (HH:MM, HH:MM...)"></textarea>
+    <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
+    <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
+    <div id="fl-stops-list"></div>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj Przystanek</button>
+    <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
 </div>
+
 <div id="form-news" class="overlay-form">
-<h2>Edycja Komunikatu</h2>
-<input type="text" id="fn-title" placeholder="Tytuł">
-<input type="text" id="fn-date" placeholder="Data">
-<select id="fn-cat"></select>
-<textarea id="fn-body" style="height:200px;" placeholder="Treść..."></textarea>
-<button onclick="saveNews()" class="main-btn">Zapisz News</button>
-<button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
+    <h2>Edycja News</h2>
+    <input type="text" id="fn-title" placeholder="Tytuł">
+    <input type="text" id="fn-date" placeholder="Data">
+    <select id="fn-cat"></select>
+    <textarea id="fn-body" style="height:200px;" placeholder="Treść..."></textarea>
+    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
 </div>
+
 <nav>
-<div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus-simple"></i><span>Linie</span></div>
-<div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-location-dot"></i><span>Przystanki</span></div>
-<div onclick="show('news')" id="n-news"><i class="fa-solid fa-bullhorn"></i><span>Komunikaty</span></div>
-<div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
-<div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-shield-halved"></i><span>Panel</span></div>
+    <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus-simple"></i><span>Linie</span></div>
+    <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-location-dot"></i><span>Przystanki</span></div>
+    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bullhorn"></i><span>Komunikaty</span></div>
+    <div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-circle-info"></i><span>Info</span></div>
+    <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-shield-halved"></i><span>Panel</span></div>
 </nav>
+
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <script>
-const firebaseConfig = { apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio", storageBucket: "mzk-by-facio.firebasedatorage.app", messagingSenderId: "676970411647", appId: "1:676970411647:web:5703d5fb5fb499ff83714a" };
-firebase.initializeApp(firebaseConfig);
-const dbRef = firebase.database().ref('mzk_v12_pro');
-let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "" };
-let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [];
-let curLineNumForVars = null, curStopNameForLines = null;
-function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
-function formatETA(mins) { if(mins === null) return ""; if(mins === 0) return ">>>"; return mins < 60 ? mins + "m" : Math.floor(mins/60) + "h " + (mins%60) + "m"; }
-function getDirAbbr(dir) { if(!dir) return ""; const w = dir.trim().split(/\s+/); return (w[0][0] + w[w.length-1].substring(0,2)).toUpperCase(); }
-function getETA(line, stopIdx) {
-if(!line || !line.stops || stopIdx < 0) return null;
-const now = new Date(); const day = now.getDay() === 0 ? 'hoursSun' : (now.getDay() === 6 ? 'hoursSat' : 'hoursWorking');
-const raw = line[day]; if(!raw) return null;
-let off = 0; for(let i=0; i<=stopIdx; i++) off += parseInt(line.stops[i].time || 0);
-const times = raw.split(',').map(t => {
-const p = t.trim().split(':'); if(p.length < 2) return null;
-const d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + off, 0, 0); return d;
-}).filter(d => d && d > now).sort((a,b) => a - b);
-return times.length ? Math.floor((times[0]-now)/60000) : null;
-}
-dbRef.on('value', s => { 
-const v = s.val(); if(!v) return; db = v;
-if(!db.lines) db.lines = []; if(!db.news) db.news = [];
-let sSet = new Set(); db.lines.forEach(l => l.stops?.forEach(st => sSet.add(st.name.trim())));
-allStops = [...sSet].sort(); render();
-});
-function show(id) { 
-document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-document.getElementById('s-'+id).classList.add('active-sec');
-document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-document.getElementById('n-'+id).classList.add('active');
-if(id === 'news') renderNews();
-if(id === 'contact') document.getElementById('contact-display').innerText = db.contact || "";
-}
-function render() {
-const h = document.getElementById('s-home'); if(!h.classList.contains('active-sec')) return;
-let html = '';
-(db.lineCategories || []).forEach(cat => {
-const lines = db.lines.filter(l => l.category === cat); if(!lines.length) return;
-html += `<div class="group-label">${cat}</div>`;
-[...new Set(lines.map(l => String(l.num)))].sort((a,b)=>a-b).forEach(num => {
-const vars = lines.filter(l => String(l.num) === num);
-html += `<div class="line-main-card" onclick="openVars('${num}', 'home')">
-<div class="line-main-top"><span class="line-badge ${vars[0].type === 'tram' ? 'tram' : 'bus'}">${num}</span><span>${vars[0].type==='tram'?'Tramwaj':'Autobus'}</span></div>
-<div class="line-main-abbrs">${vars.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('')}</div></div>`;
-});
-});
-h.innerHTML = html; renderStopsList();
-}
-function openVars(num, back) {
-curLineNumForVars = num; show('vars');
-let html = `<div class="group-label">Kierunki linii ${num}</div>`;
-db.lines.forEach((l, i) => {
-if(String(l.num) === num) {
-const eta = getETA(l, 0);
-html += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><span><b>DO:</b> ${l.dir}</span><span class="eta-tag">${eta !== null ? formatETA(eta) : '---'}</span></div></div>`;
-}
-});
-document.getElementById('vars-list').innerHTML = html;
-document.getElementById('vars-back-btn').onclick = () => { curLineNumForVars = null; show(back); };
-}
-function renderStopsList() {
-const q = document.getElementById('stop-search').value.toLowerCase();
-const list = document.getElementById('public-stops-list'); if(!list) return;
-let html = '';
-allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => {
-const d = db.stopDetails?.[cleanKey(name)] || {};
-let lines = {}; db.lines.forEach(l => {
-const idx = l.stops?.findIndex(st => st.name.trim() === name.trim());
-if(idx > -1) {
-const eta = getETA(l, idx);
-if(!lines[l.num] || (eta !== null && (lines[l.num].eta === null || eta < lines[l.num].eta))) lines[l.num] = { num: l.num, type: l.type, eta };
-}
-});
-html += `<div class="app-card" onclick="openStopLines('${name}')"><b>${name}</b> ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}
-<div class="line-badges">${Object.values(lines).map(l => `<span class="line-badge ${l.type === 'tram' ? 'tram' : 'bus'}">${l.num}<span class="transfer-eta">${l.eta !== null ? formatETA(l.eta) : '---'}</span></span>`).join('')}</div></div>`;
-});
-list.innerHTML = html;
-}
-function openStopLines(name) {
-curStopNameForLines = name; show('stop-lines');
-let vs = []; db.lines.forEach((l, i) => {
-const idx = l.stops?.findIndex(st => st.name.trim() === name.trim()); if(idx > -1) vs.push({ ...l, lIdx: i, sIdx: idx, eta: getETA(l, idx) });
-});
-vs.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
-let html = `<div class="group-label">Odjazdy z: ${name}</div>`;
-vs.forEach(v => {
-html += `<div class="app-card" onclick="renderTimetable(${v.lIdx}, ${v.sIdx})"><div style="display:flex; align-items:center; justify-content:space-between;"><div><span class="line-badge ${v.type==='tram'?'tram':'bus'}">${v.num}</span> DO: ${v.dir}</div><span class="eta-tag">${v.eta !== null ? formatETA(v.eta) : '---'}</span></div></div>`;
-});
-document.getElementById('sl-list').innerHTML = html;
-}
-function renderTimetable(lIdx, sIdx = -1) {
-curLineIdx = lIdx; curStopIdx = sIdx; show('tt'); const l = db.lines[lIdx];
-let html = '';
-if(sIdx === -1) {
-document.getElementById('tt-day-sel').style.display = 'none';
-html = `<div class="group-label">Linia ${l.num} -> ${l.dir}</div>`;
-l.stops.forEach((s, i) => {
-const eta = getETA(l, i); const d = db.stopDetails?.[cleanKey(s.name)] || {};
-html += `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})"><div style="display:flex; justify-content:space-between;"><span>${s.name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''}</span><span class="eta-tag">${eta!==null?formatETA(eta):'---'}</span></div></div>`;
-});
-} else {
-document.getElementById('tt-day-sel').style.display = 'flex';
-let off = 0; for(let i=0; i<=sIdx; i++) off += parseInt(l.stops[i].time || 0);
-const raw = curDay === 'working' ? l.hoursWorking : (curDay === 'saturday' ? l.hoursSat : l.hoursSun);
-const hMap = {}; (raw || "").split(',').forEach(t => {
-const p = t.trim().split(':'); if(p.length < 2) return;
-const d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + off);
-const hh = d.getHours().toString().padStart(2, '0'), mm = d.getMinutes().toString().padStart(2, '0');
-if(!hMap[hh]) hMap[hh] = []; hMap[hh].push(mm);
-});
-html = `<div class="app-card"><b>${l.num}</b> • ${l.stops[sIdx].name}</div><div class="tt-container">`;
-Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().join(' ')}</div></div>`);
-html += `</div>`;
-}
-document.getElementById('tt-body').innerHTML = html;
-document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? openVars(l.num, 'home') : renderTimetable(lIdx, -1);
-}
-function renderNews() {
-const list = document.getElementById('public-news-list'); list.innerHTML = '';
-(db.newsCategories || []).forEach(cat => {
-const ns = db.news.filter(n => n.category === cat); if(!ns.length) return;
-list.innerHTML += `<div class="group-label">${cat}</div>`;
-ns.forEach((n, i) => list.innerHTML += `<div class="app-card" onclick="openNewsDetails(${db.news.indexOf(n)})"><b>${n.title}</b><br><small>${n.date}</small></div>`);
-});
-}
-function openNewsDetails(i) {
-show('news-details'); const n = db.news[i];
-document.getElementById('nd-title').innerText = n.title; document.getElementById('nd-date').innerText = n.date; document.getElementById('nd-body').innerText = n.body;
-}
-function login() { if(document.getElementById('pass').value === '123') { document.getElementById('adm-ui').style.display = 'block'; document.getElementById('adm-login').style.display = 'none'; setTab('l'); } }
-function setTab(t) { 
-document.querySelectorAll('.adm-tab').forEach(x => x.style.display = 'none'); 
-document.getElementById('tab-'+t).style.display = 'block'; 
-if(t==='l') renderAdminLines(); if(t==='n') renderAdminNews();
-if(t==='c') {
-document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
-document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
-document.getElementById('edit-contact-text').value = db.contact || "";
-}
-}
-function renderAdminLines() {
-const list = document.getElementById('adm-lines-list'); list.innerHTML = '';
-db.lines.forEach((l, i) => list.innerHTML += `<div class="app-card" style="padding:15px; display:flex; justify-content:space-between; align-items:center;"><span>${l.num} -> ${l.dir}</span><button onclick="openLineForm(${i})" style="padding:5px 10px;">EDYTUJ</button></div>`);
-}
-function openLineForm(i) {
-curLineIdx = i; document.getElementById('form-line').style.display = 'block';
-const s = document.getElementById('fl-cat'); s.innerHTML = (db.lineCategories || []).map(c => `<option value="${c}">${c}</option>`).join('');
-if(i > -1) {
-const l = db.lines[i]; document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir;
-document.getElementById('fl-type').value = l.type; document.getElementById('fl-cat').value = l.category || '';
-document.getElementById('fl-h-work').value = l.hoursWorking; document.getElementById('fl-h-sat').value = l.hoursSat; document.getElementById('fl-h-sun').value = l.hoursSun;
-document.getElementById('fl-list').innerHTML = (l.stops || []).map(st => `<div><input value="${st.name}" class="stop-n"> <input value="${st.time}" class="stop-t" style="width:50px;"></div>`).join('');
-} else { document.getElementById('fl-num').value = ''; document.getElementById('fl-list').innerHTML = ''; }
-}
-function addStopRow() { document.getElementById('fl-list').insertAdjacentHTML('beforeend', `<div><input placeholder="Nazwa" class="stop-n"> <input placeholder="Min" class="stop-t" style="width:50px;"></div>`); }
-function saveLine() {
-const stops = []; document.querySelectorAll('#fl-list div').forEach(d => stops.push({ name: d.querySelector('.stop-n').value, time: d.querySelector('.stop-t').value }));
-const l = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops };
-if(curLineIdx > -1) db.lines[curLineIdx] = l; else db.lines.push(l);
-dbRef.update({ lines: db.lines }).then(() => closeForms());
-}
-function renderAdminNews() {
-const list = document.getElementById('adm-news-list'); list.innerHTML = '';
-db.news.forEach((n, i) => list.innerHTML += `<div class="app-card" style="padding:15px; display:flex; justify-content:space-between; align-items:center;"><span>${n.title}</span><button onclick="openNewsForm(${i})" style="padding:5px 10px;">EDYTUJ</button></div>`);
-}
-function openNewsForm(i) {
-curNewsIdx = i; document.getElementById('form-news').style.display = 'block';
-const s = document.getElementById('fn-cat'); s.innerHTML = (db.newsCategories || []).map(c => `<option value="${c}">${c}</option>`).join('');
-if(i > -1) { const n = db.news[i]; document.getElementById('fn-title').value = n.title; document.getElementById('fn-date').value = n.date; document.getElementById('fn-body').value = n.body; document.getElementById('fn-cat').value = n.category || ''; }
-else { document.getElementById('fn-title').value = ''; document.getElementById('fn-body').value = ''; }
-}
-function saveNews() {
-const n = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, body: document.getElementById('fn-body').value, category: document.getElementById('fn-cat').value };
-if(curNewsIdx > -1) db.news[curNewsIdx] = n; else db.news.push(n);
-dbRef.update({ news: db.news }).then(() => closeForms());
-}
-function saveAllSettings() {
-const lc = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim());
-const nc = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim());
-dbRef.update({ lineCategories: lc, newsCategories: nc, contact: document.getElementById('edit-contact-text').value });
-}
-function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display = 'none'); }
-function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
-function exportDB() { console.log(JSON.stringify(db)); alert("W konsoli"); }
-setInterval(() => {
-if(!db.lines || db.lines.length === 0) return;
-const active = document.querySelector('.section.active-sec')?.id;
-if(active === 's-home') render();
-if(active === 's-stops') renderStopsList();
-if(active === 's-vars' && curLineNumForVars) openVars(curLineNumForVars, 'home');
-if(active === 's-stop-lines' && curStopNameForLines) openStopLines(curStopNameForLines);
-if(active === 's-tt' && curLineIdx !== -1) renderTimetable(curLineIdx, curStopIdx);
-}, 5000);
+    const firebaseConfig = { apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio", storageBucket: "mzk-by-facio.firebasedatorage.app", messagingSenderId: "676970411647", appId: "1:676970411647:web:5703d5fb5fb499ff83714a" };
+    firebase.initializeApp(firebaseConfig);
+    const dbRef = firebase.database().ref('mzk_v12_pro');
+
+    let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "" };
+    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [];
+    let curLNum = null, curSName = null;
+
+    function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
+    function formatETA(m) { if(m===null) return ""; if(m===0) return ">>>"; return m < 60 ? m+"m" : Math.floor(m/60)+"h "+(m%60)+"m"; }
+    function getDirAbbr(d) { if(!d) return ""; const w = d.trim().split(/\s+/); return (w[0][0]+w[w.length-1].substring(0,2)).toUpperCase(); }
+
+    function getETA(line, sIdx) {
+        if(!line || !line.stops || sIdx < 0) return null;
+        const now = new Date();
+        const type = now.getDay()===0?'hoursSun':(now.getDay()===6?'hoursSat':'hoursWorking');
+        const raw = line[type]; if(!raw) return null;
+        let off = 0; for(let i=0; i<=sIdx; i++) off += parseInt(line.stops[i].time || 0);
+        const times = raw.split(',').map(t => {
+            const p = t.trim().split(':'); if(p.length<2) return null;
+            const d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1])+off, 0, 0);
+            return d;
+        }).filter(d => d && d > now).sort((a,b)=>a-b);
+        return times.length ? Math.floor((times[0]-now)/60000) : null;
+    }
+
+    dbRef.on('value', s => {
+        const val = s.val(); if(!val) return;
+        db = val; if(!db.lines) db.lines = []; if(!db.news) db.news = [];
+        let sSet = new Set(); db.lines.forEach(l => l.stops?.forEach(st => sSet.add(st.name.trim())));
+        allStops = [...sSet].sort();
+        render();
+    });
+
+    function show(id) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.getElementById('s-'+id).classList.add('active-sec');
+        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+        document.getElementById('n-'+id).classList.add('active');
+        if(id==='news') renderNews();
+        if(id==='contact') document.getElementById('contact-display').innerText = db.contact || "";
+    }
+
+    function render() {
+        const h = document.getElementById('s-home'); if(!h.classList.contains('active-sec')) return;
+        let html = '';
+        (db.lineCategories || []).forEach(cat => {
+            const lines = db.lines.filter(l => l.category === cat); if(!lines.length) return;
+            html += `<div class="group-label">${cat}</div>`;
+            [...new Set(lines.map(l => String(l.num)))].sort((a,b)=>a-b).forEach(num => {
+                const vars = lines.filter(v => String(v.num) === num);
+                html += `<div class="line-main-card" onclick="openVars('${num}')">
+                    <div class="line-main-top"><span class="line-badge ${vars[0].type==='tram'?'tram':'bus'}">${num}</span><span>${vars[0].type==='tram'?'Tramwaj':'Autobus'}</span></div>
+                    <div class="line-main-abbrs">${vars.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('')}</div></div>`;
+            });
+        });
+        h.innerHTML = html;
+        renderStopsList();
+    }
+
+    function openVars(num) {
+        curLNum = num; show('vars');
+        let html = `<div class="group-label">Linia ${num} - Kierunki</div>`;
+        db.lines.forEach((l, i) => {
+            if(String(l.num) === num) {
+                const eta = getETA(l, 0);
+                html += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><span><b>DO:</b> ${l.dir}</span><span class="eta-tag">${eta!==null?formatETA(eta):'---'}</span></div></div>`;
+            }
+        });
+        document.getElementById('vars-list').innerHTML = html;
+        document.getElementById('vars-back-btn').onclick = () => { curLNum = null; show('home'); };
+    }
+
+    function renderStopsList() {
+        const q = document.getElementById('stop-search').value.toLowerCase();
+        const list = document.getElementById('public-stops-list'); if(!list) return;
+        let html = '';
+        allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => {
+            const det = db.stopDetails?.[cleanKey(name)] || {};
+            let lines = {}; db.lines.forEach(l => {
+                const idx = l.stops?.findIndex(st => st.name.trim() === name.trim());
+                if(idx > -1) {
+                    const eta = getETA(l, idx);
+                    if(!lines[l.num] || (eta!==null && (lines[l.num].eta===null || eta < lines[l.num].eta)))
+                        lines[l.num] = { num: l.num, type: l.type, eta };
+                }
+            });
+            html += `<div class="app-card" onclick="openStopLines('${name}')">
+                <b>${name}</b> ${det.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${det.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}
+                <div class="line-badges">${Object.values(lines).map(l => `<span class="line-badge ${l.type==='tram'?'tram':'bus'}">${l.num}<span class="transfer-eta">${l.eta!==null?formatETA(l.eta):'---'}</span></span>`).join('')}</div></div>`;
+        });
+        list.innerHTML = html;
+    }
+
+    function openStopLines(name) {
+        curSName = name; show('stop-lines');
+        let vs = []; db.lines.forEach((l, i) => {
+            const idx = l.stops?.findIndex(st => st.name.trim() === name.trim());
+            if(idx > -1) vs.push({ ...l, lIdx: i, sIdx: idx, eta: getETA(l, idx) });
+        });
+        vs.sort((a,b) => (a.eta===null?1:(b.eta===null?-1:a.eta-b.eta)));
+        let html = `<div class="group-label">Przystanek: ${name}</div>`;
+        vs.forEach(v => {
+            html += `<div class="app-card" onclick="renderTimetable(${v.lIdx}, ${v.sIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="line-badge ${v.type==='tram'?'tram':'bus'}">${v.num}</span> DO: ${v.dir}</div><span class="eta-tag">${v.eta!==null?formatETA(v.eta):'---'}</span></div></div>`;
+        });
+        document.getElementById('sl-list').innerHTML = html;
+    }
+
+    function renderTimetable(lIdx, sIdx = -1) {
+        curLineIdx = lIdx; curStopIdx = sIdx; show('tt'); const l = db.lines[lIdx];
+        let html = '';
+        if(sIdx === -1) {
+            document.getElementById('tt-day-sel').style.display = 'none';
+            html = `<div class="group-label">Trasa: ${l.num} -> ${l.dir}</div>`;
+            l.stops.forEach((s, i) => {
+                const eta = getETA(l, i); const det = db.stopDetails?.[cleanKey(s.name)] || {};
+                html += `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})"><div style="display:flex; justify-content:space-between;"><span>${s.name} ${det.globalNz?'<span class="badge badge-nz">NŻ</span>':''}</span><span class="eta-tag">${eta!==null?formatETA(eta):'---'}</span></div></div>`;
+            });
+        } else {
+            document.getElementById('tt-day-sel').style.display = 'flex';
+            let off = 0; for(let i=0; i<=sIdx; i++) off += parseInt(l.stops[i].time || 0);
+            const raw = curDay==='working'?l.hoursWorking:(curDay==='saturday'?l.hoursSat:l.hoursSun);
+            const hMap = {}; (raw || "").split(',').forEach(t => {
+                const p = t.trim().split(':'); if(p.length<2) return;
+                const d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1])+off);
+                const hh = d.getHours().toString().padStart(2, '0'), mm = d.getMinutes().toString().padStart(2, '0');
+                if(!hMap[hh]) hMap[hh] = []; hMap[hh].push(mm);
+            });
+            html = `<div class="app-card"><b>${l.num}</b> • ${l.stops[sIdx].name}</div><div class="tt-container">`;
+            Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().join(' ')}</div></div>`);
+            html += `</div>`;
+        }
+        document.getElementById('tt-body').innerHTML = html;
+        document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? openVars(l.num) : renderTimetable(lIdx, -1);
+    }
+
+    function renderNews() {
+        const list = document.getElementById('public-news-list'); list.innerHTML = '';
+        (db.newsCategories || []).forEach(cat => {
+            const ns = db.news.filter(n => n.category === cat); if(!ns.length) return;
+            list.innerHTML += `<div class="group-label">${cat}</div>`;
+            ns.forEach(n => list.innerHTML += `<div class="app-card" onclick="openNewsDetails(${db.news.indexOf(n)})"><b>${n.title}</b><br><small>${n.date}</small></div>`);
+        });
+    }
+    function openNewsDetails(i) {
+        show('news-details'); const n = db.news[i];
+        document.getElementById('nd-title').innerText = n.title; document.getElementById('nd-date').innerText = n.date; document.getElementById('nd-body').innerText = n.body;
+    }
+
+    // LOGIKA PANELU ADMINA
+    function login() { if(document.getElementById('pass').value === '123') { document.getElementById('adm-ui').style.display='block'; document.getElementById('adm-login').style.display='none'; setTab('lines'); } }
+    function setTab(t) {
+        document.querySelectorAll('.adm-tab').forEach(x => x.style.display = 'none');
+        document.getElementById('tab-'+t).style.display = 'block';
+        if(t==='lines') renderAdminLines();
+        if(t==='news') renderAdminNews();
+        if(t==='stops') renderAdminStops();
+        if(t==='settings') {
+            document.getElementById('set-line-cats').value = (db.lineCategories || []).join(', ');
+            document.getElementById('set-news-cats').value = (db.newsCategories || []).join(', ');
+            document.getElementById('set-contact').value = db.contact || "";
+        }
+    }
+
+    function renderAdminLines() {
+        const list = document.getElementById('adm-lines-list'); list.innerHTML = '';
+        db.lines.forEach((l, i) => list.innerHTML += `<div class="adm-row"><span>${l.num} -> ${l.dir}</span><div><button onclick="openLineForm(${i})">EDYTUJ</button><button onclick="deleteLine(${i})" style="background:var(--danger); margin-left:5px;">X</button></div></div>`);
+    }
+
+    function openLineForm(i) {
+        curLineIdx = i; document.getElementById('form-line').style.display = 'block';
+        const s = document.getElementById('fl-cat'); s.innerHTML = (db.lineCategories || []).map(c => `<option value="${c}">${c}</option>`).join('');
+        if(i > -1) {
+            const l = db.lines[i]; document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir;
+            document.getElementById('fl-type').value = l.type; document.getElementById('fl-cat').value = l.category;
+            document.getElementById('fl-h-work').value = l.hoursWorking; document.getElementById('fl-h-sat').value = l.hoursSat; document.getElementById('fl-h-sun').value = l.hoursSun;
+            document.getElementById('fl-stops-list').innerHTML = (l.stops || []).map(st => `<div><input value="${st.name}" class="stop-n"> <input value="${st.time}" class="stop-t" style="width:50px;"></div>`).join('');
+        } else { document.getElementById('fl-num').value=''; document.getElementById('fl-stops-list').innerHTML=''; }
+    }
+    function addStopRow() { document.getElementById('fl-stops-list').insertAdjacentHTML('beforeend', `<div><input placeholder="Nazwa" class="stop-n"> <input placeholder="Min" class="stop-t" style="width:50px;"></div>`); }
+    function saveLine() {
+        const stops = []; document.querySelectorAll('#fl-stops-list div').forEach(d => stops.push({ name: d.querySelector('.stop-n').value, time: d.querySelector('.stop-t').value }));
+        const l = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops };
+        if(curLineIdx > -1) db.lines[curLineIdx] = l; else db.lines.push(l);
+        dbRef.update({ lines: db.lines }).then(() => closeForms());
+    }
+    function deleteLine(i) { if(confirm('Usunąć?')) { db.lines.splice(i, 1); dbRef.update({ lines: db.lines }); } }
+
+    function renderAdminNews() {
+        const list = document.getElementById('adm-news-list'); list.innerHTML = '';
+        db.news.forEach((n, i) => list.innerHTML += `<div class="adm-row"><span>${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`);
+    }
+    function openNewsForm(i) {
+        curNewsIdx = i; document.getElementById('form-news').style.display = 'block';
+        const s = document.getElementById('fn-cat'); s.innerHTML = (db.newsCategories || []).map(c => `<option value="${c}">${c}</option>`).join('');
+        if(i > -1) { const n = db.news[i]; document.getElementById('fn-title').value = n.title; document.getElementById('fn-date').value = n.date; document.getElementById('fn-body').value = n.body; document.getElementById('fn-cat').value = n.category; }
+        else { document.getElementById('fn-title').value=''; document.getElementById('fn-body').value=''; }
+    }
+    function saveNews() {
+        const n = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, body: document.getElementById('fn-body').value, category: document.getElementById('fn-cat').value };
+        if(curNewsIdx > -1) db.news[curNewsIdx] = n; else db.news.push(n);
+        dbRef.update({ news: db.news }).then(() => closeForms());
+    }
+
+    function renderAdminStops() {
+        const list = document.getElementById('adm-stops-settings'); list.innerHTML = '<div class="group-label">Ustawienia Przystanków</div>';
+        allStops.forEach(name => {
+            const key = cleanKey(name); const det = db.stopDetails?.[key] || { globalNz: false, outZone: false };
+            list.innerHTML += `<div class="adm-row">
+                <span>${name}</span>
+                <div>
+                    <button onclick="toggleStopDet('${key}', 'globalNz')" style="background:${det.globalNz? 'var(--accent)':'#444'}">NŻ</button>
+                    <button onclick="toggleStopDet('${key}', 'outZone')" style="background:${det.outZone? 'var(--accent)':'#444'}">STREFA</button>
+                </div>
+            </div>`;
+        });
+    }
+    function toggleStopDet(key, field) {
+        if(!db.stopDetails) db.stopDetails = {}; if(!db.stopDetails[key]) db.stopDetails[key] = { globalNz: false, outZone: false };
+        db.stopDetails[key][field] = !db.stopDetails[key][field];
+        dbRef.update({ stopDetails: db.stopDetails }).then(() => renderAdminStops());
+    }
+
+    function saveSettings() {
+        const lc = document.getElementById('set-line-cats').value.split(',').map(c => c.trim());
+        const nc = document.getElementById('set-news-cats').value.split(',').map(c => c.trim());
+        dbRef.update({ lineCategories: lc, newsCategories: nc, contact: document.getElementById('set-contact').value });
+    }
+
+    function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display = 'none'); }
+    function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
+
+    setInterval(() => {
+        if(!db.lines || db.lines.length === 0) return;
+        const active = document.querySelector('.section.active-sec')?.id;
+        if(active === 's-home') render();
+        if(active === 's-stops') renderStopsList();
+        if(active === 's-vars' && curLNum) openVars(curLNum);
+        if(active === 's-stop-lines' && curSName) openStopLines(curSName);
+        if(active === 's-tt' && curLineIdx !== -1) renderTimetable(curLineIdx, curStopIdx);
+    }, 5000);
 </script>
 </body>
 </html>

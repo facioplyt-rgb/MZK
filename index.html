@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - System Pro V32</title>
+    <title>MZK GORZÓW - System Pro V33</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
@@ -39,6 +39,8 @@
         .badge-inline { display: inline-block; font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle; text-transform: uppercase; }
         .bg-strefa { background: #555; color: white; }
         .bg-nz { background: var(--warn); color: #000; }
+        .stop-info-sub { font-size: 0.75rem; color: var(--text-sec); margin-top: 4px; }
+        .stop-lines-pill { display: inline-block; background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 4px; margin-right: 4px; color: var(--accent); font-weight: 600; }
         .stop-edit-row { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); position: relative; }
         .btn-del-stop { background: var(--danger); color: white; border: none; width: 30px; height: 30px; border-radius: 8px; font-weight: bold; cursor: pointer; position: absolute; top: 10px; right: 10px; }
     </style>
@@ -68,7 +70,7 @@
     </div>
 
     <div id="s-news-details" class="section">
-        <div class="app-card stop-card">
+        <div id="nd-cont" class="app-card stop-card">
             <span id="nd-date" style="font-size: 0.8rem; color: var(--text-sec); display: block; margin-bottom: 10px;"></span>
             <h2 id="nd-title" style="color: var(--accent); margin-bottom: 15px;"></h2>
             <div id="nd-body" style="white-space: pre-wrap; line-height: 1.6;"></div>
@@ -114,7 +116,7 @@
             <div id="tab-c" class="adm-tab" style="display:none;">
                 <input type="text" id="edit-cats-input" placeholder="Kategorie po przecinku">
                 <button onclick="saveCategories()" class="main-btn">Zapisz Kategorie</button>
-                <textarea id="edit-contact-text" style="height:100px" placeholder="Info o firmie"></textarea>
+                <textarea id="edit-contact-text" style="height:100px" placeholder="Info"></textarea>
                 <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
             </div>
             <div id="tab-i" class="adm-tab" style="display:none;"><button onclick="exportDB()" class="main-btn">Eksportuj JSON</button></div>
@@ -175,8 +177,7 @@
     
     function show(id) { 
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        const t = document.getElementById('s-'+id);
-        if(t) t.classList.add('active-sec'); 
+        document.getElementById('s-'+id)?.classList.add('active-sec'); 
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
         document.getElementById('n-'+id)?.classList.add('active');
     }
@@ -198,8 +199,13 @@
         });
     }
 
+    function getLinesForStop(stopName) {
+        const lines = db.lines.filter(l => l.stops?.some(s => s.name === stopName));
+        const nums = [...new Set(lines.map(l => l.num))].sort((a,b) => parseInt(a)-parseInt(b));
+        return nums.map(n => `<span class="stop-lines-pill">${n}</span>`).join('');
+    }
+
     function render() {
-        // Główna lista linii
         const h = document.getElementById('s-home'); h.innerHTML = '';
         (db.lineCategories || []).forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
@@ -214,7 +220,6 @@
             }
         });
 
-        // Dane w panelu admina i newsy
         document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
         document.getElementById('contact-display').innerText = db.contact || "";
         document.getElementById('edit-contact-text').value = db.contact || "";
@@ -227,10 +232,19 @@
     function renderStopsList() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         document.getElementById('public-stops-list').innerHTML = allStops.filter(s => s.toLowerCase().includes(q)).map(s => {
-            const d = db.stopDetails[cleanKey(s)] || {outZone: false, alwaysNZ: false};
-            return `<div class="app-card" onclick="openStopLines('${s}')">
-                <div style="font-weight:800;">${s} ${d.outZone ? '<span class="badge-inline bg-strefa">Gr. strefy</span>' : ''} ${d.alwaysNZ ? '<span class="badge-inline bg-nz">NŻ</span>' : ''}</div>
-                <i class="fa-solid fa-chevron-right"></i>
+            const d = db.stopDetails[cleanKey(s)] || {outZone: false, alwaysNZ: false, nearby: ""};
+            const linePills = getLinesForStop(s);
+            return `<div class="app-card" onclick="openStopLines('${s}')" style="display:block;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="font-weight:800; font-size:1.1rem;">${s}</div>
+                    <i class="fa-solid fa-chevron-right" style="color:var(--text-sec);"></i>
+                </div>
+                <div style="margin-bottom:8px;">${linePills}</div>
+                <div class="stop-info-sub">
+                    ${d.alwaysNZ ? '<span class="badge-inline bg-nz">Na żądanie</span>' : ''}
+                    ${d.outZone ? '<span class="badge-inline bg-strefa">Granica strefy</span>' : ''}
+                    ${d.nearby ? `<div style="color:var(--warn); margin-top:5px;"><i class="fa-solid fa-location-dot"></i> ${d.nearby}</div>` : ''}
+                </div>
             </div>`;
         }).join('');
         
@@ -238,13 +252,12 @@
             const d = db.stopDetails[cleanKey(s)] || {nearby:"", outZone: false, alwaysNZ: false};
             return `<div class="app-card stop-card" style="border:1px solid #333;">
                 <div style="font-weight:bold; color:var(--accent);">${s}</div>
-                <input type="text" value="${d.nearby}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="W pobliżu">
-                <div style="display:flex; gap:10px;"><label><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Strefa</label><label><input type="checkbox" ${d.alwaysNZ?'checked':''} onchange="upStopGlobal('${s}', this.checked)"> NŻ</label></div>
+                <input type="text" value="${d.nearby}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="Co w pobliżu?">
+                <div style="display:flex; gap:10px;"><label><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Granica strefy</label><label><input type="checkbox" ${d.alwaysNZ?'checked':''} onchange="upStopGlobal('${s}', this.checked)"> Zawsze NŻ</label></div>
             </div>`;
         }).join('');
     }
 
-    // POKAZYWANIE LINII NA DANYM PRZYSTANKU
     function openStopLines(stopName) {
         show('stop-lines');
         document.getElementById('sl-head').innerHTML = `<div class="group-label">Linie na przystanku: ${stopName}</div>`;
@@ -259,7 +272,6 @@
         });
     }
 
-    // POKAZYWANIE WARIANTÓW PO KLIKNIĘCIU LINII
     function openVars(num) {
         show('vars');
         document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} - Wybierz kierunek</div>`;
@@ -271,7 +283,6 @@
         });
     }
 
-    // RENDEROWANIE ROZKŁADU / LISTY PRZYSTANKÓW DLA LINII
     function renderTimetable(lIdx, sIdx = -1) {
         curLineIdx = lIdx; curStopIdx = sIdx; show('tt');
         const l = db.lines[lIdx];
@@ -293,7 +304,7 @@
             const hMap = {};
             let raw = (curDay==='working' ? l.hoursWorking : curDay==='saturday' ? l.hoursSat : l.hoursSun) || "";
             let html = `<div class="timetable-container"><div class="tt-header-box"><b style="color:black;">Kierunek: ${l.dir}</b></div>`;
-            if(!raw) html += '<div style="padding:15px; color:black">Brak kursów w tym dniu.</div>';
+            if(!raw) html += '<div style="padding:15px; color:black">Brak kursów.</div>';
             else {
                 raw.split(',').forEach(h => {
                     let p = h.trim().split(':'); if(p.length < 2) return;
@@ -308,7 +319,6 @@
         }
     }
 
-    // OBSŁUGA NEWSÓW I ADMINA
     function openNewsDetails(i) { const n = db.news[i]; document.getElementById('nd-title').innerText = n.title; document.getElementById('nd-date').innerText = n.date; document.getElementById('nd-body').innerText = n.body; show('news-details'); }
     function openNewsForm(idx) { curNewsIdx = idx; const n = idx === -1 ? {title:"", date:"", body:""} : db.news[idx]; document.getElementById('fn-title').value = n.title; document.getElementById('fn-date').value = n.date; document.getElementById('fn-body').value = n.body; document.getElementById('form-news').style.display = 'block'; }
     function saveNews() { const n = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, body: document.getElementById('fn-body').value }; if(curNewsIdx === -1) db.news.push(n); else db.news[curNewsIdx] = n; dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); }); }

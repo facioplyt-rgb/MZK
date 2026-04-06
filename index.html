@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - System Pro V19</title>
+    <title>MZK GORZÓW - System Pro V20</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --text: #ffffff; --text-sec: #919eab; --danger: #ff4842; --warn: #feca05; --info: #1890ff; --border: rgba(255,255,255,0.08); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
+        
+        /* FIX: Ukrywanie nieaktywnych sekcji */
+        .section { display: none; }
+        .section.active-sec { display: block; animation: fadeIn 0.2s ease; }
+        
         header { background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(15px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; }
         .brand { font-size: 1.4rem; font-weight: 800; color: var(--text); letter-spacing: 1px; }
         .container { max-width: 550px; margin: 0 auto; padding: 15px; }
-        .section { display: none; }
-        .active-sec { display: block; animation: fadeIn 0.2s ease; }
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         .app-card { background: var(--surface); padding: 18px; border-radius: 16px; margin-bottom: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
@@ -34,7 +38,7 @@
         .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.1rem; color: #333; }
 
         nav { position: fixed; bottom: 0; width: 100%; background: #161c24; display: flex; height: 75px; border-top: 1px solid var(--border); z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.65rem; font-weight: 600; }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.65rem; font-weight: 600; cursor: pointer; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.2rem; margin-bottom: 4px; }
         
@@ -60,14 +64,18 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
+    
     <div id="s-stops" class="section">
+        <div class="group-label">Wyszukiwarka</div>
         <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
+
     <div id="s-news" class="section">
         <div class="group-label">Komunikaty i Aktualności</div>
         <div id="public-news-list"></div>
     </div>
+
     <div id="s-news-details" class="section">
         <div class="app-card stop-card">
             <span id="nd-date" class="details-date"></span>
@@ -76,10 +84,12 @@
         </div>
         <button onclick="show('news')" class="main-btn" style="background:#333; margin-top:20px;">Wróć do listy</button>
     </div>
+
     <div id="s-contact" class="section">
         <div class="group-label">Informacje o MZK</div>
         <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; cursor:default;"></div>
     </div>
+
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     
     <div id="s-tt" class="section">
@@ -170,6 +180,22 @@
     function getToday() {
         const d = new Date();
         return `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`;
+    }
+
+    /* FIX: Poprawiona funkcja nawigacji */
+    function show(id) { 
+        // Ukryj wszystkie sekcje
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
+        // Pokaż wybraną sekcję
+        const target = document.getElementById('s-'+id);
+        if(target) target.classList.add('active-sec'); 
+        
+        // Aktualizuj ikony w menu
+        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+        const navBtn = document.getElementById('n-'+id);
+        if(navBtn) navBtn.classList.add('active');
+        
+        window.scrollTo(0,0);
     }
 
     init();
@@ -295,11 +321,7 @@
         document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); 
         document.getElementById('tab-'+t).style.display='block'; 
     }
-    function show(id) { 
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        document.getElementById('s-'+id).classList.add('active-sec'); 
-        window.scrollTo(0,0);
-    }
+    
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
     function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano!")); }
     function openVars(num) { show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`; const v = document.getElementById('vars-list'); v.innerHTML = ''; db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`; }); }

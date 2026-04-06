@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V103</title>
+    <title>MZK GORZÓW PRO V104</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -35,20 +35,20 @@
         .line-badge.bus { background: linear-gradient(135deg, var(--bus-col), #008a45) !important; }
         .line-badge.tram { background: linear-gradient(135deg, var(--tram-col), #d63933) !important; }
         
-        /* EKSTREMALNIE DUŻE ODSTĘPY MIĘDZY LINIAMI PRZESIADKOWYMI */
         .line-badges { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 25px; padding-top: 20px; border-top: 2px solid rgba(255,255,255,0.05); }
 
         .dir-abbr { background: rgba(255,255,255,0.08); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; color: var(--text); border: 1px solid var(--border); font-weight: 800; }
 
         .eta-tag { font-size: 0.9rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(0, 171, 85, 0.2); }
-        .transfer-eta { font-size: 0.8rem; font-weight: 900; margin-left: 12px; color: #fff; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
+        .transfer-eta { font-size: 0.8rem; font-weight: 900; margin-left: 12px; color: #fff; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; }
 
-        .eta-now { animation: blink 1s infinite; color: var(--warn); font-weight: 900; text-shadow: 0 0 10px rgba(254, 202, 5, 0.4); }
+        .eta-now { animation: blink 1s infinite; color: var(--warn); font-weight: 900; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 8px; font-weight: 800; text-transform: uppercase; margin-left: 10px; }
+        /* ETYKIETY NŻ I GR. STREFY */
+        .badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 6px; font-weight: 900; text-transform: uppercase; margin-left: 8px; display: inline-block; vertical-align: middle; }
         .badge-nz { background: var(--warn); color: #000; }
-        .badge-strefa { background: #444; color: #fff; }
+        .badge-strefa { background: #444; color: #fff; border: 1px solid rgba(255,255,255,0.1); }
         
         .group-label { font-size: 0.9rem; color: var(--text-sec); text-transform: uppercase; margin: 35px 0 20px 5px; font-weight: 700; letter-spacing: 2px; border-left: 4px solid var(--accent); padding-left: 15px; }
         
@@ -258,7 +258,11 @@
                 }
             });
             html += `<div class="app-card" onclick="openStopLines('${name}')">
-                    <div class="stop-name" style="font-weight:900; font-size:1.1rem;">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
+                    <div class="stop-name" style="font-weight:900; font-size:1.1rem;">
+                        ${name} 
+                        ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} 
+                        ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}
+                    </div>
                     <div class="line-badges">${Object.values(stopLines).map(l => {
                             const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : l.eta !== null ? `${formatETA(l.eta)}` : '---';
                             return `<span class="line-badge ${l.type === 'tram' ? 'tram' : 'bus'}">${l.num}<span class="transfer-eta">${etaStr}</span></span>`;
@@ -294,19 +298,31 @@
             html += `<div class="group-label" style="color:var(--accent)">Trasa linii ${l.num} DO: ${l.dir}</div>`;
             html += l.stops.map((s, i) => {
                 const currentLineETA = getETA(l, i);
+                const d = db.stopDetails[cleanKey(s.name)] || {};
                 return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
-                            <div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-weight:800;">${s.name}</div><span class="eta-tag">${currentLineETA !== null ? (currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)) : '---'}</span></div></div>`;
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="font-weight:800;">
+                                    ${s.name} 
+                                    ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} 
+                                    ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}
+                                </div>
+                                <span class="eta-tag">${currentLineETA !== null ? (currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)) : '---'}</span>
+                            </div></div>`;
             }).join('');
         } else {
             document.getElementById('tt-day-sel').style.display = 'flex';
             let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time || 0);
             const currentLineETA = getETA(l, sIdx);
             const hMap = {}; let rawTimes = (curDay==='working'?l.hoursWorking : curDay==='saturday'?l.hoursSat : l.hoursSun) || "";
-            html += `<div class="app-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b style="font-size:1.2rem; color:var(--accent)">${l.num}</b> • <b>${l.stops[sIdx].name}</b></div><span class="eta-tag">${currentLineETA !== null ? (currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)) : '---'}</span></div></div><div class="tt-container">`;
+            const d = db.stopDetails[cleanKey(l.stops[sIdx].name)] || {};
+            html += `<div class="app-card"><div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><b style="font-size:1.2rem; color:var(--accent)">${l.num}</b> • <b>${l.stops[sIdx].name}</b> ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''}</div>
+                    <span class="eta-tag">${currentLineETA !== null ? (currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)) : '---'}</span>
+                    </div></div><div class="tt-container">`;
             rawTimes.split(',').forEach(entry => {
                 let parts = entry.trim().split(':'); if(parts.length < 2) return;
-                let d = new Date(); d.setHours(parseInt(parts[0]), parseInt(parts[1]) + offset);
-                let hh = d.getHours().toString().padStart(2, '0'), mm = d.getMinutes().toString().padStart(2, '0');
+                let dDate = new Date(); dDate.setHours(parseInt(parts[0]), parseInt(parts[1]) + offset);
+                let hh = dDate.getHours().toString().padStart(2, '0'), mm = dDate.getMinutes().toString().padStart(2, '0');
                 if(!hMap[hh]) hMap[hh] = []; hMap[hh].push(mm);
             });
             Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().map(m => `<span class="tt-min-val">${m}</span>`).join(' ')}</div></div>`);
@@ -319,7 +335,6 @@
     function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
 
-    // REAL-TIME AUTO REFRESH (Płynna logika sprawdzająca wszystkie warianty)
     setInterval(() => {
         const activeSec = document.querySelector('.section.active-sec')?.id;
         if(activeSec === 's-home') render();

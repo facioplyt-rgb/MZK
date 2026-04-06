@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V99</title>
+    <title>MZK GORZÓW</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -23,7 +23,6 @@
         .app-card { background: var(--surface); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; }
         .app-card:active { transform: scale(0.98); background: var(--surface-light); }
 
-        /* Styl szerokiej karty linii na ekranie głównym */
         .line-main-card { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
         .line-main-card:active { transform: scale(0.98); background: var(--surface-light); }
         .line-main-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
@@ -278,19 +277,13 @@
             const linesInCategory = db.lines.filter(l => l.category === cat);
             if(linesInCategory.length) {
                 h.innerHTML += `<div class="group-label">${cat}</div>`;
-                
-                // Grupowanie linii po numerze dla ekranu głównego
                 const uniqueNums = [...new Set(linesInCategory.map(l => String(l.num)))].sort((a,b) => parseInt(a)-parseInt(b));
-                
                 uniqueNums.forEach(num => {
                     const variants = linesInCategory.filter(l => String(l.num) === num);
                     const lType = variants[0].type;
                     const typeColorClass = lType === 'tram' ? 'tram' : 'bus';
                     const typeName = lType === 'tram' ? 'Tramwaj' : 'Autobus';
-                    
-                    // Budowanie skrótów dla wszystkich wariantów tej linii
                     const abbrsHtml = variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('');
-
                     h.innerHTML += `
                     <div class="line-main-card" onclick="openVars('${num}', 'home')">
                         <div class="line-main-top">
@@ -458,6 +451,24 @@
         found.forEach(f => { cont.innerHTML += `<div class="app-card" onclick="renderTimetable(${f.lIdx}, ${f.sIdx})"><div style="display:flex; justify-content:space-between;"><div><b>${f.line.num}</b> DO: ${f.line.dir}</div><span class="eta-tag">${f.eta!==null?formatETA(f.eta):'---'}</span></div></div>`; });
         document.getElementById('transfer-view-back').onclick = () => renderTimetable(backLineIdx, -1);
     }
+
+    // Automatyczne odświeżanie co 10 sekund
+    setInterval(() => {
+        // Odświeżamy listę przystanków (ETA na kafelkach)
+        renderStopsList();
+        // Jeśli użytkownik jest na ekranie głównym - odświeżamy główną listę
+        if(document.getElementById('s-home').classList.contains('active-sec')) {
+            render();
+        }
+        // Jeśli użytkownik ogląda konkretny rozkład lub warianty - przeliczamy czasy
+        if(document.getElementById('s-tt').classList.contains('active-sec') && curLineIdx !== -1) {
+            renderTimetable(curLineIdx, curStopIdx);
+        }
+        if(document.getElementById('s-vars').classList.contains('active-sec')) {
+            const activeLineNum = document.querySelector('#vars-list .group-label')?.innerText.split(' ').pop();
+            if(activeLineNum) openVars(activeLineNum, 'home');
+        }
+    }, 10000);
 </script>
 </body>
 </html>

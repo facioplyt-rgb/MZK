@@ -122,7 +122,7 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <div class="group-label">Godziny kursowania</div>
+    <div class="group-label">Godziny kursowania (oddziel przecinkiem)</div>
     <textarea id="fl-h-work" placeholder="Dni Robocze"></textarea>
     <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
@@ -158,7 +158,8 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const dbRef = firebase.database().ref('mzk_v15_pro');
+    // PRZYWRÓCONO ŚCIEŻKĘ v12, ABY TWOJE DANE DZIAŁAŁY
+    const dbRef = firebase.database().ref('mzk_v12_pro');
 
     let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
     let currentLineIndex = -1, currentDay = 'working', focusedStopIndex = -1, allAutoStops = [];
@@ -188,6 +189,8 @@
 
     function render() {
         const home = document.getElementById('s-home'); home.innerHTML = '';
+        if(!db.lineCategories) db.lineCategories = ["Tramwaje", "Autobusy"];
+        
         db.lineCategories.forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
             if(lines.length) {
@@ -200,9 +203,9 @@
                 home.appendChild(grid);
             }
         });
-        document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card news-card"><b>${n.title}</b><p>${n.content}</p></div>`).reverse().join('');
+        document.getElementById('public-news-list').innerHTML = (db.news || []).map(n => `<div class="app-card news-card"><b>${n.title}</b><p>${n.content}</p></div>`).reverse().join('');
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
-        document.getElementById('contact-display').innerText = db.contact;
+        document.getElementById('contact-display').innerText = db.contact || "";
         filterStops();
         renderAdminStops();
     }
@@ -257,7 +260,7 @@
 
         const backBtn = document.getElementById('tt-back-btn');
         if(focusedStopIndex !== -1) {
-            backBtn.innerText = "Wróć do trasy linii";
+            backBtn.innerText = "Wróć do listy przystanków";
             backBtn.onclick = () => renderTimetable(lineIdx, -1);
         } else {
             backBtn.innerText = "Wróć do kierunków";
@@ -273,7 +276,11 @@
     }
 
     function calculateHours(line, day, offset) {
-        const field = day === 'working' ? 'hoursWorking' : (day === 'saturday' ? 'hoursSat' : 'hoursSun');
+        let field = 'hours'; // Kompatybilność wsteczna
+        if(day === 'working') field = line.hoursWorking ? 'hoursWorking' : 'hours';
+        else if(day === 'saturday') field = line.hoursSat ? 'hoursSat' : 'hours';
+        else if(day === 'sunday') field = line.hoursSun ? 'hoursSun' : 'hours';
+
         const raw = line[field] || "";
         if(!raw) return '<span style="color:var(--text-sec); font-size:0.8rem">Brak kursów.</span>';
         return raw.split(',').map(h => {
@@ -293,7 +300,6 @@
         return lines.length ? lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('') : '<span style="font-size:0.7rem">Brak innych linii</span>';
     }
 
-    // ZMODYFIKOWANA WYSZUKIWARKA PRZYSTANKÓW DLA PASAŻERÓW
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list'); list.innerHTML = '';
@@ -303,9 +309,8 @@
                 <div class="app-card" style="display:block; cursor:default;">
                     <b style="font-size:1.1rem">${s}</b>
                     <div class="nearby-info" style="margin-bottom:8px;">
-                        <i class="fa-solid fa-location-dot"></i> ${det.nearby || 'Brak dodatkowych informacji o okolicy'}
+                        <i class="fa-solid fa-location-dot"></i> ${det.nearby || 'Przystanek MZK'}
                     </div>
-                    <div class="group-label" style="margin:5px 0; font-size:0.6rem;">Linie obsługujące ten przystanek:</div>
                     <div class="stop-lines-row">${getOtherLines(s, "")}</div>
                 </div>`;
         });
@@ -317,7 +322,7 @@
         document.getElementById('fl-num').value = l.num;
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
-        document.getElementById('fl-h-work').value = l.hoursWorking || "";
+        document.getElementById('fl-h-work').value = l.hoursWorking || l.hours || "";
         document.getElementById('fl-h-sat').value = l.hoursSat || "";
         document.getElementById('fl-h-sun').value = l.hoursSun || "";
         document.getElementById('fl-cat').innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
@@ -381,7 +386,7 @@
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
-    function saveNews() { db.news.push({title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value}); save(); closeForms(); }
+    function saveNews() { if(!db.news) db.news = []; db.news.push({title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value}); save(); closeForms(); }
     function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); }
     function exportFullBackup() { const blob = new Blob([JSON.stringify(db)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'mzk_backup.json'; a.click(); }
 

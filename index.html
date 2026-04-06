@@ -27,7 +27,7 @@
         .day-btn { flex: 1; padding: 10px; border-radius: 12px; background: var(--surface); color: var(--text-sec); border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
         .day-btn.active { background: var(--accent); color: white; }
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 15px; }
-        .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; }
+        .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.9rem; }
         .nearby-info { color: var(--warn); font-size: 0.85rem; margin-top: 6px; font-weight: 600; display: block; }
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; margin-right: 5px; margin-bottom: 5px; }
@@ -59,7 +59,7 @@
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
-        <div class="day-selector">
+        <div class="day-selector" id="tt-day-sel">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
             <button class="day-btn" id="btn-saturday" onclick="setDay('saturday')">Soboty</button>
             <button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedziele</button>
@@ -84,7 +84,6 @@
                 <div id="adm-lines-list"></div>
             </div>
             <div id="tab-p" class="adm-tab" style="display:none;">
-                <div class="group-label">Okolica (Zapis po opuszczeniu pola)</div>
                 <div id="adm-stops-list"></div>
             </div>
             <div id="tab-c" class="adm-tab" style="display:none;">
@@ -103,7 +102,6 @@
 </nav>
 
 <div id="form-line" class="overlay-form">
-    <h2>Edycja Linii</h2>
     <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
@@ -113,7 +111,7 @@
     <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
     <div id="fl-stops-list"></div>
     <button onclick="addStopRow()" class="main-btn">+ Dodaj przystanek</button>
-    <button onclick="saveLine()" class="main-btn" style="background:#2196F3">ZAPISZ LINIĘ W CHMURZE</button>
+    <button onclick="saveLine()" class="main-btn" style="background:#2196F3">ZAPISZ W CHMURZE</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -135,7 +133,7 @@
     const dbRef = firebase.database().ref('mzk_v12_pro');
 
     let db = { lines: [], stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"], contact: "" };
-    let currentLineIndex = -1, allAutoStops = [], currentDay = 'working';
+    let currentLineIndex = -1, allAutoStops = [], currentDay = 'working', focusedStopIdx = -1;
 
     function cleanKey(name) { return name ? name.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
 
@@ -165,7 +163,7 @@
                 if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type});
             }
         });
-        return lines.length ? lines.map(ln => `<span class="stop-line-item"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('') : '<span style="font-size:0.7rem">Brak przesiadek</span>';
+        return lines.length ? lines.map(ln => `<span class="stop-line-item"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('') : '';
     }
 
     function render() {
@@ -186,6 +184,60 @@
         renderAdminStops();
     }
 
+    function renderTimetable(lineIdx, stopIdx = -1) {
+        currentLineIndex = lineIdx; focusedStopIdx = stopIdx;
+        show('tt'); 
+        const line = db.lines[lineIdx];
+        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num} | ${line.dir}</div>`;
+        document.getElementById('tt-day-sel').style.display = stopIdx === -1 ? 'none' : 'flex';
+        
+        const body = document.getElementById('tt-body'); body.innerHTML = '';
+        let offset = 0;
+
+        line.stops.forEach((s, i) => {
+            offset += parseInt(s.time);
+            if(stopIdx !== -1 && i !== stopIdx) return;
+
+            const det = db.stopDetails[cleanKey(s.name)] || {nearby:""};
+            const others = getOtherLines(s.name, line.num);
+
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.style.display = 'block';
+            card.onclick = () => renderTimetable(lineIdx, stopIdx === -1 ? i : -1);
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><b>${s.name}</b>${s.nz?' (NŻ)':''}</div>
+                    <i class="fa-solid ${stopIdx === -1 ? 'fa-clock' : 'fa-compress'}" style="color:var(--accent)"></i>
+                </div>
+                ${det.nearby ? `<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>` : ''}
+                <div class="stop-lines-row">${others}</div>
+                ${stopIdx !== -1 ? `<div class="tt-grid">${calculateHours(line, currentDay, offset)}</div>` : ''}
+            `;
+            body.appendChild(card);
+        });
+
+        document.getElementById('tt-back-btn').onclick = () => stopIdx === -1 ? show('vars') : renderTimetable(lineIdx, -1);
+    }
+
+    function calculateHours(line, day, offset) {
+        let raw = (day==='working' ? line.hoursWorking : day==='saturday' ? line.hoursSat : line.hoursSun) || "";
+        if(!raw) return '<span style="font-size:0.8rem; color:var(--text-sec)">Brak kursów</span>';
+        return raw.split(',').map(h => {
+            let p = h.trim().split(':'); if(p.length<2) return "";
+            let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
+            return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
+        }).join('');
+    }
+
+    function setDay(d) {
+        currentDay = d;
+        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-'+d).classList.add('active');
+        renderTimetable(currentLineIndex, focusedStopIdx);
+    }
+
     function updateNearby(stopName, val) {
         const key = cleanKey(stopName);
         dbRef.child('stopDetails').child(key).set({ nearby: val });
@@ -197,61 +249,20 @@
             time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
             nz: el.querySelector('input[type="checkbox"]').checked
         })).filter(s => s.name !== "");
-        const lineData = {
-            num: document.getElementById('fl-num').value,
-            dir: document.getElementById('fl-dir').value,
-            type: document.getElementById('fl-type').value,
-            category: document.getElementById('fl-cat').value,
-            hoursWorking: document.getElementById('fl-h-work').value,
-            hoursSat: document.getElementById('fl-h-sat').value,
-            hoursSun: document.getElementById('fl-h-sun').value,
-            stops: stops
+        const data = {
+            num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value,
+            type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value,
+            hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value,
+            hoursSun: document.getElementById('fl-h-sun').value, stops: stops
         };
-        if(currentLineIndex === -1) db.lines.push(lineData); else db.lines[currentLineIndex] = lineData;
+        if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
         dbRef.update({ lines: db.lines }).then(() => { alert("ZAPISANO!"); closeForms(); });
-    }
-
-    function renderAdminStops() {
-        const list = document.getElementById('adm-stops-list'); if(!list) return;
-        list.innerHTML = allAutoStops.map(s => `<div class="adm-stop-card"><b>${s}</b><input type="text" value="${db.stopDetails[cleanKey(s)]?.nearby || ''}" onblur="updateNearby('${s}', this.value)"></div>`).join('');
     }
 
     function openVariants(num) {
         show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
         const list = document.getElementById('vars-list'); list.innerHTML = '';
         db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>Kierunek: ${l.dir}</b></div>`; });
-    }
-
-    function renderTimetable(lineIdx, stopIdx = -1) {
-        show('tt'); const line = db.lines[lineIdx];
-        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num} | ${line.dir}</div>`;
-        const body = document.getElementById('tt-body'); body.innerHTML = '';
-        let offset = 0;
-        line.stops.forEach((s, i) => {
-            offset += parseInt(s.time);
-            if(stopIdx !== -1 && i !== stopIdx) return;
-            const det = db.stopDetails[cleanKey(s.name)] || {nearby:""};
-            const others = getOtherLines(s.name, line.num);
-            body.innerHTML += `<div class="app-card" style="display:block" onclick="renderTimetable(${lineIdx},${i})">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><b>${s.name}</b>${s.nz?' (NŻ)':''}</div>
-                    <i class="fa-solid fa-clock" style="color:var(--accent)"></i>
-                </div>
-                ${det.nearby?`<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>`:''}
-                <div class="stop-lines-row">${others}</div>
-                ${stopIdx !== -1 ? `<div class="tt-grid">${calculateHours(line, currentDay, offset)}</div>` : ''}
-            </div>`;
-        });
-        document.getElementById('tt-back-btn').onclick = () => stopIdx === -1 ? show('vars') : renderTimetable(lineIdx, -1);
-    }
-
-    function calculateHours(line, day, offset) {
-        let raw = (day==='working'?line.hoursWorking : day==='saturday'?line.hoursSat : line.hoursSun) || "";
-        return raw.split(',').map(h => {
-            let p = h.trim().split(':'); if(p.length<2) return "";
-            let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
-            return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-        }).join('');
     }
 
     function filterStops() {
@@ -261,6 +272,11 @@
             const det = db.stopDetails[cleanKey(s)] || {nearby:""};
             return `<div class="app-card" style="display:block"><b>${s}</b>${det.nearby?`<div class="nearby-info">${det.nearby}</div>`:''}<div class="stop-lines-row">${getOtherLines(s, "")}</div></div>`;
         }).join('');
+    }
+
+    function renderAdminStops() {
+        const list = document.getElementById('adm-stops-list'); if(!list) return;
+        list.innerHTML = allAutoStops.map(s => `<div class="adm-stop-card"><b>${s}</b><input type="text" value="${db.stopDetails[cleanKey(s)]?.nearby || ''}" onblur="updateNearby('${s}', this.value)"></div>`).join('');
     }
 
     function show(id) { 
@@ -289,12 +305,6 @@
         const div = document.createElement('div'); div.className = 'stop-edit-item';
         div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time"><label><input type="checkbox" ${nz?'checked':''}> NŻ</label><button onclick="this.parentElement.remove()">X</button>`;
         document.getElementById('fl-stops-list').appendChild(div);
-    }
-
-    function setDay(d) {
-        currentDay = d;
-        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-'+d).classList.add('active');
     }
 
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V66</title>
+    <title>MZK GORZÓW PRO V68</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -169,7 +169,6 @@
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
     
-    // Zapamiętywanie gdzie jest użytkownik do auto-odświeżania
     function show(id) { 
         currentSection = id;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
@@ -178,7 +177,6 @@
         document.getElementById('n-'+id)?.classList.add('active'); 
     }
 
-    // Auto-odświeżanie czasu co 30 sekund
     setInterval(() => {
         if(currentSection === 'stops') renderStopsList();
         if(currentSection === 'stop-lines' && currentStopName) openStopLines(currentStopName);
@@ -186,7 +184,7 @@
             if(curStopIdx === -1) renderLineStops(curLineIdx);
             else renderTimetable(curLineIdx, curStopIdx);
         }
-    }, 30000);
+    }, 10000);
 
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
@@ -288,7 +286,13 @@
                 }
             } 
         });
-        return found.sort((a,b) => parseInt(a.num) - parseInt(b.num));
+        // SORTOWANIE PO CZASIE ODJAZDU (najbliższy pierwszy)
+        return found.sort((a, b) => {
+            if (a.eta === null && b.eta === null) return parseInt(a.num) - parseInt(b.num);
+            if (a.eta === null) return 1;
+            if (b.eta === null) return -1;
+            return a.eta - b.eta;
+        });
     }
 
     function renderStopsList() { 
@@ -346,15 +350,30 @@
         currentStopName = name;
         show('stop-lines'); const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label" style="color:var(--accent)">${name}</div>`; 
+        
+        let foundLines = [];
         db.lines.forEach((l, i) => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
             if(sIdx !== -1) {
-                const eta = getETA(l, sIdx);
-                const icon = l.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
-                const etaLabel = eta === 0 ? '<span class="eta-now">>>></span>' : `za ${eta} min`;
-                list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i}, ${sIdx})"><div><span class="line-badge ${l.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${l.num}</span><b>${l.dir}</b></div> ${eta !== null ? `<span class="eta-tag">${etaLabel}</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
+                foundLines.push({ line: l, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
             }
-        }); 
+        });
+
+        // SORTOWANIE PO CZASIE ODJAZDU (najbliższy pierwszy)
+        foundLines.sort((a, b) => {
+            if (a.eta === null && b.eta === null) return parseInt(a.line.num) - parseInt(b.line.num);
+            if (a.eta === null) return 1;
+            if (b.eta === null) return -1;
+            return a.eta - b.eta;
+        });
+
+        foundLines.forEach(item => {
+            const l = item.line;
+            const eta = item.eta;
+            const icon = l.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
+            const etaLabel = eta === 0 ? '<span class="eta-now">>>></span>' : `za ${eta} min`;
+            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${item.originalIdx}, ${item.stopIdx})"><div><span class="line-badge ${l.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${l.num}</span><b>${l.dir}</b></div> ${eta !== null ? `<span class="eta-tag">${etaLabel}</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
+        });
     }
 
     function renderTimetable(lIdx, sIdx = -1) {

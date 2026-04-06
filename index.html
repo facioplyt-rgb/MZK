@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V88</title>
+    <title>MZK GORZÓW PRO V89</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -166,7 +166,7 @@
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
     let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "", customAbbrs: {} };
-    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [], activeSection = 'home';
+    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [], activeSection = 'home', curLineNum = "";
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
     
@@ -245,7 +245,7 @@
         document.getElementById('s-'+id)?.classList.add('active-sec'); 
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); 
         document.getElementById('n-'+id)?.classList.add('active'); 
-        render(); // Wymuś render przy zmianie sekcji
+        render(); 
     }
 
     init();
@@ -259,7 +259,7 @@
                 render(); 
             }
         });
-        // AUTOMATYCZNE ODŚWIEŻANIE CO 10 SEKUND
+        // AUTO-REFRESH CO 10 SEKUND
         setInterval(() => {
             if (document.querySelectorAll('.overlay-form[style*="block"]').length === 0) {
                 render();
@@ -272,8 +272,7 @@
         if(activeSection === 'stops') renderStopsList();
         if(activeSection === 'news') renderNews();
         if(activeSection === 'adm') renderAdmin();
-        if(activeSection === 'vars') openVars(curLineIdxNum); 
-        // Note: curLineIdxNum musi być zapisany globalnie przy openVars
+        if(activeSection === 'vars') openVars(curLineNum);
     }
 
     function renderHome() {
@@ -289,17 +288,14 @@
                 });
 
                 Object.values(grouped).sort((a,b) => parseInt(a.num) - parseInt(b.num)).forEach(lObj => {
-                    const bestEta = lObj.variants.reduce((min, v) => (v.eta !== null && (min === null || v.eta < min)) ? v.eta : min, null);
-                    const etaLabel = bestEta === 0 ? '<span class="eta-now">>>></span>' : bestEta !== null ? `(${formatETA(bestEta)})` : "";
-                    const abbrsHtml = lObj.variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('<span class="abbr-joiner">|</span>');
                     const transfers = getAllTransfersForLine(lObj.num);
-                    const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:8px; opacity:0.85;">` + transfers.map(t => `<span class="line-badge ${t.type}" style="font-size:0.65rem; padding:2px 5px;">${t.num}<span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
+                    const transHtml = transfers.length ? `<div class="group-label" style="margin: 10px 0 5px 0; font-size: 0.6rem;">Możliwe przesiadki:</div><div class="line-badges" style="opacity:0.85;">` + transfers.map(t => `<span class="line-badge ${t.type}" style="font-size:0.65rem; padding:2px 5px;">${t.num}<span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
 
                     h.innerHTML += `
                         <div class="app-card" onclick="openVars('${lObj.num}')">
                             <div class="stop-name">Linia ${lObj.num}</div>
                             <div class="line-badges">
-                                <span class="line-badge ${lObj.type}">${lObj.num}${abbrsHtml}<span class="transfer-eta">${etaLabel}</span></span>
+                                <span class="line-badge ${lObj.type}" style="padding: 8px 16px; font-size: 1rem;">${lObj.num}</span>
                             </div>
                             ${transHtml}
                         </div>`;
@@ -460,9 +456,8 @@
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
     
-    let curLineIdxNum = "";
     function openVars(num) { 
-        curLineIdxNum = num;
+        curLineNum = num;
         show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
         db.lines.forEach((l, i) => { 
             if(String(l.num) === String(num)) {

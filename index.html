@@ -17,7 +17,6 @@
         .active-sec { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* NEWS STYLES */
         .news-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: inline-block; }
         .cat-rozkład { background: var(--info); color: white; }
         .cat-utrudnienia { background: var(--danger); color: white; }
@@ -27,34 +26,26 @@
         .news-header { display: flex; flex-direction: column; width: 100%; }
         .news-content-area { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; line-height: 1.5; color: #ced4da; }
         .news-card.open .news-content-area { display: block; }
-        .news-card.open { border-color: var(--accent); }
 
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; margin-bottom: 15px; }
-        .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .line-square.bus { border-bottom: 4px solid var(--accent); }
-        .line-square.tram { border-bottom: 4px solid var(--danger); }
+        .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; border-bottom: 4px solid transparent; }
+        .line-square.bus { border-bottom-color: var(--accent); }
+        .line-square.tram { border-bottom-color: var(--danger); }
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-        .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
-        .day-selector { display: flex; gap: 8px; margin-bottom: 15px; }
-        .day-btn { flex: 1; padding: 10px; border-radius: 12px; background: var(--surface); color: var(--text-sec); border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-        .day-btn.active { background: var(--accent); color: white; }
-        .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 15px; }
-        .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.9rem; }
-        .nearby-info { color: var(--warn); font-size: 0.85rem; margin-top: 6px; font-weight: 600; display: block; }
-        .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
-        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 8px; margin-right: 5px; margin-bottom: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
         
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.3rem; margin-bottom: 4px; }
+        
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         textarea, input, select { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; background: #1c252e; border: 1px solid rgba(255,255,255,0.1); color: white; font-family: inherit; }
-        .adm-nav-main { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 15px; }
+        .adm-nav-main { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
+        .import-box { border: 2px dashed rgba(255,255,255,0.1); padding: 30px; text-align: center; border-radius: 20px; background: rgba(255,255,255,0.02); }
     </style>
 </head>
 <body>
@@ -80,6 +71,7 @@
     </div>
 
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
         <div class="day-selector" id="tt-day-sel">
@@ -102,6 +94,7 @@
                 <button onclick="setTab('p')" id="mt-p">PRZYST</button>
                 <button onclick="setTab('n')" id="mt-n">NEWS</button>
                 <button onclick="setTab('c')" id="mt-c">INFO</button>
+                <button onclick="setTab('i')" id="mt-i">IMPRT</button>
             </div>
             <div id="tab-l" class="adm-tab">
                 <button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button>
@@ -115,6 +108,14 @@
             <div id="tab-c" class="adm-tab" style="display:none;">
                 <textarea id="edit-contact-text" style="height:200px"></textarea>
                 <button onclick="saveContact()" class="main-btn">Zapisz INFO</button>
+            </div>
+            <div id="tab-i" class="adm-tab" style="display:none;">
+                <div class="import-box">
+                    <i class="fa-solid fa-file-import" style="font-size: 2rem; margin-bottom: 10px; color: var(--accent);"></i>
+                    <p style="margin-bottom: 15px; font-size: 0.9rem;">Wybierz plik backupu (JSON/TXT), aby zaktualizować bazę danych.</p>
+                    <input type="file" id="import-file" accept=".json,.txt" style="display:none;" onchange="handleImport(this)">
+                    <button onclick="document.getElementById('import-file').click()" class="main-btn">Wybierz plik</button>
+                </div>
             </div>
         </div>
     </div>
@@ -133,7 +134,7 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Robocze"></textarea>
+    <textarea id="fl-h-work" placeholder="Robocze (np. 08:00, 08:15)"></textarea>
     <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
     <div id="fl-stops-list"></div>
@@ -143,7 +144,6 @@
 </div>
 
 <div id="form-news" class="overlay-form">
-    <h2>Komunikat</h2>
     <input type="text" id="fn-title" placeholder="Tytuł">
     <input type="date" id="fn-date">
     <select id="fn-cat">
@@ -153,8 +153,8 @@
         <option value="Inne">Inne</option>
     </select>
     <textarea id="fn-content" style="height:200px" placeholder="Treść komunikatu..."></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz Komunikat</button>
-    <button id="del-news-btn" class="main-btn" style="background:var(--danger); display:none;">USUŃ KOMUNIKAT</button>
+    <button onclick="saveNews()" class="main-btn">Zapisz</button>
+    <button id="del-news-btn" class="main-btn" style="background:var(--danger); display:none;">USUŃ</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -175,7 +175,7 @@
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
 
-    let db = { lines: [], stopDetails: {}, news: [], lineCategories: ["Tramwaje", "Autobusy"], contact: "" };
+    let db = { lines: [], stopDetails: {}, news: [], lineCategories: ["Tramwaje", "Autobusy", "Nocne"], contact: "" };
     let currentLineIndex = -1, currentNewsIdx = -1, allAutoStops = [], currentDay = 'working', focusedStopIdx = -1;
 
     function cleanKey(name) { return name ? name.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
@@ -194,6 +194,26 @@
         });
     }
 
+    function handleImport(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (confirm("Czy na pewno chcesz nadpisać bazę danych tym plikiem?")) {
+                    dbRef.set(importedData).then(() => {
+                        alert("Import zakończony sukcesem!");
+                        input.value = '';
+                    });
+                }
+            } catch (err) {
+                alert("Błąd: Niepoprawny format pliku.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
     function extractStops() { 
         let sSet = new Set(); 
         db.lines.forEach(l => { if(l.stops) l.stops.forEach(s => sSet.add(s.name)); });
@@ -201,7 +221,6 @@
     }
 
     function render() {
-        // HOME
         const home = document.getElementById('s-home'); home.innerHTML = '';
         db.lineCategories.forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
@@ -215,10 +234,9 @@
             }
         });
 
-        // NEWS PUBLIC
         const newsList = document.getElementById('public-news-list');
         newsList.innerHTML = db.news.length ? db.news.map((n, i) => `
-            <div class="app-card news-card" id="news-${i}" onclick="this.classList.toggle('open')">
+            <div class="app-card" onclick="this.classList.toggle('open')">
                 <div class="news-header">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span class="news-badge cat-${(n.category || 'inne').toLowerCase().split(' ')[0]}">${n.category || 'Inne'}</span>
@@ -226,14 +244,13 @@
                     </div>
                     <h3 style="font-size:1rem; margin-top:5px;">${n.title}</h3>
                 </div>
-                <div class="news-content-area">${n.content.replace(/\n/g, '<br>')}</div>
-            </div>`).join('') : '<div class="app-card">Brak nowych komunikatów.</div>';
+                <div class="news-content-area">${(n.content || '').replace(/\n/g, '<br>')}</div>
+            </div>`).join('') : '<div class="app-card">Brak komunikatów.</div>';
         
         filterStops();
 
-        // ADMIN LISTS
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
-        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>[${n.date || '---'}] ${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>[${n.date || '--'}] ${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "";
         renderAdminStops();
     }
@@ -244,12 +261,14 @@
         if(!list) return;
         list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => {
             const det = db.stopDetails[cleanKey(s)] || {nearby:""};
-            return `<div class="app-card" style="display:block">
-                <b>${s}</b>
-                ${det.nearby?`<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>`:''}
-                <div class="stop-lines-row">${getOtherLines(s, "")}</div>
-            </div>`;
+            return `<div class="app-card" style="display:block"><b>${s}</b>${det.nearby?`<div class="nearby-info">${det.nearby}</div>`:''}<div class="stop-lines-row">${getOtherLines(s, "")}</div></div>`;
         }).join('');
+    }
+
+    function getOtherLines(stopName, currentNum) {
+        let lines = [];
+        db.lines.forEach(l => { if(String(l.num) !== String(currentNum) && l.stops?.some(st => st.name === stopName)) { if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); } });
+        return lines.map(ln => `<span class="stop-line-item" onclick="event.stopPropagation(); goToLineFromStop('${ln.num}', '${stopName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
     function goToLineFromStop(lineNum, stopName) {
@@ -259,12 +278,6 @@
             renderTimetable(lineIdx, stopIdx);
             window.scrollTo(0, 0);
         }
-    }
-
-    function getOtherLines(stopName, currentNum) {
-        let lines = [];
-        db.lines.forEach(l => { if(String(l.num) !== String(currentNum) && l.stops?.some(st => st.name === stopName)) { if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); } });
-        return lines.map(ln => `<span class="stop-line-item" onclick="event.stopPropagation(); goToLineFromStop('${ln.num}', '${stopName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
     function renderTimetable(lineIdx, stopIdx = -1) {
@@ -287,7 +300,7 @@
     }
 
     function calculateHours(line, day, offset) {
-        let raw = (day==='working'?line.hoursWorking:day==='saturday'?line.hoursSat:line.hoursSun) || "";
+        let raw = (day==='working' ? (line.hoursWorking || line.hours) : day==='saturday'?line.hoursSat:line.hoursSun) || "";
         if(!raw) return '<div style="font-size:0.8rem; color:var(--text-sec)">Brak kursów</div>';
         return raw.split(',').map(h => {
             let p = h.trim().split(':'); if(p.length<2) return "";
@@ -296,8 +309,6 @@
         }).join('');
     }
 
-    function updateNearby(stopName, val) { dbRef.child('stopDetails').child(cleanKey(stopName)).set({ nearby: val }); }
-    
     function saveLine() {
         const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({ name: el.querySelector('.edit-stop-name').value.trim(), time: parseInt(el.querySelector('.edit-stop-time').value) || 0, nz: el.querySelector('input[type="checkbox"]').checked }));
         const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops };
@@ -306,69 +317,49 @@
     }
 
     function saveNews() {
-        const nData = { 
-            title: document.getElementById('fn-title').value, 
-            date: document.getElementById('fn-date').value,
-            category: document.getElementById('fn-cat').value,
-            content: document.getElementById('fn-content').value 
-        };
+        const nData = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, category: document.getElementById('fn-cat').value, content: document.getElementById('fn-content').value };
         if(currentNewsIdx === -1) db.news.push(nData); else db.news[currentNewsIdx] = nData;
-        dbRef.update({ news: db.news }).then(() => { alert("Komunikat zapisany!"); closeForms(); });
-    }
-
-    function renderAdminStops() {
-        const list = document.getElementById('adm-stops-list'); if(!list) return;
-        list.innerHTML = allAutoStops.map(s => `<div class="adm-stop-card"><b>${s}</b><input type="text" value="${db.stopDetails[cleanKey(s)]?.nearby || ''}" onblur="updateNearby('${s}', this.value)"></div>`).join('');
+        dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); });
     }
 
     function show(id) { 
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        const target = document.getElementById('s-'+id);
-        if(target) target.classList.add('active-sec');
+        document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
         let navId = (id === 'vars' || id === 'tt') ? 'home' : id;
-        const navBtn = document.getElementById('n-'+navId);
-        if(navBtn) navBtn.classList.add('active');
+        if(document.getElementById('n-'+navId)) document.getElementById('n-'+navId).classList.add('active');
     }
 
     function openLineForm(idx) {
         currentLineIndex = idx;
         const l = idx === -1 ? {num:"", dir:"", type:"bus", hoursWorking:"", hoursSat:"", hoursSun:"", category: "Autobusy", stops:[]} : db.lines[idx];
         document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; document.getElementById('fl-type').value = l.type;
-        document.getElementById('fl-h-work').value = l.hoursWorking || ""; document.getElementById('fl-h-sat').value = l.hoursSat || ""; document.getElementById('fl-h-sun').value = l.hoursSun || "";
+        document.getElementById('fl-h-work').value = l.hoursWorking || l.hours || "";
+        document.getElementById('fl-h-sat').value = l.hoursSat || ""; document.getElementById('fl-h-sun').value = l.hoursSun || "";
         document.getElementById('fl-cat').innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
         document.getElementById('fl-stops-list').innerHTML = ''; (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
         document.getElementById('form-line').style.display = 'block';
     }
 
     function addStopRow(name = "", time = 2, nz = false) {
-        const div = document.createElement('div'); div.className = 'stop-edit-item';
-        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name"><input type="number" value="${time}" class="edit-stop-time"><label><input type="checkbox" ${nz?'checked':''}> NŻ</label><button onclick="this.parentElement.remove()">X</button>`;
+        const div = document.createElement('div'); div.className = 'stop-edit-item'; div.style = "display: flex; gap: 5px; margin-bottom: 5px;";
+        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name" placeholder="Nazwa"><input type="number" value="${time}" class="edit-stop-time" style="width:60px"><label style="font-size:0.7rem"><input type="checkbox" ${nz?'checked':''}> NŻ</label><button onclick="this.parentElement.remove()">X</button>`;
         document.getElementById('fl-stops-list').appendChild(div);
     }
 
     function openVariants(num) {
         show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
         const list = document.getElementById('vars-list'); list.innerHTML = '';
-        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>Kierunek: ${l.dir}</b></div>`; });
+        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b></div>`; });
     }
 
     function openNewsForm(idx) {
         currentNewsIdx = idx;
         const n = idx === -1 ? {title:"", date: new Date().toISOString().split('T')[0], category:"Inne", content:""} : db.news[idx];
-        document.getElementById('fn-title').value = n.title;
-        document.getElementById('fn-date').value = n.date;
-        document.getElementById('fn-cat').value = n.category;
-        document.getElementById('fn-content').value = n.content;
-        
-        const delBtn = document.getElementById('del-news-btn');
-        if(idx !== -1) {
-            delBtn.style.display = 'block';
-            delBtn.onclick = () => { if(confirm("Usunąć ten komunikat?")) { db.news.splice(idx, 1); dbRef.update({news: db.news}); closeForms(); } };
-        } else {
-            delBtn.style.display = 'none';
-        }
-        
+        document.getElementById('fn-title').value = n.title; document.getElementById('fn-date').value = n.date;
+        document.getElementById('fn-cat').value = n.category; document.getElementById('fn-content').value = n.content;
+        document.getElementById('del-news-btn').style.display = idx === -1 ? 'none' : 'block';
+        document.getElementById('del-news-btn').onclick = () => { if(confirm("Usunąć?")) { db.news.splice(idx, 1); dbRef.update({news: db.news}); closeForms(); } };
         document.getElementById('form-news').style.display = 'block';
     }
 
@@ -377,6 +368,7 @@
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.getElementById('form-line').style.display = 'none'; document.getElementById('form-news').style.display = 'none'; }
     function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano!")); }
+    function renderAdminStops() { const list = document.getElementById('adm-stops-list'); if(list) list.innerHTML = allAutoStops.map(s => `<div class="app-card"><b>${s}</b><input type="text" placeholder="Opis okolicy" value="${db.stopDetails[cleanKey(s)]?.nearby || ''}" onblur="dbRef.child('stopDetails').child(cleanKey('${s}')).update({nearby: this.value})"></div>`).join(''); }
 
     init();
 </script>

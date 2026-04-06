@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - System Pro V18</title>
+    <title>MZK GORZÓW - System Pro V19</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
@@ -47,7 +47,6 @@
         .badge-bus i { color: var(--accent); }
         .badge-tram i { color: var(--danger); }
         
-        /* Styl daty */
         .news-date { font-size: 0.75rem; color: var(--warn); font-weight: 600; display: block; margin-top: 4px; }
         .details-date { font-size: 0.85rem; color: var(--text-sec); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; display: block; }
         
@@ -61,17 +60,14 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
-    
     <div id="s-stops" class="section">
         <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
-
     <div id="s-news" class="section">
         <div class="group-label">Komunikaty i Aktualności</div>
         <div id="public-news-list"></div>
     </div>
-
     <div id="s-news-details" class="section">
         <div class="app-card stop-card">
             <span id="nd-date" class="details-date"></span>
@@ -80,12 +76,10 @@
         </div>
         <button onclick="show('news')" class="main-btn" style="background:#333; margin-top:20px;">Wróć do listy</button>
     </div>
-
     <div id="s-contact" class="section">
         <div class="group-label">Informacje o MZK</div>
         <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; cursor:default;"></div>
     </div>
-
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     
     <div id="s-tt" class="section">
@@ -132,6 +126,7 @@
     <div class="group-label">Edytor Aktualności</div>
     <input type="text" id="fn-title" placeholder="Tytuł">
     <input type="text" id="fn-cat" placeholder="Kategoria">
+    <input type="text" id="fn-date" placeholder="Data (DD.MM.RRRR)">
     <textarea id="fn-body" style="height:250px;" placeholder="Treść..."></textarea>
     <button onclick="saveNews()" class="main-btn">Zapisz i Publikuj</button>
     <button onclick="deleteNews()" id="btn-del-news" class="main-btn danger-btn" style="display:none;">Usuń news</button>
@@ -186,10 +181,7 @@
                 if(!db.lines) db.lines = [];
                 if(!db.news) db.news = [];
                 if(!db.stopDetails) db.stopDetails = {};
-                
-                // Automatyczne uzupełnianie dat dla starych wpisów
                 db.news.forEach(n => { if(!n.date) n.date = getToday(); });
-                
                 let sSet = new Set();
                 db.lines.forEach(l => l.stops?.forEach(s => sSet.add(s.name)));
                 allStops = [...sSet].sort();
@@ -199,7 +191,6 @@
     }
 
     function render() {
-        // HOME
         const h = document.getElementById('s-home'); h.innerHTML = '';
         db.lineCategories.forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
@@ -214,7 +205,6 @@
             }
         });
 
-        // PUBLIC NEWS (Z DATĄ)
         document.getElementById('public-news-list').innerHTML = db.news.map((n, i) => `
             <div class="app-card" onclick="showNewsDet(${i})">
                 <div style="flex:1">
@@ -223,9 +213,8 @@
                     <span class="news-date"><i class="fa-regular fa-calendar"></i> ${n.date}</span>
                 </div>
                 <i class="fa-solid fa-chevron-right" style="color:var(--text-sec)"></i>
-            </div>`).reverse().join(''); // Najnowsze na górze
+            </div>`).reverse().join('');
 
-        // ADMIN NEWS
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `
             <div class="app-card">
                 <div style="flex:1"><b>${n.title}</b><br><small>${n.date}</small></div>
@@ -234,7 +223,6 @@
 
         document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
         document.getElementById('edit-contact-text').value = db.contact || "";
-        
         renderStopsList();
     }
 
@@ -249,7 +237,6 @@
                 <div style="margin-top: 10px; display:flex; flex-wrap:wrap;">${getLinesForStop(s)}</div>
             </div>`;
         }).join('');
-
         document.getElementById('adm-stops-list').innerHTML = allStops.map(s => {
             const d = db.stopDetails[cleanKey(s)] || {nearby:""};
             return `<div class="app-card" style="display:block; cursor:default;">
@@ -265,30 +252,31 @@
         return found.sort((a,b)=>parseInt(a.num)-parseInt(b.num)).map(ln => `<span class="stop-line-badge ${ln.type==='tram'?'badge-tram':'badge-bus'}" onclick="openVars('${ln.num}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
-    // NEWS FUNCTIONS
     function openNewsForm(i) {
         curNewsIdx = i;
         const n = i === -1 ? {title:"", category:"", body:"", date: getToday()} : db.news[i];
         document.getElementById('fn-title').value = n.title;
         document.getElementById('fn-cat').value = n.category;
         document.getElementById('fn-body').value = n.body;
+        document.getElementById('fn-date').value = n.date || getToday();
         document.getElementById('btn-del-news').style.display = i === -1 ? 'none' : 'block';
         document.getElementById('form-news').style.display = 'block';
     }
 
     function saveNews() {
+        const inputDate = document.getElementById('fn-date').value.trim();
         const n = {
             title: document.getElementById('fn-title').value,
             category: document.getElementById('fn-cat').value,
             body: document.getElementById('fn-body').value,
-            date: curNewsIdx === -1 ? getToday() : (db.news[curNewsIdx].date || getToday())
+            date: inputDate || getToday()
         };
         if(curNewsIdx === -1) db.news.push(n); else db.news[curNewsIdx] = n;
-        dbRef.update({ news: db.news }).then(() => { alert("News zapisany pomyślnie!"); closeForms(); });
+        dbRef.update({ news: db.news }).then(() => { alert("News zapisany!"); closeForms(); });
     }
 
     function deleteNews() {
-        if(confirm("Czy na pewno chcesz usunąć ten komunikat?")) {
+        if(confirm("Usunąć news?")) {
             db.news.splice(curNewsIdx, 1);
             dbRef.update({ news: db.news }).then(() => { alert("Usunięto!"); closeForms(); });
         }
@@ -302,12 +290,10 @@
         show('news-details');
     }
 
-    // SYSTEM (Login, Tabs, Lines)
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function setTab(t) { 
         document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); 
         document.getElementById('tab-'+t).style.display='block'; 
-        document.querySelectorAll('#adm-ui .main-btn').forEach(b => { if(b.innerText.length < 10) b.style.background = '#444'; });
     }
     function show(id) { 
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
@@ -315,10 +301,8 @@
         window.scrollTo(0,0);
     }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
-    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Informacje zapisane!")); }
-    
+    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano!")); }
     function openVars(num) { show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`; const v = document.getElementById('vars-list'); v.innerHTML = ''; db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`; }); }
-    
     function updateStopDetail(name, val) {
         if(!db.stopDetails) db.stopDetails = {};
         db.stopDetails[cleanKey(name)] = { nearby: val };
@@ -361,7 +345,6 @@
     }
 
     function setDay(d) { curDay=d; document.querySelectorAll('#tt-day-sel .main-btn').forEach(b=>b.style.background='#444'); document.getElementById('btn-'+d).style.background='var(--accent)'; renderTimetable(curLineIdx, curStopIdx); }
-    
     function renderTimetable(lIdx, sIdx = -1) {
         curLineIdx = lIdx; curStopIdx = sIdx; show('tt');
         const l = db.lines[lIdx];
@@ -374,7 +357,7 @@
             const hMap = {};
             let raw = (curDay==='working' ? l.hoursWorking : curDay==='saturday' ? l.hoursSat : l.hoursSun) || "";
             let html = `<div class="timetable-container"><div class="tt-header-box"><b style="color:black; font-size:1.2rem;">${l.stops[sIdx].name}</b><br><small style="color:#666">Linia ${l.num} &bull; Kierunek: ${l.dir}</small></div>`;
-            if(!raw) html += '<div style="padding:20px; color:black">Brak odjazdów w tym dniu.</div>';
+            if(!raw) html += '<div style="padding:20px; color:black">Brak odjazdów.</div>';
             else {
                 raw.split(',').forEach(h => {
                     let p = h.trim().split(':'); if(p.length < 2) return;

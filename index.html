@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V69</title>
+    <title>MZK GORZÓW PRO V70</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -32,6 +32,8 @@
         .line-badge.bus { background: var(--bus-col); }
         .line-badge.tram { background: var(--tram-col); }
         
+        .dir-abbr { background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; margin-left: 2px; color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1); }
+
         .eta-tag { font-size: 0.75rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.1); padding: 2px 6px; border-radius: 4px; }
         .transfer-eta { font-size: 0.65rem; opacity: 0.95; font-weight: 600; margin-left: 2px; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 3px; border-radius: 3px; }
 
@@ -169,6 +171,19 @@
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
     
+    // --- NOWA FUNKCJA GENERUJĄCA SKRÓT KIERUNKU ---
+    function getDirAbbr(dir) {
+        if(!dir) return "";
+        const words = dir.trim().split(/\s+/);
+        if(words.length === 1) return words[0].substring(0,2).toUpperCase();
+        if(words.length === 2) return (words[0][0] + words[1].substring(0,2)).toUpperCase();
+        // Dla 3 i więcej członów: pierwsze litery wszystkich prócz ostatniego + 2 ostatniego
+        let res = "";
+        for(let i=0; i < words.length - 1; i++) res += words[i][0];
+        res += words[words.length-1].substring(0,2);
+        return res.toUpperCase();
+    }
+
     function show(id) { 
         currentSection = id;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
@@ -274,19 +289,14 @@
         document.getElementById('edit-contact-text').value = db.contact || "";
     }
 
-    // --- POPRAWIONY ALGORYTM SORTOWANIA ---
     function sortLinesByETA(arr) {
         return arr.sort((a, b) => {
             const etaA = a.eta;
             const etaB = b.eta;
-            // Obaj mają null - sortuj po numerze linii
             if (etaA === null && etaB === null) return parseInt(a.num) - parseInt(b.num);
-            // Jeden ma null - ten z nullem idzie na koniec
             if (etaA === null) return 1;
             if (etaB === null) return -1;
-            // Obaj mają czas - sortuj rosnąco (0 min, 1 min, 2 min...)
             if (etaA !== etaB) return etaA - etaB;
-            // Czasy równe - sortuj po numerze
             return parseInt(a.num) - parseInt(b.num);
         });
     }
@@ -297,9 +307,9 @@
             if(excludeLineNum !== null && String(l.num) === String(excludeLineNum)) return; 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1;
             if(sIdx !== -1) { 
-                if(!found.find(x => x.num === l.num)) {
+                if(!found.find(x => x.num === l.num && x.dir === l.dir)) {
                     const eta = getETA(l, sIdx);
-                    found.push({num: l.num, type: l.type, eta: eta}); 
+                    found.push({num: l.num, type: l.type, eta: eta, dir: l.dir}); 
                 }
             } 
         });
@@ -320,7 +330,7 @@
                         ${stopLines.map(l => {
                             const icon = l.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
                             const etaLabel = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${l.eta} min)`;
-                            return `<span class="line-badge ${l.type}"><i class="fa-solid ${icon}"></i>${l.num}${l.eta !== null ? `<span class="transfer-eta">${etaLabel}</span>` : ''}</span>`;
+                            return `<span class="line-badge ${l.type}"><i class="fa-solid ${icon}"></i>${l.num}<span class="dir-abbr">${getDirAbbr(l.dir)}</span>${l.eta !== null ? `<span class="transfer-eta">${etaLabel}</span>` : ''}</span>`;
                         }).join('')}
                     </div>
                 </div>`; 
@@ -349,7 +359,7 @@
                         ${otherLines.map(bl => {
                             const icon = bl.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
                             const bEtaLabel = bl.eta === 0 ? '<span class="eta-now">>>></span>' : `(${bl.eta} min)`;
-                            return `<span class="line-badge ${bl.type}"><i class="fa-solid ${icon}"></i>${bl.num}${bl.eta !== null ? `<span class="transfer-eta">${bEtaLabel}</span>` : ''}</span>`;
+                            return `<span class="line-badge ${bl.type}"><i class="fa-solid ${icon}"></i>${bl.num}<span class="dir-abbr">${getDirAbbr(bl.dir)}</span>${bl.eta !== null ? `<span class="transfer-eta">${bEtaLabel}</span>` : ''}</span>`;
                         }).join('')}
                     </div>
                 </div>`;
@@ -370,11 +380,10 @@
             }
         });
 
-        // SORTOWANIE (identyczna logika co w badge'ach)
         sortLinesByETA(foundLines).forEach(item => {
             const icon = item.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
             const etaLabel = item.eta === 0 ? '<span class="eta-now">>>></span>' : `za ${item.eta} min`;
-            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${item.originalIdx}, ${item.stopIdx})"><div><span class="line-badge ${item.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${item.num}</span><b>${item.dir}</b></div> ${item.eta !== null ? `<span class="eta-tag">${etaLabel}</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
+            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${item.originalIdx}, ${item.stopIdx})"><div><span class="line-badge ${item.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${item.num}<span class="dir-abbr">${getDirAbbr(item.dir)}</span></span><b>${item.dir}</b></div> ${item.eta !== null ? `<span class="eta-tag">${etaLabel}</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
         });
     }
 

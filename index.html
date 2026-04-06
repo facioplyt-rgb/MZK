@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V60</title>
+    <title>MZK GORZÓW PRO V61</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -30,7 +30,7 @@
         .line-badge.bus { background: var(--bus-col); }
         .line-badge.tram { background: var(--tram-col); }
         .eta-tag { font-size: 0.75rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.1); padding: 2px 6px; border-radius: 4px; }
-        .transfer-eta { font-size: 0.6rem; opacity: 0.9; font-weight: 600; margin-left: 2px; color: #fff; }
+        .transfer-eta { font-size: 0.6rem; opacity: 0.9; font-weight: 600; margin-left: 3px; color: #fff; }
 
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
@@ -155,7 +155,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio", storageBucket: "mzk-by-facio.firebasestorage.app", messagingSenderId: "676970411647", appId: "1:676970411647:web:5703d5fb5fb499ff83714a" };
+    const firebaseConfig = { apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio", storageBucket: "mzk-by-facio.firebasedatorage.app", messagingSenderId: "676970411647", appId: "1:676970411647:web:5703d5fb5fb499ff83714a" };
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
     let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "" };
@@ -167,7 +167,7 @@
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
 
-    // POPRAWIONA LOGIKA ETA (ZA ILE)
+    // LOGIKA ETA (ZA ILE)
     function getETA(line, stopIdx) {
         if(!line || !line.stops || line.stops.length === 0) return null;
         const now = new Date();
@@ -230,7 +230,6 @@
             }
         });
 
-        // POPRAWIONE RENDEROWANIE NEWSÓW
         const nList = document.getElementById('public-news-list'); nList.innerHTML = '';
         if(db.news && db.news.length > 0) {
             (db.newsCategories || ["Ogólne"]).forEach(cat => {
@@ -263,7 +262,7 @@
         document.getElementById('edit-contact-text').value = db.contact || "";
     }
 
-    // POPRAWIONA FUNKCJA PRZESIADEK Z IKONĄ
+    // PRZESIADKI Z IKONĄ I FORMATEM "MIN"
     function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
         db.lines.forEach(l => { 
@@ -290,7 +289,7 @@
                     ${d.nearby ? `<small style="color:var(--accent)">${d.nearby}</small>` : ''}
                     <div class="line-badges">
                         ${stopLines.length > 0 ? '<i class="fa-solid fa-route transfer-icon"></i>' : ''}
-                        ${stopLines.map(l => `<span class="line-badge ${l.type}">${l.num}${l.eta !== null ? `<span class="transfer-eta">(${l.eta}m)</span>` : ''}</span>`).join('')}
+                        ${stopLines.map(l => `<span class="line-badge ${l.type}">${l.num}${l.eta !== null ? `<span class="transfer-eta">(${l.eta} min)</span>` : ''}</span>`).join('')}
                     </div>
                 </div>`; 
         }); 
@@ -314,7 +313,7 @@
                     ${d.nearby ? `<small style="color:var(--accent)">${d.nearby}</small>` : ''}
                     <div class="line-badges">
                         ${otherLines.length > 0 ? '<i class="fa-solid fa-route transfer-icon"></i>' : ''}
-                        ${otherLines.map(bl => `<span class="line-badge ${bl.type}">${bl.num}${bl.eta !== null ? `<span class="transfer-eta">(${bl.eta}m)</span>` : ''}</span>`).join('')}
+                        ${otherLines.map(bl => `<span class="line-badge ${bl.type}">${bl.num}${bl.eta !== null ? `<span class="transfer-eta">(${bl.eta} min)</span>` : ''}</span>`).join('')}
                     </div>
                 </div>`;
         }).join('');
@@ -389,7 +388,7 @@
     function addStopRow(name="", time=2, nz=false) { const div = document.createElement('div'); div.className = 'adm-stop-card'; div.innerHTML = `<button onclick="this.parentElement.remove()" style="float:right; border:none; background:none; color:var(--danger)">X</button><input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa"><div style="display:flex; align-items:center; gap:10px;"><input type="number" value="${time}" class="stop-time-in" style="width:60px;"> min <label><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label></div>`; document.getElementById('fl-list').prepend(div); }
     function processBulkImport() { document.getElementById('import-area').value.split('\n').filter(x => x.trim()).forEach(n => { let name = n.trim(); let nz = name.toLowerCase().includes(" nż"); if(nz) name = name.replace(/ nż\.?/i, "").trim(); addStopRow(name, 2, nz); }); document.getElementById('import-area').value = ""; }
     function saveLine() { const rows = Array.from(document.querySelectorAll('#fl-list > div')); const stops = rows.map(r => ({ name: r.querySelector('.stop-name-in').value.trim(), time: parseInt(r.querySelector('.stop-time-in').value) || 0, nz: r.querySelector('.stop-nz-in').checked })).reverse(); const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops }; if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data; dbRef.update({ lines: db.lines }).then(() => { alert("Zapisano!"); closeForms(); }); }
-    function deleteLine() { if(confirm("Usunąć?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ lines: db.lines }).then(closeForms); } }
+    function deleteLine() { if(confirm("Usunąć?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ news: db.lines }).then(closeForms); } }
     function exportDB() { const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); const a = document.createElement('a'); a.href = data; a.download = "mzk_backup.json"; a.click(); }
 </script>
 </body>

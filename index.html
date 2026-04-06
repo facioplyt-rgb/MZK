@@ -52,16 +52,24 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
+    
     <div id="s-stops" class="section">
         <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
+    
     <div id="s-news" class="section">
         <div class="group-label">Komunikaty</div>
         <div id="public-news-list"></div>
     </div>
-    <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
+    
+    <div id="s-contact" class="section">
+        <div class="group-label">Informacje</div>
+        <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
+    </div>
+
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
         <div class="day-selector" id="tt-day-sel">
@@ -170,12 +178,12 @@
 
     function extractStops() { 
         let sSet = new Set(); 
-        db.lines.forEach(l => l.stops && l.stops.forEach(s => sSet.add(s.name)));
+        db.lines.forEach(l => { if(l.stops) l.stops.forEach(s => sSet.add(s.name)); });
         allAutoStops = [...sSet].sort();
     }
 
     function render() {
-        // Render Linii na Home
+        // 1. Home - Linie
         const home = document.getElementById('s-home'); home.innerHTML = '';
         db.lineCategories.forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
@@ -189,13 +197,14 @@
             }
         });
 
-        // Render News
-        document.getElementById('public-news-list').innerHTML = db.news.map(n => `<div class="app-card news-card"><h3>${n.title}</h3><p style="font-size:0.85rem; color:var(--text-sec); margin-top:5px;">${n.content}</p></div>`).join('');
+        // 2. Newsy
+        const newsList = document.getElementById('public-news-list');
+        newsList.innerHTML = db.news.length ? db.news.map(n => `<div class="app-card news-card"><h3>${n.title}</h3><p style="font-size:0.85rem; color:var(--text-sec); margin-top:5px;">${n.content}</p></div>`).join('') : '<div class="app-card">Brak nowych komunikatów.</div>';
         
-        // Render Przystanków (Publiczna lista)
+        // 3. Przystanki
         filterStops();
 
-        // Admin
+        // 4. Admin
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "";
@@ -205,6 +214,7 @@
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
+        if(!list) return;
         list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => {
             const det = db.stopDetails[cleanKey(s)] || {nearby:""};
             return `<div class="app-card" style="display:block">
@@ -213,6 +223,12 @@
                 <div class="stop-lines-row">${getOtherLines(s, "")}</div>
             </div>`;
         }).join('');
+    }
+
+    function getOtherLines(stopName, currentNum) {
+        let lines = [];
+        db.lines.forEach(l => { if(String(l.num) !== String(currentNum) && l.stops?.some(st => st.name === stopName)) { if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); } });
+        return lines.map(ln => `<span class="stop-line-item"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
     function renderTimetable(lineIdx, stopIdx = -1) {
@@ -234,14 +250,9 @@
         document.getElementById('tt-back-btn').onclick = () => stopIdx === -1 ? show('vars') : renderTimetable(lineIdx, -1);
     }
 
-    function getOtherLines(stopName, currentNum) {
-        let lines = [];
-        db.lines.forEach(l => { if(String(l.num) !== String(currentNum) && l.stops?.some(st => st.name === stopName)) { if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); } });
-        return lines.map(ln => `<span class="stop-line-item"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
-    }
-
     function calculateHours(line, day, offset) {
         let raw = (day==='working'?line.hoursWorking:day==='saturday'?line.hoursSat:line.hoursSun) || "";
+        if(!raw) return '<div style="font-size:0.8rem; color:var(--text-sec)">Brak kursów</div>';
         return raw.split(',').map(h => {
             let p = h.trim().split(':'); if(p.length<2) return "";
             let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
@@ -255,7 +266,7 @@
         const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({ name: el.querySelector('.edit-stop-name').value.trim(), time: parseInt(el.querySelector('.edit-stop-time').value) || 0, nz: el.querySelector('input[type="checkbox"]').checked }));
         const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops };
         if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
-        dbRef.update({ lines: db.lines }).then(() => { alert("ZAPISANO!"); closeForms(); });
+        dbRef.update({ lines: db.lines }).then(() => { alert("Zapisano!"); closeForms(); });
     }
 
     function saveNews() {

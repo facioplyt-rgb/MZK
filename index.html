@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V90</title>
+    <title>MZK GORZÓW PRO V91</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -67,8 +67,8 @@
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         
-        /* Styl dla importu */
-        #import-area { background: rgba(0,0,0,0.3); border: 1px dashed var(--accent); font-size: 0.85rem; height: 120px; color: var(--accent); }
+        /* Styl dla skrótów */
+        .abbr-row { display: flex; gap: 5px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -77,22 +77,18 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
-    
     <div id="s-stops" class="section">
         <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
-    
     <div id="s-stop-lines" class="section">
         <div id="sl-list"></div>
         <button onclick="show('stops')" class="main-btn" style="background:#333; margin-top:10px;">Wróć do listy</button>
     </div>
-    
     <div id="s-vars" class="section">
         <div id="vars-list"></div>
         <button id="vars-back-btn" class="main-btn" style="background:#333">Wróć</button>
     </div>
-
     <div id="s-tt" class="section">
         <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
@@ -102,18 +98,15 @@
         <div id="tt-body"></div>
         <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
     </div>
-
     <div id="s-transfer-view" class="section">
         <div id="transfer-view-content"></div>
         <button id="transfer-view-back" class="main-btn" style="background:#333">Wróć do trasy</button>
     </div>
-
     <div id="s-news" class="section"><div id="public-news-list"></div></div>
     <div id="s-news-details" class="section">
         <div class="app-card" style="display:block;"><h2 id="nd-title"></h2><small id="nd-date" style="color:var(--warn)"></small><p id="nd-body" style="margin-top:15px; white-space:pre-wrap; color:var(--text-sec); line-height:1.5;"></p></div>
         <button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
     </div>
-
     <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; color:var(--text-sec); line-height:1.5;"></div></div>
 
     <div id="s-adm" class="section">
@@ -134,7 +127,8 @@
                 <div class="group-label">Kategorie Newsów</div><input type="text" id="edit-news-cats-input">
                 <button onclick="saveAllCategories()" class="main-btn">Zapisz Kategorie</button>
                 <div class="group-label">Skróty Kierunków</div><div id="abbr-manager"></div>
-                <button onclick="saveAbbrs()" class="main-btn" style="background:#444">Zapisz Skróty</button>
+                <button onclick="addAbbrRow()" class="main-btn" style="background:#444">+ Skrót</button>
+                <button onclick="saveAbbrs()" class="main-btn">Zapisz Skróty</button>
                 <div class="group-label">Info o MZK</div><textarea id="edit-contact-text" style="height:150px;"></textarea>
                 <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
             </div>
@@ -159,9 +153,9 @@
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
     
-    <div class="group-label">Szybki import trasy</div>
-    <textarea id="import-area" placeholder="Wklej listę przystanków (jeden pod drugim)..."></textarea>
-    <button onclick="importStopsFromText()" class="main-btn" style="background:#1e293b; border: 1px dashed var(--accent);">Konwertuj na trasę (+1 min)</button>
+    <div class="group-label" style="border-top:1px solid var(--border); padding-top:10px;">Szybki import przystanków</div>
+    <textarea id="import-area" style="height:80px;" placeholder="Wklej listę nazw przystanków..."></textarea>
+    <button onclick="importStopsFromText()" class="main-btn" style="background:#1e293b; border:1px dashed var(--accent);">Konwertuj na trasę (+1 min)</button>
 
     <div id="fl-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
@@ -405,23 +399,7 @@
         document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);
     }
 
-    /* === NOWA FUNKCJA IMPORTU === */
-    function importStopsFromText() {
-        const area = document.getElementById('import-area');
-        const text = area.value.trim();
-        if (!text) { alert("Wklej najpierw listę przystanków!"); return; }
-        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        if (confirm(`Czy dodać ${lines.length} przystanków?`)) {
-            lines.forEach((stopName, index) => {
-                // Jeśli lista jest pusta, pierwszy dostaje 0, inaczej narastająco o 1 minutę
-                const existingCount = document.querySelectorAll('#fl-list > div').length;
-                const timeValue = (index === 0 && existingCount === 0) ? 0 : 1;
-                addStopRow(stopName, timeValue, false);
-            });
-            area.value = "";
-        }
-    }
-
+    /* === ADMIN FUNCTIONS === */
     function renderAdmin() {
         const lList = document.getElementById('adm-lines-list'); lList.innerHTML = '';
         db.lines.forEach((l, i) => lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})">${l.num} -> ${l.dir}</div>`);
@@ -432,6 +410,40 @@
         document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
         document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
         document.getElementById('edit-contact-text').value = db.contact || "";
+        
+        // Render skrótów
+        const ab = document.getElementById('abbr-manager'); ab.innerHTML = '';
+        Object.entries(db.customAbbrs || {}).forEach(([k, v]) => addAbbrRow(k, v));
+    }
+
+    function addAbbrRow(k="", v="") {
+        const d = document.createElement('div'); d.className = 'abbr-row';
+        d.innerHTML = `<input type="text" placeholder="Kierunek" class="ab-key" value="${k}">
+                       <input type="text" placeholder="Skrót" class="ab-val" value="${v}" style="width:60px;">
+                       <button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:4px; padding:0 8px;">X</button>`;
+        document.getElementById('abbr-manager').appendChild(d);
+    }
+
+    function saveAbbrs() {
+        let newAbbrs = {};
+        document.querySelectorAll('.abbr-row').forEach(r => {
+            const k = r.querySelector('.ab-key').value.trim();
+            const v = r.querySelector('.ab-val').value.trim();
+            if(k && v) newAbbrs[cleanKey(k)] = v;
+        });
+        dbRef.update({ customAbbrs: newAbbrs }).then(() => alert("Zapisano skróty!"));
+    }
+
+    function importStopsFromText() {
+        const area = document.getElementById('import-area');
+        const lines = area.value.split('\n').map(l => l.trim()).filter(l => l);
+        if(!lines.length) return;
+        const list = document.getElementById('fl-list');
+        lines.forEach((name, i) => {
+            const existing = list.querySelectorAll('.adm-stop-card').length;
+            addStopRow(name, (i === 0 && existing === 0) ? 0 : 1, false);
+        });
+        area.value = "";
     }
 
     function openLineForm(idx) {

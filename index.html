@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V118</title>
+    <title>MZK GORZÓW PRO V119</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -16,29 +17,27 @@
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 120px; overflow-x: hidden; }
         
         .section { display: none; } 
-        .active-sec { display: block !important; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .active-sec { display: block !important; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         header { background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); padding: 25px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         
-        .app-card { background: var(--surface); padding: 22px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .app-card:active { transform: scale(0.97); background: var(--surface-light); }
-
-        .line-main-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .app-card { background: var(--surface); padding: 22px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; }
+        .line-main-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; cursor: pointer; }
+        
         .line-main-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .line-main-num { min-width: 55px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 1.1rem; color: white; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
-        .line-main-type { font-weight: 800; font-size: 0.8rem; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1.5px; }
+        .line-main-num { min-width: 55px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 1.1rem; color: white; }
         
-        .line-main-abbrs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+        /* KLASY KOLORYSTYCZNE - WYMUSZONE !important */
+        .badge-bus-fix { background: linear-gradient(135deg, #00ab55, #008a45) !important; }
+        .badge-tram-fix { background: linear-gradient(135deg, #ff4842, #d63933) !important; }
 
-        .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 14px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; color: white; border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; transition: 0.3s; }
-        /* Sztywne kolory klas */
-        .line-badge.bus { background: linear-gradient(135deg, #00ab55, #008a45) !important; }
-        .line-badge.tram { background: linear-gradient(135deg, #ff4842, #d63933) !important; }
-        
-        .line-badges { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 2px solid rgba(255,255,255,0.03); }
+        .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 14px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; color: white; border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; }
+        .line-main-type { font-weight: 800; font-size: 0.8rem; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1.5px; }
+        .line-main-abbrs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
         .dir-abbr { background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text); border: 1px solid var(--border); font-weight: 800; }
+        
         .eta-tag { font-size: 0.85rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0, 171, 85, 0.2); display: flex; align-items: center; gap: 5px; }
         .transfer-eta { font-size: 0.75rem; font-weight: 900; margin-left: 10px; color: #fff; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 6px; }
 
@@ -48,7 +47,7 @@
         
         .group-label { font-size: 0.85rem; color: var(--text-sec); text-transform: uppercase; margin: 30px 0 15px 5px; font-weight: 700; letter-spacing: 2px; border-left: 3px solid var(--accent); padding-left: 10px; }
         
-        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(20px); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(20px); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.75rem; cursor: pointer; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.4rem; margin-bottom: 6px; }
@@ -59,7 +58,7 @@
         .tt-min-col { flex: 1; padding: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
         .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.2rem; color: #fff; font-weight: 600; }
         
-        .day-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; background: #212b36; color: white; font-weight: 800; cursor: pointer; }
+        .day-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; background: #212b36; color: white; font-weight: 800; }
         .day-btn.active { background: var(--accent); }
         .main-btn { background: #333; width: 100%; padding: 18px; border-radius: 15px; border: none; color: white; font-weight: 800; cursor: pointer; }
     </style>
@@ -169,13 +168,14 @@
                 const uniqueNums = [...new Set(linesInCategory.map(l => String(l.num)))].sort((a,b) => parseInt(a)-parseInt(b));
                 uniqueNums.forEach(num => {
                     const variants = linesInCategory.filter(l => String(l.num) === num);
-                    // KLUCZOWA POPRAWKA: Typ sprawdzany bezpośrednio w pętli dla numeru
-                    const lineType = variants[0].type === 'tram' ? 'tram' : 'bus';
-                    const typeLabel = variants[0].type === 'tram' ? 'Tramwaj' : 'Autobus';
+                    // SZTYWNE SPRAWDZENIE TYPU DLA KAŻDEJ PĘTLI
+                    const isTram = variants.some(v => v.type === 'tram');
+                    const fixClass = isTram ? 'badge-tram-fix' : 'badge-bus-fix';
+                    const fixLabel = isTram ? 'Tramwaj' : 'Autobus';
                     const abbrsHtml = variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('');
                     
                     html += `<div class="line-main-card" onclick="openVars('${num}', 'home')">
-                        <div class="line-main-top"><span class="line-badge ${lineType} line-main-num">${num}</span><span class="line-main-type">${typeLabel}</span></div>
+                        <div class="line-main-top"><span class="line-badge ${fixClass} line-main-num">${num}</span><span class="line-main-type">${fixLabel}</span></div>
                         <div class="line-main-abbrs">${abbrsHtml}</div></div>`;
                 });
             }
@@ -195,12 +195,14 @@
                 const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1;
                 if(sIdx !== -1) {
                     const eta = getETA(l, sIdx);
-                    if(!stopLines[l.num] || (eta !== null && (stopLines[l.num].eta === null || eta < stopLines[l.num].eta))) stopLines[l.num] = { num: l.num, type: l.type, eta: eta };
+                    if(!stopLines[l.num] || (eta !== null && (stopLines[l.num].eta === null || eta < stopLines[l.num].eta))) {
+                        stopLines[l.num] = { num: l.num, type: l.type, eta: eta };
+                    }
                 }
             });
             html += `<div class="app-card" onclick="openStopLines('${name}')">
                     <div style="font-weight:900; font-size:1.1rem;">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
-                    <div class="line-badges">${Object.values(stopLines).map(l => `<span class="line-badge ${l.type==='tram'?'tram':'bus'}">${l.num}<span class="transfer-eta">${l.eta===0?'>>>':l.eta!==null?formatETA(l.eta):'---'}</span></span>`).join('')}</div></div>`; 
+                    <div class="line-badges">${Object.values(stopLines).map(l => `<span class="line-badge ${l.type==='tram'?'badge-tram-fix':'badge-bus-fix'}">${l.num}<span class="transfer-eta">${l.eta===0?'>>>':l.eta!==null?formatETA(l.eta):'---'}</span></span>`).join('')}</div></div>`; 
         }); 
         listDiv.innerHTML = html;
     }
@@ -232,9 +234,10 @@
             if(sIdx !== -1) vars.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
         });
         vars.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta))).forEach(v => {
+            const fixClass = v.type === 'tram' ? 'badge-tram-fix' : 'badge-bus-fix';
             list.innerHTML += `<div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center;"><span class="line-badge ${v.type==='tram'?'tram':'bus'}" style="margin-right:15px; min-width:40px;">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr" style="margin-right:8px;">${getDirAbbr(v.dir)}</span> DO: ${v.dir}</div></div>
+                        <div style="display:flex; align-items:center;"><span class="line-badge ${fixClass}" style="margin-right:15px; min-width:40px;">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr" style="margin-right:8px;">${getDirAbbr(v.dir)}</span> DO: ${v.dir}</div></div>
                         <span class="eta-tag">${v.eta===0?'>>>':v.eta!==null?formatETA(v.eta):'---'}</span></div></div>`;
         });
     }
@@ -270,12 +273,14 @@
 
     function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+(d==='sunday'?'sunday':d==='saturday'?'saturday':'working')).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
 
+    // Rzadsze odświeżanie głównego widoku, by uniknąć migotania
     setInterval(() => {
-        if(!db || !db.lines || db.lines.length === 0) return;
         const activeSec = document.querySelector('.section.active-sec')?.id;
         if(activeSec === 's-home') render();
         if(activeSec === 's-stops') renderStopsList();
-    }, 10000); // Zwiększony interwał dla stabilności
+        if(activeSec === 's-vars' && curLineNumForVars) openVars(curLineNumForVars, 'home');
+        if(activeSec === 's-stop-lines' && lastOpenedStopName) openStopLines(lastOpenedStopName);
+    }, 15000);
 </script>
 </body>
 </html>

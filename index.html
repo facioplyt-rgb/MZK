@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V120</title>
+    <title>MZK GORZÓW PRO V121</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -11,31 +11,48 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     
     <style>
-        :root { --accent: #00ab55; --bg: #0b0f19; --surface: #161c24; --surface-light: #1c252e; --text: #ffffff; --text-sec: #919eab; --border: rgba(255,255,255,0.08); --warn: #feca05; }
+        :root { 
+            --accent: #00ab55; 
+            --bg: #0b0f19; 
+            --surface: #161c24; 
+            --surface-light: #1c252e; 
+            --text: #ffffff; 
+            --text-sec: #919eab; 
+            --border: rgba(255,255,255,0.08); 
+            --bus-col: #00ab55; 
+            --tram-col: #ff4842; 
+            --warn: #feca05;
+        }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 120px; overflow-x: hidden; }
         
         .section { display: none; } 
-        .active-sec { display: block !important; animation: fadeIn 0.2s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .active-sec { display: block !important; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
         header { background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); padding: 25px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         
-        .app-card { background: var(--surface); padding: 22px; border-radius: 20px; margin-bottom: 25px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; }
-        .line-main-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; cursor: pointer; }
-        
+        /* KARTY LINII */
+        .line-main-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .line-main-card:active { transform: scale(0.98); }
         .line-main-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .line-main-num { min-width: 55px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 1.1rem; color: white; background: linear-gradient(135deg, var(--accent), #008a45) !important; }
         
-        .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 14px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; color: white; border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; background: linear-gradient(135deg, var(--accent), #008a45) !important; }
-        
+        /* SZTYWNE KOLORY DLA KLAS */
+        .line-badge { display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border-radius: 12px; font-weight: 800; color: white; white-space: nowrap; }
+        .badge-bus { background: linear-gradient(135deg, var(--bus-col), #008a45) !important; }
+        .badge-tram { background: linear-gradient(135deg, var(--tram-col), #d63933) !important; }
+
+        .line-main-num { min-width: 55px; height: 35px; font-size: 1.1rem; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
         .line-main-type { font-weight: 800; font-size: 0.8rem; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1.5px; }
-        .line-main-abbrs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+        .line-main-abbrs { display: flex; flex-wrap: wrap; gap: 10px; }
         .dir-abbr { background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text); border: 1px solid var(--border); font-weight: 800; }
-        
+
+        .app-card { background: var(--surface); padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--border); cursor: pointer; }
+
         .eta-tag { font-size: 0.85rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0, 171, 85, 0.2); display: flex; align-items: center; gap: 5px; }
-        .transfer-eta { font-size: 0.75rem; font-weight: 900; margin-left: 10px; color: #fff; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 6px; }
+        .transfer-eta { font-size: 0.75rem; font-weight: 900; margin-left: 8px; color: #fff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
 
         .badge { font-size: 0.7rem; padding: 3px 7px; border-radius: 6px; font-weight: 800; text-transform: uppercase; margin-left: 8px; }
         .badge-nz { background: var(--warn); color: #000; }
@@ -43,20 +60,21 @@
         
         .group-label { font-size: 0.85rem; color: var(--text-sec); text-transform: uppercase; margin: 30px 0 15px 5px; font-weight: 700; letter-spacing: 2px; border-left: 3px solid var(--accent); padding-left: 10px; }
         
-        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(20px); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; }
-        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.75rem; cursor: pointer; }
-        nav div.active { color: var(--accent); }
+        /* NAWIGACJA */
+        nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(20px); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+        nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.75rem; cursor: pointer; transition: 0.3s; }
+        nav div.active { color: var(--accent); transform: translateY(-3px); }
         nav i { font-size: 1.4rem; margin-bottom: 6px; }
 
         .tt-container { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; margin-top: 20px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
-        .tt-hour-col { background: rgba(255,255,255,0.02); width: 70px; padding: 20px 0; text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--accent); border-right: 1px solid var(--border); }
-        .tt-min-col { flex: 1; padding: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
-        .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.2rem; color: #fff; font-weight: 600; }
+        .tt-hour-col { background: rgba(255,255,255,0.02); width: 60px; padding: 15px 0; text-align: center; font-size: 1.3rem; font-weight: 900; color: var(--accent); border-right: 1px solid var(--border); }
+        .tt-min-col { flex: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.1rem; color: #fff; font-weight: 600; }
         
-        .day-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; background: #212b36; color: white; font-weight: 800; cursor: pointer; }
+        .day-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #212b36; color: white; font-weight: 800; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
-        .main-btn { background: #333; width: 100%; padding: 18px; border-radius: 15px; border: none; color: white; font-weight: 800; cursor: pointer; }
+        .main-btn { background: #333; width: 100%; padding: 18px; border-radius: 15px; border: none; color: white; font-weight: 800; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -65,29 +83,34 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
+
     <div id="s-stops" class="section">
-        <input type="text" id="stop-search" style="width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px; background: var(--surface-light); border: 1px solid var(--border); color: white;" placeholder="🔍 Szukaj przystanku..." oninput="renderStopsList()">
+        <input type="text" id="stop-search" placeholder="🔍 Szukaj przystanku..." oninput="renderStopsList()" style="width:100%; padding:15px; border-radius:12px; background:var(--surface-light); border:1px solid var(--border); color:white; margin-bottom:15px;">
         <div id="public-stops-list"></div>
     </div>
-    <div id="s-stop-lines" class="section">
-        <div id="sl-list"></div>
-        <button onclick="show('stops')" class="main-btn" style="margin-top:15px;">Wróć do listy</button>
-    </div>
+
     <div id="s-vars" class="section">
         <div id="vars-list"></div>
         <button id="vars-back-btn" class="main-btn">Wróć</button>
     </div>
+
+    <div id="s-stop-lines" class="section">
+        <div id="sl-list"></div>
+        <button onclick="show('stops')" class="main-btn">Wróć do listy</button>
+    </div>
+
     <div id="s-tt" class="section">
-        <div id="tt-day-sel" style="display:none; gap:10px; margin-bottom:20px;">
+        <div id="tt-day-sel" style="display:none; gap:10px; margin-bottom:15px;">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
             <button class="day-btn" id="btn-saturday" onclick="setDay('saturday')">Soboty</button>
             <button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedz i Św</button>
         </div>
         <div id="tt-body"></div>
-        <button id="tt-back-btn" class="main-btn" style="margin-top:25px;">Wróć</button>
+        <button id="tt-back-btn" class="main-btn">Wróć</button>
     </div>
+
     <div id="s-news" class="section"><div id="public-news-list"></div></div>
-    <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; color:var(--text-sec); line-height:1.6;"></div></div>
+    <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="white-space:pre-wrap; line-height:1.6;"></div></div>
 </div>
 
 <nav>
@@ -104,36 +127,33 @@
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
     
-    let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "", customAbbrs: {} };
+    let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], contact: "", customAbbrs: {} };
     let curLineIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [];
     let curLineNumForVars = null, lastOpenedStopName = null;
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
-    function formatETA(mins) { if (mins === null) return ""; if (mins === 0) return ">>>"; if (mins < 60) return mins + "m"; const h = Math.floor(mins / 60); const m = mins % 60; return h + "h " + (m > 0 ? m + "m" : ""); }
-
+    
     function getDirAbbr(dir) {
         if(!dir) return "";
         const cleanDir = dir.trim();
         if(db.customAbbrs && db.customAbbrs[cleanKey(cleanDir)]) return db.customAbbrs[cleanKey(cleanDir)].toUpperCase();
         const words = cleanDir.split(/\s+/);
         if(words.length === 1) return words[0].substring(0,2).toUpperCase();
-        if(words.length === 2) return (words[0][0] + words[1].substring(0,2)).toUpperCase();
-        let res = ""; for(let i=0; i < words.length - 1; i++) res += words[i][0]; res += words[words.length-1].substring(0,2);
-        return res.toUpperCase();
+        return (words[0][0] + words[words.length-1].substring(0,2)).toUpperCase();
     }
 
     function getETA(line, stopIdx) {
-        if(!line || !line.stops || line.stops.length === 0 || stopIdx < 0) return null;
-        const now = new Date(); const dayOfWeek = now.getDay();
-        let dayType = (dayOfWeek === 6) ? 'saturday' : (dayOfWeek === 0 ? 'sunday' : 'working');
+        if(!line || !line.stops || stopIdx < 0) return null;
+        const now = new Date();
+        const dayType = (now.getDay() === 6) ? 'saturday' : (now.getDay() === 0 ? 'sunday' : 'working');
         const raw = (dayType === 'working') ? line.hoursWorking : (dayType === 'saturday' ? line.hoursSat : line.hoursSun);
-        if (!raw || raw.trim() === "") return null;
+        if (!raw) return null;
         let offset = 0; for (let i = 0; i <= stopIdx; i++) offset += parseInt(line.stops[i].time || 0);
         const times = raw.split(',').map(t => {
             const parts = t.trim().split(':'); if(parts.length < 2) return null;
             const d = new Date(now.getTime()); d.setHours(parseInt(parts[0]), parseInt(parts[1]) + offset, 0, 0); return d;
-        }).filter(d => d !== null && d > now).sort((a,b) => a - b);
-        return times.length === 0 ? null : Math.floor((times[0] - now) / 60000);
+        }).filter(d => d && d > now).sort((a,b) => a - b);
+        return times.length ? Math.floor((times[0] - now) / 60000) : null;
     }
 
     function show(id) { 
@@ -143,16 +163,14 @@
         document.getElementById('n-'+id)?.classList.add('active'); 
     }
 
-    function init() {
-        dbRef.on('value', (s) => {
-            const val = s.val(); if(val) { 
-                db = val; if(!db.lines) db.lines = []; 
-                let sSet = new Set(); db.lines.forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name)); }); 
-                allStops = [...sSet].sort(); render(); 
-            }
-        });
-    }
-    init();
+    dbRef.on('value', (s) => {
+        const val = s.val(); if(val) { 
+            db = val; if(!db.lines) db.lines = []; 
+            let sSet = new Set(); db.lines.forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name)); }); 
+            allStops = [...sSet].sort(); 
+            render(); 
+        }
+    });
 
     function render() {
         const h = document.getElementById('s-home'); if(!h) return;
@@ -164,12 +182,17 @@
                 const uniqueNums = [...new Set(linesInCategory.map(l => String(l.num)))].sort((a,b) => parseInt(a)-parseInt(b));
                 uniqueNums.forEach(num => {
                     const variants = linesInCategory.filter(l => String(l.num) === num);
-                    const typeLabel = variants[0].type === 'tram' ? 'Tramwaj' : 'Autobus';
-                    const abbrsHtml = variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('');
+                    // NAPRAWA KOLORÓW: Sprawdzenie typu pierwszego wariantu
+                    const isTram = variants[0].type === 'tram';
+                    const colorClass = isTram ? 'badge-tram' : 'badge-bus';
                     
                     html += `<div class="line-main-card" onclick="openVars('${num}', 'home')">
-                        <div class="line-main-top"><span class="line-main-num">${num}</span><span class="line-main-type">${typeLabel}</span></div>
-                        <div class="line-main-abbrs">${abbrsHtml}</div></div>`;
+                        <div class="line-main-top">
+                            <span class="line-badge ${colorClass} line-main-num">${num}</span>
+                            <span class="line-main-type">${isTram?'Tramwaj':'Autobus'}</span>
+                        </div>
+                        <div class="line-main-abbrs">${variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('')}</div>
+                    </div>`;
                 });
             }
         });
@@ -185,52 +208,48 @@
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
             const d = db.stopDetails[cleanKey(name)] || {};
             let stopLines = {}; db.lines.forEach(l => {
-                const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1;
+                const sIdx = (l.stops||[]).findIndex(st => st.name === name);
                 if(sIdx !== -1) {
                     const eta = getETA(l, sIdx);
                     if(!stopLines[l.num] || (eta !== null && (stopLines[l.num].eta === null || eta < stopLines[l.num].eta))) {
-                        stopLines[l.num] = { num: l.num, eta: eta };
+                        stopLines[l.num] = { num: l.num, type: l.type, eta: eta };
                     }
                 }
             });
             html += `<div class="app-card" onclick="openStopLines('${name}')">
-                    <div style="font-weight:900; font-size:1.1rem;">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
-                    <div class="line-badges" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;">${Object.values(stopLines).map(l => `<span class="line-badge">${l.num}<span class="transfer-eta">${l.eta===0?'>>>':l.eta!==null?formatETA(l.eta):'---'}</span></span>`).join('')}</div></div>`; 
+                    <div style="font-weight:800;">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''}</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                        ${Object.values(stopLines).map(l => `<span class="line-badge ${l.type==='tram'?'badge-tram':'badge-bus'}" style="padding:4px 8px; font-size:0.75rem;">${l.num}<span class="transfer-eta">${l.eta!==null?l.eta+'m':'--'}</span></span>`).join('')}
+                    </div></div>`; 
         }); 
         listDiv.innerHTML = html;
     }
 
     function openVars(num, backTo) { 
         curLineNumForVars = num; show('vars'); const v = document.getElementById('vars-list'); 
-        v.innerHTML = `<div class="group-label" style="color:var(--accent)">Kierunki linii ${num}</div>`; 
+        v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
         db.lines.forEach((l, i) => { 
             if(String(l.num) === String(num)) { 
-                let totalTripTime = 0;
-                l.stops.forEach(st => totalTripTime += parseInt(st.time || 0));
-                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center;"><span class="dir-abbr" style="margin-right:10px;">${getDirAbbr(l.dir)}</span><div style="font-weight:700;">DO: ${l.dir}</div></div>
-                        <span class="eta-tag" style="background: rgba(255,255,255,0.05); color: var(--text-sec); border: 1px solid var(--border);">
-                            <i class="fa-regular fa-clock" style="font-size:0.7rem; margin-right:3px;"></i> ${totalTripTime}m
-                        </span>
-                    </div></div>`; 
+                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>DO: ${l.dir}</b></div>`; 
             } 
         }); 
-        document.getElementById('vars-back-btn').onclick = () => { curLineNumForVars = null; show(backTo); };
+        document.getElementById('vars-back-btn').onclick = () => show(backTo);
     }
 
     function openStopLines(name) { 
         lastOpenedStopName = name; show('stop-lines'); const list = document.getElementById('sl-list'); 
-        list.innerHTML = `<div class="group-label" style="color:var(--accent)">Odjazdy z: ${name}</div>`; 
-        let vars = []; db.lines.forEach((l, i) => { 
-            const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
-            if(sIdx !== -1) vars.push({ num: l.num, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
-        });
-        vars.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta))).forEach(v => {
-            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center;"><span class="line-badge" style="margin-right:15px; min-width:40px;">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr" style="margin-right:8px;">${getDirAbbr(v.dir)}</span> DO: ${v.dir}</div></div>
-                        <span class="eta-tag">${v.eta===0?'>>>':v.eta!==null?formatETA(v.eta):'---'}</span></div></div>`;
+        list.innerHTML = `<div class="group-label">Odjazdy z: ${name}</div>`; 
+        db.lines.forEach((l, i) => { 
+            const sIdx = (l.stops||[]).findIndex(st => st.name === name); 
+            if(sIdx !== -1) {
+                const eta = getETA(l, sIdx);
+                list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i}, ${sIdx})">
+                    <div style="display:flex; align-items:center;">
+                        <span class="line-badge ${l.type==='tram'?'badge-tram':'badge-bus'}" style="margin-right:12px;">${l.num}</span>
+                        <div><b>${l.dir}</b></div>
+                        <span class="eta-tag">${eta!==null?eta+' min':'--'}</span>
+                    </div></div>`;
+            }
         });
     }
 
@@ -238,38 +257,36 @@
         curLineIdx = lIdx; curStopIdx = sIdx; show('tt'); const l = db.lines[lIdx]; const ttBody = document.getElementById('tt-body');
         if (sIdx === -1) { 
             document.getElementById('tt-day-sel').style.display = 'none'; 
-            ttBody.innerHTML = `<div class="group-label">Trasa linii ${l.num} DO: ${l.dir}</div>`;
-            ttBody.innerHTML += l.stops.map((s, i) => {
-                const currentLineETA = getETA(l, i);
-                const sd = db.stopDetails[cleanKey(s.name)] || {};
-                const badges = `${(s.nz || sd.globalNz) ? '<span class="badge badge-nz">NŻ</span>' : ''} ${sd.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}`;
-                return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
-                            <div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-weight:bold;">${s.name} ${badges}</div><span class="eta-tag">${currentLineETA===0?'>>>':currentLineETA!==null?formatETA(currentLineETA):'---'}</span></div></div>`;
-            }).join('');
+            ttBody.innerHTML = `<div class="group-label">Trasa linii ${l.num}</div>` + l.stops.map((s, i) => `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">${s.name}</div>`).join('');
         } else {
             document.getElementById('tt-day-sel').style.display = 'flex';
             let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time || 0);
             const hMap = {}; let rawTimes = (curDay==='working'?l.hoursWorking : curDay==='saturday'?l.hoursSat : l.hoursSun) || "";
-            let html = `<div class="app-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b style="font-size:1.2rem; color:var(--accent)">${l.num}</b> <span style="margin:0 10px; opacity:0.5">•</span> <b>${l.stops[sIdx].name}</b></div><span class="eta-tag">${getETA(l,sIdx)===0?'>>>':getETA(l,sIdx)!==null?formatETA(getETA(l,sIdx)):'---'}</span></div></div><div class="tt-container">`;
             rawTimes.split(',').forEach(entry => {
                 let p = entry.trim().split(':'); if(p.length < 2) return;
                 let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
                 let hh = d.getHours().toString().padStart(2, '0'), mm = d.getMinutes().toString().padStart(2, '0');
                 if(!hMap[hh]) hMap[hh] = []; hMap[hh].push(mm);
             });
-            Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().map(m => `<span class="tt-min-val">${m}</span>`).join(' ')}</div></div>`);
+            let html = `<div class="app-card"><b>${l.num}</b> • <b>${l.stops[sIdx].name}</b></div><div class="tt-container">`;
+            Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().join(' ')}</div></div>`);
             ttBody.innerHTML = html + `</div>`;
         }
         document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? openVars(l.num, 'home') : renderTimetable(lIdx, -1);
     }
 
-    function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+(d==='sunday'?'sunday':d==='saturday'?'saturday':'working')).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
+    function setDay(d) { 
+        curDay = d; 
+        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); 
+        document.getElementById('btn-'+d).classList.add('active'); 
+        renderTimetable(curLineIdx, curStopIdx); 
+    }
 
+    // AUTOMATYCZNE ODŚWIEŻANIE ETA (Co 15 sek)
     setInterval(() => {
         const activeSec = document.querySelector('.section.active-sec')?.id;
         if(activeSec === 's-home') render();
         if(activeSec === 's-stops') renderStopsList();
-        if(activeSec === 's-vars' && curLineNumForVars) openVars(curLineNumForVars, 'home');
         if(activeSec === 's-stop-lines' && lastOpenedStopName) openStopLines(lastOpenedStopName);
     }, 15000);
 </script>

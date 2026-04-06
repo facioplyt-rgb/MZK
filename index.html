@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V91</title>
+    <title>MZK GORZÓW PRO V93</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -30,8 +30,7 @@
         .line-badge.bus { background: var(--bus-col); }
         .line-badge.tram { background: var(--tram-col); }
         
-        .dir-abbr { background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; margin-left: 2px; color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1); font-weight: 800; }
-        .abbr-joiner { font-size: 0.6rem; color: #ffffff; margin: 0 3px; font-weight: 600; text-transform: lowercase; }
+        .dir-abbr { background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; margin-left: 2px; color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1); font-weight: 800; text-transform: uppercase; }
 
         .eta-tag { font-size: 0.75rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.1); padding: 4px 8px; border-radius: 6px; }
         .transfer-eta { font-size: 0.65rem; opacity: 0.95; font-weight: 600; margin-left: 4px; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 4px; border-radius: 3px; }
@@ -60,6 +59,7 @@
         .tt-min-col { flex: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
         .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
+        .adm-stop-card { background: var(--surface-light); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -68,6 +68,16 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
+    <div id="s-vars" class="section"><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć do linii</button></div>
+    <div id="s-tt" class="section">
+        <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
+            <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
+            <button class="day-btn" id="btn-saturday" onclick="setDay('saturday')">Soboty</button>
+            <button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedz i Św</button>
+        </div>
+        <div id="tt-body"></div>
+        <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
+    </div>
     <div id="s-stops" class="section">
         <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
@@ -82,17 +92,6 @@
         <button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
     </div>
     <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; color:var(--text-sec); line-height:1.5;"></div></div>
-    <div id="s-vars" class="section"><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
-    <div id="s-tt" class="section">
-        <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
-            <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
-            <button class="day-btn" id="btn-saturday" onclick="setDay('saturday')">Soboty</button>
-            <button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedz i Św</button>
-        </div>
-        <div id="tt-body"></div>
-        <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
-    </div>
-    
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;"><div class="group-label">Autoryzacja</div><input type="password" id="pass" placeholder="Hasło"><button onclick="login()" class="main-btn">Zaloguj</button></div>
         <div id="adm-ui" style="display:none;">
@@ -108,10 +107,7 @@
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;">
                 <div class="group-label">Kategorie Linii</div><input type="text" id="edit-cats-input">
-                <div class="group-label">Kategorie Newsów</div><input type="text" id="edit-news-cats-input">
                 <button onclick="saveAllCategories()" class="main-btn">Zapisz Kategorie</button>
-                <div class="group-label">Skróty Kierunków</div><div id="abbr-manager"></div>
-                <button onclick="saveAbbrs()" class="main-btn" style="background:#444">Zapisz Skróty</button>
                 <div class="group-label">Info o MZK</div><textarea id="edit-contact-text" style="height:150px;"></textarea>
                 <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
             </div>
@@ -132,7 +128,7 @@
     <div style="display:flex; gap:10px;"><input type="text" id="fl-num" placeholder="Nr" style="width:80px;"><input type="text" id="fl-dir" placeholder="Kierunek"></div>
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Godziny Robocze"></textarea>
+    <textarea id="fl-h-work" placeholder="Godziny Robocze (np. 05:10, 06:15)"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
     <div id="fl-list"></div>
@@ -142,52 +138,28 @@
     <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
 </div>
 
-<div id="form-news" class="overlay-form">
-    <input type="text" id="fn-title" placeholder="Tytuł newsa">
-    <select id="fn-cat"></select>
-    <textarea id="fn-body" style="height:200px;" placeholder="Treść newsa..."></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
-    <button onclick="deleteNews()" id="btn-del-news" class="main-btn" style="background:var(--danger); display:none;">Usuń News</button>
-    <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
-</div>
-
-<div id="form-stop-global" class="overlay-form">
-    <h3 id="fsg-name"></h3>
-    <label><input type="checkbox" id="fsg-nz"> Przystanek NŻ</label><br><br>
-    <label><input type="checkbox" id="fsg-zone"> Granica Strefy</label><br><br>
-    <button onclick="saveGlobalStop()" class="main-btn">Zapisz Ustawienia</button>
-    <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
-</div>
-
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <script>
     const firebaseConfig = { apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio", storageBucket: "mzk-by-facio.firebasedatorage.app", messagingSenderId: "676970411647", appId: "1:676970411647:web:5703d5fb5fb499ff83714a" };
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
+    
     let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "", customAbbrs: {} };
     let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [], activeSection = 'home', curLineNumGlobal = "";
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
-    
     function formatETA(mins) {
         if (mins === null) return "";
         if (mins === 0) return ">>>";
         if (mins < 60) return mins + "m";
         return Math.floor(mins/60) + "h " + (mins%60 > 0 ? (mins%60)+"m" : "");
     }
-
     function getDirAbbr(dir) {
         if(!dir) return "";
-        const cleanDir = dir.trim();
-        if(db.customAbbrs && db.customAbbrs[cleanKey(cleanDir)]) return db.customAbbrs[cleanKey(cleanDir)].toUpperCase();
-        const words = cleanDir.split(/\s+/);
+        const words = dir.trim().split(/\s+/);
         if(words.length === 1) return words[0].substring(0,2).toUpperCase();
-        if(words.length === 2) return (words[0][0] + words[1].substring(0,2)).toUpperCase();
-        let res = "";
-        for(let i=0; i < words.length - 1; i++) res += words[i][0];
-        res += words[words.length-1].substring(0,2);
-        return res.toUpperCase();
+        return (words[0][0] + words[words.length-1][0]).toUpperCase();
     }
 
     function getETA(line, stopIdx) {
@@ -209,41 +181,36 @@
         return times.length === 0 ? null : Math.floor((times[0] - now) / 60000);
     }
 
-    // ROZBUDOWANA LOGIKA PRZESIADEK DLA KAŻDEGO WARIANUT (SKRÓTAMI)
+    // Sortowanie: Najpierw te z najmniejszym ETA (najbliższe odjazdy)
     function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
         db.lines.forEach(l => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1;
-            if(sIdx !== -1) {
-                const eta = getETA(l, sIdx);
-                found.push({num: l.num, type: l.type, eta: eta, dir: l.dir}); 
-            }
+            if(sIdx !== -1) found.push({num: l.num, type: l.type, eta: getETA(l, sIdx), dir: l.dir}); 
         });
-        
-        // Grupowanie po numerze linii i kierunku (wariancie), żeby pokazać skróty i czasy
         let grouped = {};
         found.forEach(f => {
             const key = f.num + "_" + f.dir;
-            if(!grouped[key] || (f.eta !== null && (grouped[key].eta === null || f.eta < grouped[key].eta))) {
-                grouped[key] = f;
-            }
+            if(!grouped[key] || (f.eta !== null && (grouped[key].eta === null || f.eta < grouped[key].eta))) grouped[key] = f;
         });
-
         return Object.values(grouped)
             .filter(f => excludeLineNum === null || String(f.num) !== String(excludeLineNum))
-            .sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
+            .sort((a,b) => {
+                if (a.eta === null) return 1;
+                if (b.eta === null) return -1;
+                return a.eta - b.eta;
+            });
     }
 
     function show(id) { 
         activeSection = id;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        document.getElementById('s-'+id)?.classList.add('active-sec'); 
+        document.getElementById('s-'+id).classList.add('active-sec'); 
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active')); 
         document.getElementById('n-'+id)?.classList.add('active'); 
         render(); 
     }
 
-    init();
     function init() {
         dbRef.on('value', (s) => {
             const val = s.val(); if(val) { 
@@ -254,12 +221,9 @@
                 render(); 
             }
         });
-        setInterval(() => {
-            if (document.querySelectorAll('.overlay-form[style*="block"]').length === 0) {
-                render();
-            }
-        }, 10000);
+        setInterval(() => { if (activeSection !== 'adm') render(); }, 15000);
     }
+    init();
 
     function render() {
         if(activeSection === 'home') renderHome();
@@ -286,13 +250,12 @@
     }
 
     function openVars(num) { 
-        curLineNumGlobal = num;
-        show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
+        curLineNumGlobal = num; show('vars'); 
+        const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
         db.lines.forEach((l, i) => { 
             if(String(l.num) === String(num)) {
                 const eta = getETA(l, 0);
-                const etaStr = eta === 0 ? '<span class="eta-now">>>></span>' : eta !== null ? formatETA(eta) : "---";
-                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>DO: ${l.dir}</b> <span class="dir-abbr">${getDirAbbr(l.dir)}</span></div><span class="eta-tag">${etaStr}</span></div></div>`;
+                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i}, -1)"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>DO: ${l.dir}</b> <span class="dir-abbr">${getDirAbbr(l.dir)}</span></div><span class="eta-tag">${eta===0?'<span class="eta-now">>>></span>':eta!==null?formatETA(eta):'---'}</span></div></div>`;
             }
         }); 
     }
@@ -301,26 +264,21 @@
         curLineIdx = lIdx; curStopIdx = sIdx; activeSection = 'tt';
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
         document.getElementById('s-tt').classList.add('active-sec');
-        
         const l = db.lines[lIdx]; const ttBody = document.getElementById('tt-body');
         if (sIdx === -1) { 
             document.getElementById('tt-day-sel').style.display = 'none'; 
-            ttBody.innerHTML = `<div class="group-label">Trasa: ${l.dir}</div>`;
+            ttBody.innerHTML = `<div class="group-label">Linia ${l.num} -> ${l.dir}</div>`;
             ttBody.innerHTML += l.stops.map((s, i) => {
                 const transfers = getLinesForStop(s.name, l.num);
-                // PRZESIADKI ZE SKRÓTAMI I CZASEM (jak w zakładce przystanki)
-                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.85;">` + transfers.map(t => {
-                    const etaLabel = t.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(t.eta)})`;
-                    return `<span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;">${t.num}<span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${etaLabel}</span></span>`;
-                }).join('') + `</div>` : "";
-
+                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.85;">` + transfers.map(t => `<span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;">${t.num}<span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
                 return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})"><div>${s.name}</div>${transHtml}</div>`;
             }).join('');
+            document.getElementById('tt-back-btn').onclick = () => show('vars');
         } else {
             document.getElementById('tt-day-sel').style.display = 'flex';
             let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time || 0);
-            const hMap = {}; let rawTimes = (curDay==='working'?l.hoursWorking : curDay==='saturday'?l.hoursSat : l.hoursSun) || "";
-            let html = `<div class="app-card"><b>${l.num}</b> - ${l.stops[sIdx].name}</div><div class="tt-container">`;
+            const hMap = {}; let rawTimes = (curDay==='working' ? l.hoursWorking : curDay==='saturday' ? l.hoursSat : l.hoursSun) || "";
+            let html = `<div class="app-card"><b>${l.num}</b> - ${l.stops[sIdx].name} <br><small>${l.dir}</small></div><div class="tt-container">`;
             rawTimes.split(',').forEach(entry => {
                 let parts = entry.trim().split(':'); if(parts.length < 2) return;
                 let d = new Date(); d.setHours(parseInt(parts[0]), parseInt(parts[1]) + offset);
@@ -329,8 +287,8 @@
             });
             Object.keys(hMap).sort().forEach(h => html += `<div class="tt-row"><div class="tt-hour-col">${h}</div><div class="tt-min-col">${hMap[h].sort().join(' ')}</div></div>`);
             ttBody.innerHTML = html + `</div>`;
+            document.getElementById('tt-back-btn').onclick = () => renderTimetable(lIdx, -1);
         }
-        document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);
     }
 
     function renderStopsList() { 
@@ -339,45 +297,29 @@
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
             const d = db.stopDetails[cleanKey(name)] || {};
             let linesAtStop = getLinesForStop(name);
-            listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')"><div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div><div class="line-badges">${linesAtStop.map(l => `<span class="line-badge ${l.type}">${l.num}<span class="dir-abbr">${getDirAbbr(l.dir)}</span><span class="transfer-eta">${l.eta===0?'>>>':formatETA(l.eta)}</span></span>`).join('')}</div></div>`; 
+            listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')"><div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''}</div><div class="line-badges">${linesAtStop.map(l => `<span class="line-badge ${l.type}">${l.num}<span class="dir-abbr">${getDirAbbr(l.dir)}</span><span class="transfer-eta">${l.eta===0?'>>>':formatETA(l.eta)}</span></span>`).join('')}</div></div>`; 
         }); 
     }
 
     function openStopLines(name) { 
         show('stop-lines'); const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label">Odjazdy z: ${name}</div>`; 
-        let variants = []; 
-        db.lines.forEach((l, i) => { 
-            const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
-            if(sIdx !== -1) variants.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
-        });
-        variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta))).forEach(v => {
-            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center;"><span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}</div></div><span class="eta-tag">${v.eta===0?'>>>':formatETA(v.eta)}</span></div></div>`;
+        getLinesForStop(name).forEach(v => {
+            const lIdx = db.lines.findIndex(l => l.num === v.num && l.dir === v.dir);
+            const sIdx = db.lines[lIdx].stops.findIndex(st => st.name === name);
+            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${lIdx}, ${sIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="line-badge ${v.type}" style="margin-right:10px">${v.num}</span><b>${v.dir}</b></div><span class="eta-tag">${v.eta===0?'>>>':formatETA(v.eta)}</span></div></div>`;
         });
     }
 
     function renderNews() {
-        const nDiv = document.getElementById('public-news-list'); if(!nDiv) return; nDiv.innerHTML = '';
-        (db.newsCategories || []).forEach(cat => {
-            const news = (db.news || []).filter(n => n.category === cat);
-            if(news.length) {
-                nDiv.innerHTML += `<div class="group-label">${cat}</div>`;
-                news.forEach(item => { nDiv.innerHTML += `<div class="app-card" onclick="openNewsDetails(${db.news.indexOf(item)})"><b>${item.title}</b><br><small>${item.date || ''}</small></div>`; });
-            }
-        });
-        document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
+        const nDiv = document.getElementById('public-news-list'); nDiv.innerHTML = '';
+        (db.news || []).forEach((item, i) => nDiv.innerHTML += `<div class="app-card" onclick="openNewsDetails(${i})"><b>${item.title}</b><br><small>${item.date || ''}</small></div>`);
+        document.getElementById('contact-display').innerText = db.contact || "Brak danych.";
     }
 
     function renderAdmin() {
-        const lList = document.getElementById('adm-lines-list'); if(!lList) return; lList.innerHTML = '';
+        const lList = document.getElementById('adm-lines-list'); lList.innerHTML = '';
         (db.lines || []).forEach((l, i) => lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})">${l.num} -> ${l.dir}</div>`);
-        const sList = document.getElementById('adm-stops-list'); sList.innerHTML = '';
-        allStops.forEach(s => sList.innerHTML += `<div class="app-card" onclick="openGlobalStopForm('${s}')">${s}</div>`);
-        const nList = document.getElementById('adm-news-list'); nList.innerHTML = '';
-        (db.news || []).forEach((n, i) => nList.innerHTML += `<div class="app-card" onclick="openNewsForm(${i})">${n.title}</div>`);
-        document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
-        document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
-        document.getElementById('edit-contact-text').value = db.contact || "";
     }
 
     function openLineForm(idx) {
@@ -391,40 +333,16 @@
 
     function addStopRow(name="", time=2, nz=false) {
         const div = document.createElement('div'); div.className = 'adm-stop-card';
-        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa Przystanku"><input type="number" value="${time}" class="stop-time-in" style="width:70px;"> min <label><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label><button onclick="this.parentElement.remove()" style="float:right; background:var(--danger); border:none; color:white; border-radius:4px; padding:2px 6px;">X</button>`;
+        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa"><input type="number" value="${time}" class="stop-time-in" style="width:60px;"> min <button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; padding:5px; border-radius:5px;">X</button>`;
         document.getElementById('fl-list').appendChild(div);
     }
 
     function saveLine() {
         const rows = Array.from(document.querySelectorAll('#fl-list > div'));
-        const stops = rows.map(r => ({ name: r.querySelector('.stop-name-in').value, time: parseInt(r.querySelector('.stop-time-in').value), nz: r.querySelector('.stop-nz-in').checked }));
+        const stops = rows.map(r => ({ name: r.querySelector('.stop-name-in').value, time: parseInt(r.querySelector('.stop-time-in').value || 0) }));
         const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops };
         if(curLineIdx === -1) db.lines.push(data); else db.lines[curLineIdx] = data;
         dbRef.update({ lines: db.lines }).then(() => closeForms());
-    }
-
-    function openNewsForm(idx) {
-        curNewsIdx = idx; const n = idx === -1 ? {title:"", body:"", category:""} : db.news[idx];
-        document.getElementById('fn-title').value = n.title; document.getElementById('fn-body').value = n.body;
-        document.getElementById('fn-cat').innerHTML = (db.newsCategories || []).map(c => `<option value="${c}" ${n.category===c?'selected':''}>${c}</option>`).join('');
-        document.getElementById('btn-del-news').style.display = idx === -1 ? 'none' : 'block'; document.getElementById('form-news').style.display = 'block';
-    }
-
-    function saveNews() {
-        const data = { title: document.getElementById('fn-title').value, body: document.getElementById('fn-body').value, category: document.getElementById('fn-cat').value, date: new Date().toLocaleDateString() };
-        if(!db.news) db.news = []; if(curNewsIdx === -1) db.news.push(data); else db.news[curNewsIdx] = data;
-        dbRef.update({ news: db.news }).then(() => closeForms());
-    }
-
-    function openGlobalStopForm(name) {
-        const d = db.stopDetails[cleanKey(name)] || {};
-        document.getElementById('fsg-name').innerText = name; document.getElementById('fsg-nz').checked = d.globalNz || false; document.getElementById('fsg-zone').checked = d.outZone || false;
-        document.getElementById('form-stop-global').style.display = 'block';
-    }
-
-    function saveGlobalStop() {
-        if(!db.stopDetails) db.stopDetails = {}; db.stopDetails[cleanKey(document.getElementById('fsg-name').innerText)] = { globalNz: document.getElementById('fsg-nz').checked, outZone: document.getElementById('fsg-zone').checked };
-        dbRef.update({ stopDetails: db.stopDetails }).then(() => closeForms());
     }
 
     function openNewsDetails(idx) { const n = db.news[idx]; document.getElementById('nd-title').innerText = n.title; document.getElementById('nd-date').innerText = n.date; document.getElementById('nd-body').innerText = n.body; show('news-details'); }
@@ -433,10 +351,8 @@
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
     function deleteLine() { if(confirm("Usunąć?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ lines: db.lines }).then(closeForms); } }
-    function deleteNews() { if(confirm("Usunąć?")) { db.news.splice(curNewsIdx, 1); dbRef.update({ news: db.news }).then(closeForms); } }
-    function saveAllCategories() { const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c); const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c); dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("OK")); }
-    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("OK")); }
-    function exportDB() { const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); const a = document.createElement('a'); a.href = data; a.download = "mzk_backup.json"; a.click(); }
+    function saveAllCategories() { const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c); dbRef.update({ lineCategories: lCats }).then(() => alert("Zapisano")); }
+    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano")); }
 </script>
 </body>
 </html>

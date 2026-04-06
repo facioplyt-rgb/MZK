@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V54</title>
+    <title>MZK GORZÓW PRO V56</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -39,7 +39,7 @@
         .adm-opt-label { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; border: 1px solid var(--border); cursor: pointer; }
 
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
-        textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
+        textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; font-size: 1rem; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
@@ -101,8 +101,12 @@
             <div id="tab-s" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;">
-                <input type="text" id="edit-cats-input" placeholder="Kategorie (po przecinku)">
-                <button onclick="saveCategories()" class="main-btn">Zapisz Kategorie</button>
+                <div class="group-label">Kategorie Linii</div>
+                <input type="text" id="edit-cats-input" placeholder="Kategorie Linii (po przecinku)">
+                <div class="group-label">Kategorie Newsów</div>
+                <input type="text" id="edit-news-cats-input" placeholder="Kategorie Newsów (po przecinku)">
+                <button onclick="saveAllCategories()" class="main-btn">Zapisz Kategorie</button>
+                <div class="group-label">Informacje o MZK</div>
                 <textarea id="edit-contact-text" style="height:150px;" placeholder="Kontakt / Info"></textarea>
                 <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
             </div>
@@ -123,7 +127,7 @@
     <div style="display:flex; gap:10px;"><input type="text" id="fl-num" placeholder="Nr" style="width:80px;"><input type="text" id="fl-dir" placeholder="Kierunek docelowy"></div>
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Godziny Robocze (np. 08:00, 08:30)"></textarea>
+    <textarea id="fl-h-work" placeholder="Godziny Robocze (HH:MM, HH:MM...)"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
     <textarea id="import-area" style="height:60px;" placeholder="Import nazw przystanków"></textarea>
@@ -135,13 +139,23 @@
     <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
 </div>
 
+<div id="form-news" class="overlay-form">
+    <input type="text" id="fn-title" placeholder="Tytuł newsa">
+    <input type="text" id="fn-date" placeholder="Data">
+    <select id="fn-cat"></select>
+    <textarea id="fn-body" style="height:200px;" placeholder="Treść newsa"></textarea>
+    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
+    <button onclick="deleteNews()" id="btn-del-news" class="main-btn" style="background:var(--danger); display:none;">Usuń News</button>
+    <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <script>
     const firebaseConfig = { apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio", storageBucket: "mzk-by-facio.firebasestorage.app", messagingSenderId: "676970411647", appId: "1:676970411647:web:5703d5fb5fb499ff83714a" };
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
-    let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], contact: "" };
+    let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "" };
     let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [];
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
@@ -155,6 +169,7 @@
         dbRef.on('value', (s) => {
             const val = s.val(); if(val) { db = val; 
                 if(!db.lines) db.lines = []; if(!db.stopDetails) db.stopDetails = {}; if(!db.news) db.news = [];
+                if(!db.newsCategories) db.newsCategories = [];
                 let sSet = new Set(); db.lines.forEach(l => l.stops?.forEach(st => sSet.add(st.name))); 
                 allStops = [...sSet].sort(); render(); 
             }
@@ -175,23 +190,39 @@
                 h.appendChild(g);
             }
         });
-        document.getElementById('public-news-list').innerHTML = (db.news || []).map((n, i) => `<div class="app-card" onclick="openNewsDetails(${i})"><div><b>${n.title}</b><br><small style="color:var(--warn)">${n.date}</small></div></div>`).join('');
+
+        const nList = document.getElementById('public-news-list'); nList.innerHTML = '';
+        (db.newsCategories || []).forEach(cat => {
+            const newsItems = (db.news || []).filter(n => n.category === cat);
+            if(newsItems.length) {
+                nList.innerHTML += `<div class="group-label">${cat}</div>`;
+                newsItems.forEach((n, originalIdx) => {
+                    const realIdx = db.news.indexOf(n);
+                    nList.innerHTML += `<div class="app-card" onclick="openNewsDetails(${realIdx})"><div><b>${n.title}</b><br><small style="color:var(--warn)">${n.date}</small></div></div>`;
+                });
+            }
+        });
+
         document.getElementById('contact-display').innerText = db.contact || "";
         renderStopsList(); renderAdmin();
     }
 
     function renderAdmin() {
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><div><b>${l.num}</b> - ${l.dir}</div><button onclick="openLineForm(${i})" style="padding:7px; background:#444; color:white; border:none; border-radius:5px;">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-news-list').innerHTML = (db.news || []).map((n, i) => `<div class="app-card"><div><b>${n.title}</b></div><button onclick="openNewsForm(${i})" style="padding:7px; background:#444; color:white; border:none; border-radius:5px;">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-stops-list').innerHTML = allStops.map(s => {
             const key = cleanKey(s); const d = db.stopDetails[key] || {nearby:"", outZone: false, globalNz: false};
             return `<div class="adm-stop-card"><span style="font-weight:bold; color:var(--accent)">${s}</span><input type="text" value="${d.nearby || ''}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="Pobliże"><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;"><label class="adm-opt-label"><input type="checkbox" ${d.globalNz?'checked':''} onchange="upStop('${s}', this.checked, 'globalNz')"> NŻ</label><label class="adm-opt-label"><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Gr. Strefy</label></div></div>`;
         }).join('');
+        document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
+        document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
+        document.getElementById('edit-contact-text').value = db.contact || "";
     }
 
-    function getLinesForStop(stopName, excludeNum = null) {
+    function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
         db.lines.forEach(l => { 
-            if(String(l.num) === String(excludeNum)) return; // FILTR: Nie pokazuj aktualnej linii jako przesiadki
+            if(excludeLineNum !== null && String(l.num) === String(excludeLineNum)) return; 
             if(l.stops?.some(st => st.name === stopName)) { 
                 if(!found.find(x => x.num === l.num)) found.push({num: l.num, type: l.type}); 
             } 
@@ -213,7 +244,7 @@
         ttBody.innerHTML = `<div class="group-label" style="color:var(--accent)">Trasa: ${l.dir}</div>`;
         ttBody.innerHTML += (l.stops || []).map((s, i) => {
             const d = db.stopDetails[cleanKey(s.name)] || {};
-            const otherLines = getLinesForStop(s.name, l.num); // PRZEKAZUJEMY NUMER DO UKRYCIA
+            const otherLines = getLinesForStop(s.name, l.num); 
             return `
                 <div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
                     <div class="stop-name"><span style="color:var(--accent); font-family:monospace;">${i+1}.</span> ${s.name} ${(d.globalNz || s.nz) ? '<span class="badge badge-nz">NŻ</span>' : ''} ${d.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}</div>
@@ -260,8 +291,31 @@
     function upStop(name, val, field) { const key = cleanKey(name); if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", outZone:false, globalNz: false}; db.stopDetails[key][field] = val; dbRef.child('stopDetails').child(key).set(db.stopDetails[key]); }
     function openVars(num) { show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Linia ${num}</div>`; db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b></div>`; }); }
     function openNewsDetails(i) { const n = db.news[i]; document.getElementById('nd-title').innerText = n.title; document.getElementById('nd-date').innerText = n.date; document.getElementById('nd-body').innerText = n.body; show('news-details'); }
-    function saveCategories() { dbRef.update({ lineCategories: document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c) }).then(() => alert("Zapisano!")); }
-    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano!")); }
+    
+    function saveAllCategories() { 
+        const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c);
+        const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c);
+        dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("Zapisano kategorie!")); 
+    }
+    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano info!")); }
+    
+    function openNewsForm(idx) { 
+        curNewsIdx = idx; 
+        const n = idx === -1 ? {title:"", date:"", category:"", body:""} : db.news[idx]; 
+        document.getElementById('fn-title').value = n.title; 
+        document.getElementById('fn-date').value = n.date; 
+        document.getElementById('fn-cat').innerHTML = (db.newsCategories || []).map(c => `<option value="${c}" ${n.category===c?'selected':''}>${c}</option>`).join('');
+        document.getElementById('fn-body').value = n.body; 
+        document.getElementById('btn-del-news').style.display = idx === -1 ? 'none' : 'block'; 
+        document.getElementById('form-news').style.display = 'block'; 
+    }
+    function saveNews() {
+        const data = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, category: document.getElementById('fn-cat').value, body: document.getElementById('fn-body').value };
+        if(curNewsIdx === -1) { if(!db.news) db.news=[]; db.news.push(data); } else db.news[curNewsIdx] = data;
+        dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); });
+    }
+    function deleteNews() { if(confirm("Usunąć?")) { db.news.splice(curNewsIdx, 1); dbRef.update({ news: db.news }).then(closeForms); } }
+
     function openLineForm(idx) { curLineIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", category:"", stops:[], hoursWorking:"", hoursSat:"", hoursSun:""} : db.lines[idx]; document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; document.getElementById('fl-type').value = l.type || "bus"; document.getElementById('fl-cat').innerHTML = (db.lineCategories || []).map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join(''); document.getElementById('fl-h-work').value = l.hoursWorking || ""; document.getElementById('fl-h-sat').value = l.hoursSat || ""; document.getElementById('fl-h-sun').value = l.hoursSun || ""; document.getElementById('fl-list').innerHTML = ''; (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz)); document.getElementById('btn-del-line').style.display = idx === -1 ? 'none' : 'block'; document.getElementById('form-line').style.display = 'block'; }
     function addStopRow(name="", time=2, nz=false) { const div = document.createElement('div'); div.className = 'adm-stop-card'; div.innerHTML = `<button onclick="this.parentElement.remove()" style="float:right; border:none; background:none; color:var(--danger)">X</button><input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa"><div style="display:flex; align-items:center; gap:10px;"><input type="number" value="${time}" class="stop-time-in" style="width:60px;"> min <label><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label></div>`; document.getElementById('fl-list').prepend(div); }
     function processBulkImport() { document.getElementById('import-area').value.split('\n').filter(x => x.trim()).forEach(n => { let name = n.trim(); let nz = name.toLowerCase().includes(" nż"); if(nz) name = name.replace(/ nż\.?/i, "").trim(); addStopRow(name, 2, nz); }); document.getElementById('import-area').value = ""; }

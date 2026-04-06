@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -58,6 +59,18 @@
         <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
+    
+    <div id="s-stop-details" class="section">
+        <div class="full-news-box">
+            <h2 id="std-name" style="color:var(--accent); margin-bottom:5px;"></h2>
+            <div id="std-nearby" style="color:var(--warn); font-size:0.9rem; margin-bottom:15px;"></div>
+            <div class="group-label">Linie na tym przystanku</div>
+            <div id="std-lines" style="margin-bottom:20px;"></div>
+            <div id="std-timetable-area"></div>
+        </div>
+        <button onclick="show('stops')" class="main-btn" style="background:#333; margin-top:20px;">Wróć do listy</button>
+    </div>
+
     <div id="s-news" class="section">
         <div class="group-label">Komunikaty</div>
         <div id="public-news-list"></div>
@@ -96,17 +109,17 @@
         </div>
         <div id="adm-ui" style="display:none;">
             <div class="adm-nav-main" style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:15px;">
-                <button onclick="setTab('l')" id="mt-l" class="active" style="padding:10px 2px; font-size:0.6rem;">LINIE</button>
-                <button onclick="setTab('p')" id="mt-p" style="padding:10px 2px; font-size:0.6rem;">PRZYST</button>
-                <button onclick="setTab('n')" id="mt-n" style="padding:10px 2px; font-size:0.6rem;">NEWS</button>
-                <button onclick="setTab('c')" id="mt-c" style="padding:10px 2px; font-size:0.6rem;">INFO</button>
-                <button onclick="setTab('i')" id="mt-i" style="padding:10px 2px; font-size:0.6rem;">PLIK</button>
+                <button onclick="setTab('l')" id="mt-l" class="active" style="font-size:0.6rem;">LINIE</button>
+                <button onclick="setTab('p')" id="mt-p" style="font-size:0.6rem;">PRZYST</button>
+                <button onclick="setTab('n')" id="mt-n" style="font-size:0.6rem;">NEWS</button>
+                <button onclick="setTab('c')" id="mt-c" style="font-size:0.6rem;">INFO</button>
+                <button onclick="setTab('i')" id="mt-i" style="font-size:0.6rem;">PLIK</button>
             </div>
             <div id="tab-l" class="adm-tab"><button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button><div id="adm-lines-list"></div></div>
             <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-i" class="adm-tab" style="display:none;"><div style="text-align:center; padding:20px; border: 2px dashed rgba(255,255,255,0.1); border-radius:20px;"><p>DODAWANIE DANYCH (Merge)</p><input type="file" id="import-file" style="display:none;" onchange="handleImport(this)"><button onclick="document.getElementById('import-file').click()" class="main-btn">Wybierz plik</button></div></div>
+            <div id="tab-i" class="adm-tab" style="display:none;"><div style="text-align:center; padding:20px; border: 2px dashed rgba(255,255,255,0.1); border-radius:20px;"><p>DODAWANIE DANYCH</p><input type="file" id="import-file" style="display:none;" onchange="handleImport(this)"><button onclick="document.getElementById('import-file').click()" class="main-btn">Wybierz plik</button></div></div>
         </div>
     </div>
 </div>
@@ -128,16 +141,14 @@
     <textarea id="fl-h-work" placeholder="Godziny Robocze"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
-
     <div class="import-area">
-        <label>SZYBKIE WKLEJANIE PRZYSTANKÓW (jeden pod drugim)</label>
-        <textarea id="fl-quick-import" style="height:120px; font-size:0.8rem; margin-bottom:10px;" placeholder="Wklej tutaj listę przystanków..."></textarea>
-        <button onclick="convertQuickStops()" class="main-btn" style="background:#1890ff; padding:12px;">KONWERTUJ NA LISTĘ</button>
+        <label>SZYBKIE WKLEJANIE PRZYSTANKÓW</label>
+        <textarea id="fl-quick-import" style="height:100px;" placeholder="Nazwa, czas, nż"></textarea>
+        <button onclick="convertQuickStops()" class="main-btn" style="background:#1890ff;">KONWERTUJ</button>
     </div>
-
     <div id="fl-stops-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj pojedynczo</button>
-    <button onclick="saveLine()" class="main-btn" style="background:var(--accent); margin-top:20px;">ZAPISZ LINIĘ</button>
+    <button onclick="saveLine()" class="main-btn" style="background:var(--accent);">ZAPISZ LINIĘ</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -151,7 +162,7 @@
         <option value="Inne">Inne</option>
     </select>
     <textarea id="fn-content" style="height:200px" placeholder="Treść..."></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
+    <button onclick="saveNews()" class="main-btn">Zapisz</button>
     <button id="del-news-btn" class="main-btn" style="background:var(--danger); display:none;">USUŃ</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
@@ -192,7 +203,15 @@
         });
     }
 
-    // Wyświetlanie szczegółów newsa na nowej podstronie
+    // Otwiera "podstronę" przystanku
+    function openStopDetails(stopName) {
+        const det = db.stopDetails[cleanKey(stopName)] || {nearby:""};
+        document.getElementById('std-name').innerText = stopName;
+        document.getElementById('std-nearby').innerText = det.nearby || "";
+        document.getElementById('std-lines').innerHTML = getOtherLines(stopName, "");
+        show('stop-details');
+    }
+
     function showNewsDetails(idx) {
         const n = db.news[idx];
         if(!n) return;
@@ -203,45 +222,15 @@
         show('news-details');
     }
 
-    // SZYBKI IMPORT PRZYSTANKÓW Z TEKSTU
     function convertQuickStops() {
         const text = document.getElementById('fl-quick-import').value;
         if(!text.trim()) return;
-        const rows = text.split('\n');
-        rows.forEach(r => {
+        text.split('\n').forEach(r => {
             if(!r.trim()) return;
-            // Obsługa formatu: Nazwa, czas, nż
             let p = r.split(',');
-            let name = p[0].trim();
-            let time = p[1] ? parseInt(p[1]) : 2;
-            let nz = p[2] ? (p[2].toLowerCase().includes('nż') || p[2].toLowerCase().includes('nz')) : false;
-            addStopRow(name, time, nz);
+            addStopRow(p[0].trim(), p[1] ? parseInt(p[1]) : 2, p[2] ? (p[2].toLowerCase().includes('nż')) : false);
         });
         document.getElementById('fl-quick-import').value = '';
-    }
-
-    function handleImport(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                let newLines = (imported.lines || []).map(l => {
-                    if (l.hours && !l.hoursWorking) l.hoursWorking = l.hours;
-                    return l;
-                });
-                if (confirm(`Dodać ${newLines.length} linii z pliku?`)) {
-                    newLines.forEach(nl => {
-                        if (!db.lines.some(ol => ol.num === nl.num && ol.dir === nl.dir)) db.lines.push(nl);
-                    });
-                    if (imported.news) imported.news.forEach(nn => db.news.push(nn));
-                    if (imported.stopDetails) Object.assign(db.stopDetails, imported.stopDetails);
-                    dbRef.update({ lines: db.lines, news: db.news, stopDetails: db.stopDetails }).then(() => { alert("Dane zaimportowane!"); input.value = ''; });
-                }
-            } catch (err) { alert("Błąd formatu JSON!"); }
-        };
-        reader.readAsText(file);
     }
 
     function extractStops() { 
@@ -267,17 +256,13 @@
         const newsList = document.getElementById('public-news-list');
         newsList.innerHTML = db.news.length ? db.news.map((n, i) => `
             <div class="app-card" onclick="showNewsDetails(${i})">
-                <div style="flex:1">
-                    <span class="news-badge cat-${(n.category || 'inne').toLowerCase().split(' ')[0]}">${n.category || 'Inne'}</span>
-                    <h3 style="font-size:1rem; margin-top:4px; color:white;">${n.title}</h3>
-                    <div style="font-size:0.75rem; color:var(--text-sec); margin-top:4px;">${n.date || ''}</div>
-                </div>
+                <div style="flex:1"><span class="news-badge cat-${(n.category || 'inne').toLowerCase().split(' ')[0]}">${n.category || 'Inne'}</span><h3 style="font-size:1rem; color:white;">${n.title}</h3></div>
                 <i class="fa-solid fa-chevron-right" style="color:var(--text-sec)"></i>
-            </div>`).join('') : '<div class="app-card">Brak komunikatów.</div>';
+            </div>`).join('') : '<div class="app-card">Brak.</div>';
         
         filterStops();
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
-        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>[${n.date || '--'}] ${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "";
         renderAdminStops();
     }
@@ -288,19 +273,22 @@
         if(!list) return;
         list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => {
             const det = db.stopDetails[cleanKey(s)] || {nearby:""};
-            return `<div class="app-card" style="display:block"><b>${s}</b>${det.nearby?`<div style="color:var(--warn); font-size:0.8rem; margin:4px 0;">${det.nearby}</div>`:''}<div style="margin-top:8px">${getOtherLines(s, "")}</div></div>`;
+            return `<div class="app-card" onclick="openStopDetails('${s.replace(/'/g, "\\'")}')">
+                <div style="flex:1"><b>${s}</b>${det.nearby?`<div style="color:var(--warn); font-size:0.75rem;">${det.nearby}</div>`:''}</div>
+                <i class="fa-solid fa-chevron-right" style="color:var(--text-sec)"></i>
+            </div>`;
         }).join('');
     }
 
     function getOtherLines(stopName, currentNum) {
         let lines = [];
         db.lines.forEach(l => { if(String(l.num) !== String(currentNum) && l.stops?.some(st => st.name === stopName)) { if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); } });
-        return lines.map(ln => `<span class="stop-line-badge" onclick="event.stopPropagation(); goToLineFromStop('${ln.num}', '${stopName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
+        return lines.map(ln => `<span class="stop-line-badge" onclick="event.stopPropagation(); goToLineVariants('${ln.num}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
-    function goToLineFromStop(lineNum, stopName) {
-        const lineIdx = db.lines.findIndex(l => String(l.num) === String(lineNum) && l.stops.some(st => st.name === stopName));
-        if (lineIdx !== -1) { renderTimetable(lineIdx, db.lines[lineIdx].stops.findIndex(st => st.name === stopName)); window.scrollTo(0, 0); }
+    // NAPRAWIONE: Przenosi do wyboru wariantów danej linii
+    function goToLineVariants(lineNum) {
+        openVariants(lineNum);
     }
 
     function renderTimetable(lineIdx, stopIdx = -1) {
@@ -312,15 +300,17 @@
         line.stops.forEach((s, i) => {
             offset += parseInt(s.time);
             if(stopIdx !== -1 && i !== stopIdx) return;
-            const det = db.stopDetails[cleanKey(s.name)] || {nearby:""};
-            body.innerHTML += `<div class="app-card" style="display:block" onclick="renderTimetable(${lineIdx}, ${stopIdx===-1?i:-1})"><b>${s.name}</b>${s.nz?' (NŻ)':''}${det.nearby?`<div style="color:var(--warn); font-size:0.8rem;">${det.nearby}</div>`:''}<div style="margin-top:8px">${getOtherLines(s.name, line.num)}</div>${stopIdx!==-1?`<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(65px, 1fr)); gap:8px; margin-top:15px;">${calculateHours(line, currentDay, offset)}</div>`:''}</div>`;
+            body.innerHTML += `<div class="app-card" style="display:block" onclick="${stopIdx===-1?`renderTimetable(${lineIdx}, ${i})`:`openStopDetails('${s.name.replace(/'/g, "\\'")}')`}">
+                <b>${s.name}</b>${s.nz?' (NŻ)':''}
+                ${stopIdx!==-1?`<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(65px, 1fr)); gap:8px; margin-top:15px;">${calculateHours(line, currentDay, offset)}</div>`:''}
+            </div>`;
         });
         document.getElementById('tt-back-btn').onclick = () => stopIdx === -1 ? show('vars') : renderTimetable(lineIdx, -1);
     }
 
     function calculateHours(line, day, offset) {
         let raw = (day==='working' ? (line.hoursWorking || line.hours) : day==='saturday'?line.hoursSat:line.hoursSun) || "";
-        if(!raw) return '<div style="grid-column:1/-1; font-size:0.8rem; color:var(--text-sec)">Brak kursów</div>';
+        if(!raw) return '<div style="grid-column:1/-1; font-size:0.8rem; color:var(--text-sec)">Brak</div>';
         return raw.split(',').map(h => {
             let p = h.trim().split(':'); if(p.length<2) return "";
             let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
@@ -332,8 +322,15 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        let navId = (id === 'vars' || id === 'tt' || id === 'news-details') ? (id === 'news-details' ? 'news' : 'home') : id;
+        let navId = (id === 'vars' || id === 'tt' || id === 'stop-details') ? 'home' : (id === 'news-details' ? 'news' : id);
         if(document.getElementById('n-'+navId)) document.getElementById('n-'+navId).classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    function openVariants(num) {
+        show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} - Wybierz kierunek</div>`;
+        const list = document.getElementById('vars-list'); list.innerHTML = '';
+        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`; });
     }
 
     function openLineForm(idx) {
@@ -349,54 +346,17 @@
 
     function addStopRow(name = "", time = 2, nz = false) {
         const div = document.createElement('div'); div.className = 'stop-edit-row'; div.style = "display: flex; gap: 5px; margin-bottom: 5px; align-items: center;";
-        div.innerHTML = `
-            <input type="text" value="${name}" class="edit-stop-name" style="flex:1; margin-bottom:0;" placeholder="Nazwa">
-            <input type="number" value="${time}" class="edit-stop-time" style="width:50px; margin-bottom:0;" placeholder="min">
-            <label style="font-size:0.6rem;"><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"> NŻ</label>
-            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:var(--danger); padding:10px;"><i class="fa-solid fa-trash"></i></button>`;
+        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name" style="flex:1; margin-bottom:0;"><input type="number" value="${time}" class="edit-stop-time" style="width:50px; margin-bottom:0;"><label style="font-size:0.6rem;"><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"> NŻ</label><button onclick="this.parentElement.remove()" style="color:var(--danger); background:none; border:none; padding:10px;"><i class="fa-solid fa-trash"></i></button>`;
         document.getElementById('fl-stops-list').appendChild(div);
     }
 
-    function openVariants(num) {
-        show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} - Kierunki</div>`;
-        const list = document.getElementById('vars-list'); list.innerHTML = '';
-        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b></div>`; });
-    }
-
-    function openNewsForm(idx) {
-        currentNewsIdx = idx; const n = idx === -1 ? {title:"", date: new Date().toISOString().split('T')[0], category:"Inne", content:""} : db.news[idx];
-        document.getElementById('fn-title').value = n.title; document.getElementById('fn-date').value = n.date;
-        document.getElementById('fn-cat').value = n.category; document.getElementById('fn-content').value = n.content;
-        document.getElementById('del-news-btn').style.display = idx === -1 ? 'none' : 'block';
-        document.getElementById('del-news-btn').onclick = () => { if(confirm("Usunąć komunikat?")) { db.news.splice(idx, 1); dbRef.update({news: db.news}); closeForms(); } };
-        document.getElementById('form-news').style.display = 'block';
-    }
-
     function saveLine() {
-        const rows = document.querySelectorAll('.stop-edit-row');
-        const stops = Array.from(rows).map(row => ({
-            name: row.querySelector('.edit-stop-name').value.trim(),
-            time: parseInt(row.querySelector('.edit-stop-time').value) || 0,
-            nz: row.querySelector('.edit-stop-nz').checked
-        }));
-        const data = { 
-            num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, 
-            type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, 
-            hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, 
-            hoursSun: document.getElementById('fl-h-sun').value, stops: stops 
-        };
+        const stops = Array.from(document.querySelectorAll('.stop-edit-row')).map(row => ({ name: row.querySelector('.edit-stop-name').value.trim(), time: parseInt(row.querySelector('.edit-stop-time').value) || 0, nz: row.querySelector('.edit-stop-nz').checked }));
+        const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops };
         if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
         dbRef.update({ lines: db.lines }).then(() => { alert("Zapisano!"); closeForms(); });
     }
 
-    function saveNews() {
-        const nData = { title: document.getElementById('fn-title').value, date: document.getElementById('fn-date').value, category: document.getElementById('fn-cat').value, content: document.getElementById('fn-content').value };
-        if(currentNewsIdx === -1) db.news.push(nData); else db.news[currentNewsIdx] = nData;
-        dbRef.update({ news: db.news }).then(() => { alert("Komunikat zapisany!"); closeForms(); });
-    }
-
-    function setDay(d) { currentDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(currentLineIndex, focusedStopIdx); }
-    function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; document.querySelectorAll('.adm-nav-main button').forEach(b=>b.classList.remove('active')); document.getElementById('mt-'+t).classList.add('active'); }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.getElementById('form-line').style.display = 'none'; document.getElementById('form-news').style.display = 'none'; }
     function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano!")); }

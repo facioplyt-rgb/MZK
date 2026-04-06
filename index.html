@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V122</title>
+    <title>MZK GORZÓW PRO V123</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -34,8 +34,11 @@
         header { background: rgba(11, 15, 25, 0.95); backdrop-filter: blur(20px); padding: 25px 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         
+        /* KARTY */
+        .app-card { background: var(--surface); padding: 22px; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        .app-card:active { transform: scale(0.98); }
+
         .line-main-card { background: var(--surface); border-radius: 20px; border: 1px solid var(--border); padding: 22px; margin-bottom: 22px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .line-main-card:active { transform: scale(0.98); }
         .line-main-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         
         .line-badge { display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border-radius: 12px; font-weight: 800; color: white; white-space: nowrap; }
@@ -43,17 +46,17 @@
         .badge-tram { background: linear-gradient(135deg, var(--tram-col), #d63933) !important; }
 
         .line-main-num { min-width: 55px; height: 35px; font-size: 1.1rem; box-shadow: 0 3px 6px rgba(0,0,0,0.3); }
-        .line-main-type { font-weight: 800; font-size: 0.8rem; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1.5px; }
         .line-main-abbrs { display: flex; flex-wrap: wrap; gap: 10px; }
         .dir-abbr { background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text); border: 1px solid var(--border); font-weight: 800; }
 
-        .app-card { background: var(--surface); padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--border); cursor: pointer; }
         .eta-tag { font-size: 0.85rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0, 171, 85, 0.2); display: flex; align-items: center; gap: 5px; }
         .transfer-eta { font-size: 0.75rem; font-weight: 900; margin-left: 8px; color: #fff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
+        
+        /* MINI SKRÓT W BOXIE PRZYSTANKU */
+        .mini-dir { font-size: 0.65rem; opacity: 0.8; margin-left: 5px; background: rgba(255,255,255,0.1); padding: 1px 4px; border-radius: 4px; }
 
         .badge { font-size: 0.7rem; padding: 3px 7px; border-radius: 6px; font-weight: 800; text-transform: uppercase; margin-left: 8px; }
         .badge-nz { background: var(--warn); color: #000; }
-        .badge-strefa { background: #444; color: #fff; }
         
         .group-label { font-size: 0.85rem; color: var(--text-sec); text-transform: uppercase; margin: 30px 0 15px 5px; font-weight: 700; letter-spacing: 2px; border-left: 3px solid var(--accent); padding-left: 10px; }
         
@@ -66,7 +69,6 @@
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
         .tt-hour-col { background: rgba(255,255,255,0.02); width: 60px; padding: 15px 0; text-align: center; font-size: 1.3rem; font-weight: 900; color: var(--accent); border-right: 1px solid var(--border); }
         .tt-min-col { flex: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-        .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.1rem; color: #fff; font-weight: 600; }
         
         .day-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #212b36; color: white; font-weight: 800; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
@@ -107,42 +109,40 @@
     <div id="s-contact" class="section">
         <div id="contact-display" class="app-card" style="white-space:pre-wrap;"></div>
         <div class="app-card" style="margin-top:20px;">
-            <h3>Panel Admina</h3>
-            <input type="password" id="pass" placeholder="Hasło">
-            <button onclick="login()" class="main-btn">Zaloguj</button>
+            <div class="group-label">Panel Administracyjny</div>
+            <input type="password" id="pass" placeholder="Hasło dostępu">
+            <button onclick="login()" class="main-btn" style="background:var(--accent)">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none; margin-top:20px;">
             <div class="app-card">
-                <h4>Zarządzaj</h4>
-                <button onclick="showTab('tab-lines')" class="main-btn">Linie</button>
-                <button onclick="showTab('tab-stops')" class="main-btn">Przystanki</button>
-                <button onclick="showTab('tab-news')" class="main-btn">Newsy/Kontakt</button>
+                <button onclick="showTab('tab-lines')" class="main-btn">Zarządzaj Liniami</button>
+                <button onclick="showTab('tab-stops')" class="main-btn">Ustawienia Przystanków</button>
+                <button onclick="showTab('tab-news')" class="main-btn">Kontakt / Info</button>
             </div>
             
-            <div id="tab-lines" style="display:none;">
+            <div id="tab-lines" style="display:none; margin-top:15px;">
                 <h4>Dodaj/Edytuj Linię</h4>
-                <input type="text" id="l-num" placeholder="Numer (np. 124)">
+                <input type="text" id="l-num" placeholder="Nr linii">
                 <input type="text" id="l-dir" placeholder="Kierunek">
                 <select id="l-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-                <input type="text" id="l-cat" placeholder="Kategoria (np. Dzienne)">
-                <textarea id="l-stops" placeholder="Przystanki (Nazwa|Czas) po przecinku"></textarea>
-                <textarea id="l-hw" placeholder="Godziny Robocze (HH:MM, HH:MM)"></textarea>
+                <input type="text" id="l-cat" placeholder="Kategoria">
+                <textarea id="l-stops" placeholder="Przystanek|Czas, Przystanek|Czas..."></textarea>
+                <textarea id="l-hw" placeholder="Godziny Robocze"></textarea>
                 <textarea id="l-hs" placeholder="Godziny Soboty"></textarea>
                 <textarea id="l-hn" placeholder="Godziny Niedz"></textarea>
                 <button onclick="saveLine()" class="main-btn" style="background:var(--accent)">Zapisz Linię</button>
                 <div id="adm-lines-list"></div>
             </div>
 
-            <div id="tab-stops" style="display:none;">
-                <h4>Ustawienia Przystanków</h4>
-                <input type="text" id="st-name-set" placeholder="Pełna nazwa przystanku">
-                <label><input type="checkbox" id="st-nz"> Na Żądanie (Globalnie)</label>
-                <button onclick="saveStopDetail()" class="main-btn">Zapisz</button>
+            <div id="tab-stops" style="display:none; margin-top:15px;">
+                <input type="text" id="st-name-set" placeholder="Nazwa przystanku">
+                <label><input type="checkbox" id="st-nz"> Globalne NŻ</label>
+                <button onclick="saveStopDetail()" class="main-btn">Zapisz ustawienia</button>
             </div>
 
-            <div id="tab-news" style="display:none;">
-                <textarea id="adm-contact" placeholder="Treść Info/Kontakt"></textarea>
-                <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
+            <div id="tab-news" style="display:none; margin-top:15px;">
+                <textarea id="adm-contact" style="height:150px;" placeholder="Treść sekcji Info"></textarea>
+                <button onclick="saveContact()" class="main-btn">Zaktualizuj Info</button>
             </div>
         </div>
     </div>
@@ -206,7 +206,7 @@
     dbRef.on('value', (s) => {
         const val = s.val(); if(val) { 
             db = val; if(!db.lines) db.lines = []; 
-            let sSet = new Set(); db.lines.forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name)); }); 
+            let sSet = new Set(); db.lines.forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name.trim())); }); 
             allStops = [...sSet].sort(); 
             render(); 
         }
@@ -225,7 +225,7 @@
                     const isTram = variants[0].type === 'tram';
                     const colorClass = isTram ? 'badge-tram' : 'badge-bus';
                     html += `<div class="line-main-card" onclick="openVars('${num}', 'home')">
-                        <div class="line-main-top"><span class="line-badge ${colorClass} line-main-num">${num}</span><span class="line-main-type">${isTram?'Tramwaj':'Autobus'}</span></div>
+                        <div class="line-main-top"><span class="line-badge ${colorClass} line-main-num">${num}</span><span style="color:var(--text-sec); font-weight:800; font-size:0.8rem; text-transform:uppercase;">${isTram?'Tramwaj':'Autobus'}</span></div>
                         <div class="line-main-abbrs">${variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('')}</div>
                     </div>`;
                 });
@@ -243,19 +243,17 @@
         let html = '';
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => {
             const d = db.stopDetails[cleanKey(name)] || {};
-            let stopLines = {}; db.lines.forEach(l => {
-                const sIdx = (l.stops||[]).findIndex(st => st.name === name);
+            let stopVariants = []; // Lista wszystkich wariantów na tym przystanku
+            db.lines.forEach(l => {
+                const sIdx = (l.stops||[]).findIndex(st => st.name.trim() === name.trim());
                 if(sIdx !== -1) {
-                    const eta = getETA(l, sIdx);
-                    if(!stopLines[l.num] || (eta !== null && (stopLines[l.num].eta === null || eta < stopLines[l.num].eta))) {
-                        stopLines[l.num] = { num: l.num, type: l.type, eta: eta };
-                    }
+                    stopVariants.push({ num: l.num, type: l.type, eta: getETA(l, sIdx), dirAbbr: getDirAbbr(l.dir) });
                 }
             });
             html += `<div class="app-card" onclick="openStopLines('${name}')">
-                    <div style="font-weight:800;">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''}</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
-                        ${Object.values(stopLines).map(l => `<span class="line-badge ${l.type==='tram'?'badge-tram':'badge-bus'}" style="padding:4px 8px; font-size:0.75rem;">${l.num}<span class="transfer-eta">${l.eta!==null?l.eta+'m':'--'}</span></span>`).join('')}
+                    <div style="font-weight:900; font-size:1.1rem;">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''}</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:15px;">
+                        ${stopVariants.map(v => `<span class="line-badge ${v.type==='tram'?'badge-tram':'badge-bus'}" style="padding:4px 8px; font-size:0.8rem;">${v.num}<span class="mini-dir">${v.dirAbbr}</span><span class="transfer-eta">${v.eta!==null?v.eta+'m':'--'}</span></span>`).join('')}
                     </div></div>`;
         });
         listDiv.innerHTML = html;
@@ -272,7 +270,7 @@
         lastOpenedStopName = name; show('stop-lines'); const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label">Odjazdy z: ${name}</div>`; 
         db.lines.forEach((l, i) => { 
-            const sIdx = (l.stops||[]).findIndex(st => st.name === name); 
+            const sIdx = (l.stops||[]).findIndex(st => st.name.trim() === name.trim()); 
             if(sIdx !== -1) {
                 const eta = getETA(l, sIdx);
                 list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i}, ${sIdx})">
@@ -308,30 +306,19 @@
 
     function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
 
-    // FUNKCJE ADMINA
+    // ADMIN OPS
     function saveLine() {
-        const stops = document.getElementById('l-stops').value.split(',').map(s => { const p = s.split('|'); return { name: p[0].trim(), time: p[1]||0 }; });
-        const newLine = {
-            num: document.getElementById('l-num').value,
-            dir: document.getElementById('l-dir').value,
-            type: document.getElementById('l-type').value,
-            category: document.getElementById('l-cat').value,
-            stops: stops,
-            hoursWorking: document.getElementById('l-hw').value,
-            hoursSat: document.getElementById('l-hs').value,
-            hoursSun: document.getElementById('l-hn').value
-        };
-        if(!db.lineCategories.includes(newLine.category)) db.lineCategories.push(newLine.category);
-        db.lines.push(newLine);
-        dbRef.set(db).then(() => alert("Zapisano!"));
+        const stopsArr = document.getElementById('l-stops').value.split(',').map(s => { const p = s.split('|'); return { name: p[0].trim(), time: p[1]||0 }; });
+        const l = { num: document.getElementById('l-num').value, dir: document.getElementById('l-dir').value, type: document.getElementById('l-type').value, category: document.getElementById('l-cat').value, stops: stopsArr, hoursWorking: document.getElementById('l-hw').value, hoursSat: document.getElementById('l-hs').value, hoursSun: document.getElementById('l-hn').value };
+        if(!db.lineCategories.includes(l.category)) db.lineCategories.push(l.category);
+        db.lines.push(l); dbRef.set(db).then(() => alert("Dodano!"));
     }
-
     function renderAdmLines() {
         const list = document.getElementById('adm-lines-list'); if(!list) return;
-        list.innerHTML = db.lines.map((l, i) => `<div style="padding:10px; border:1px solid #444; margin-top:5px;">${l.num} -> ${l.dir} <button onclick="deleteLine(${i})">Usuń</button></div>`).join('');
+        list.innerHTML = db.lines.map((l, i) => `<div style="padding:10px; border-bottom:1px solid #333;">${l.num} -> ${l.dir} <button onclick="deleteLine(${i})">X</button></div>`).join('');
     }
-    function deleteLine(i) { db.lines.splice(i, 1); dbRef.set(db); }
-    function saveContact() { db.contact = document.getElementById('adm-contact').value; dbRef.set(db); }
+    function deleteLine(i) { if(confirm("Usuń?")) { db.lines.splice(i, 1); dbRef.set(db); } }
+    function saveContact() { db.contact = document.getElementById('adm-contact').value; dbRef.set(db).then(()=>alert("Zapisano")); }
 
     setInterval(() => {
         const activeSec = document.querySelector('.section.active-sec')?.id;

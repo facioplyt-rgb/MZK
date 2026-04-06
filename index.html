@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V64</title>
+    <title>MZK GORZÓW PRO V65</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -27,7 +27,6 @@
         .line-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; min-height: 24px; }
         .transfer-icon { color: var(--accent); font-size: 0.9rem; margin-right: 4px; }
         
-        /* Poprawione odznaki linii z ikonami */
         .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.75rem; color: white; border: 1px solid rgba(0,0,0,0.1); white-space: nowrap; }
         .line-badge i { font-size: 0.7rem; }
         .line-badge.bus { background: var(--bus-col); }
@@ -35,6 +34,10 @@
         
         .eta-tag { font-size: 0.75rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.1); padding: 2px 6px; border-radius: 4px; }
         .transfer-eta { font-size: 0.65rem; opacity: 0.95; font-weight: 600; margin-left: 2px; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 3px; border-radius: 3px; }
+
+        /* Animacja dla 0 minut */
+        .eta-now { animation: blink 0.8s infinite; color: var(--warn); font-weight: 800; letter-spacing: 1px; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
@@ -283,7 +286,8 @@
                         ${stopLines.length > 0 ? '<i class="fa-solid fa-route transfer-icon"></i>' : ''}
                         ${stopLines.map(l => {
                             const icon = l.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
-                            return `<span class="line-badge ${l.type}"><i class="fa-solid ${icon}"></i>${l.num}${l.eta !== null ? `<span class="transfer-eta">(${l.eta} min)</span>` : ''}</span>`;
+                            const etaLabel = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${l.eta} min)`;
+                            return `<span class="line-badge ${l.type}"><i class="fa-solid ${icon}"></i>${l.num}${l.eta !== null ? `<span class="transfer-eta">${etaLabel}</span>` : ''}</span>`;
                         }).join('')}
                     </div>
                 </div>`; 
@@ -297,20 +301,22 @@
             const d = db.stopDetails[cleanKey(s.name)] || {};
             const otherLines = getLinesForStop(s.name, l.num); 
             const myEta = getETA(l, i);
+            const myEtaLabel = myEta === 0 ? '<span class="eta-now">>>></span>' : `za ${myEta} min`;
             return `
                 <div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
                     <div class="stop-name">
                         <span style="color:var(--accent); font-family:monospace;">${i+1}.</span> ${s.name} 
                         ${(d.globalNz || s.nz) ? '<span class="badge badge-nz">NŻ</span>' : ''} 
                         ${d.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}
-                        ${myEta !== null ? `<span class="eta-tag">za ${myEta} min</span>` : ''}
+                        ${myEta !== null ? `<span class="eta-tag">${myEtaLabel}</span>` : ''}
                     </div>
                     ${d.nearby ? `<small style="color:var(--accent)">${d.nearby}</small>` : ''}
                     <div class="line-badges">
                         ${otherLines.length > 0 ? '<i class="fa-solid fa-route transfer-icon"></i>' : ''}
                         ${otherLines.map(bl => {
                             const icon = bl.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
-                            return `<span class="line-badge ${bl.type}"><i class="fa-solid ${icon}"></i>${bl.num}${bl.eta !== null ? `<span class="transfer-eta">(${bl.eta} min)</span>` : ''}</span>`;
+                            const bEtaLabel = bl.eta === 0 ? '<span class="eta-now">>>></span>' : `(${bl.eta} min)`;
+                            return `<span class="line-badge ${bl.type}"><i class="fa-solid ${icon}"></i>${bl.num}${bl.eta !== null ? `<span class="transfer-eta">${bEtaLabel}</span>` : ''}</span>`;
                         }).join('')}
                     </div>
                 </div>`;
@@ -326,7 +332,8 @@
             if(sIdx !== -1) {
                 const eta = getETA(l, sIdx);
                 const icon = l.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
-                list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i}, ${sIdx})"><div><span class="line-badge ${l.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${l.num}</span><b>${l.dir}</b></div> ${eta !== null ? `<span class="eta-tag">za ${eta} min</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
+                const etaLabel = eta === 0 ? '<span class="eta-now">>>></span>' : `za ${eta} min`;
+                list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i}, ${sIdx})"><div><span class="line-badge ${l.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${l.num}</span><b>${l.dir}</b></div> ${eta !== null ? `<span class="eta-tag">${etaLabel}</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
             }
         }); 
     }

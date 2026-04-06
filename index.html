@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V111</title>
+    <title>MZK GORZÓW PRO V112</title>
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -51,15 +51,21 @@
     </style>
 </head>
 <body>
+
 <header>MZK GORZÓW</header>
+
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
+    
     <div id="s-stops" class="section">
         <input type="text" id="stop-search" placeholder="🔍 Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
+    
     <div id="s-stop-lines" class="section"><div id="sl-list"></div><button onclick="show('stops')" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button></div>
+    
     <div id="s-vars" class="section"><div id="vars-list"></div><button id="vars-back-btn" class="main-btn" style="background:#333">Wróć</button></div>
+    
     <div id="s-tt" class="section">
         <div id="tt-day-sel" style="display:none; gap:12px; margin-bottom:25px;">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
@@ -69,11 +75,13 @@
         <div id="tt-body"></div>
         <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:30px;">Wróć</button>
     </div>
+    
     <div id="s-news" class="section"><div id="public-news-list"></div></div>
     <div id="s-news-details" class="section">
         <div class="app-card" style="display:block;"><h2 id="nd-title"></h2><small id="nd-date" style="color:var(--warn)"></small><p id="nd-body" style="margin-top:15px; white-space:pre-wrap; color:var(--text-sec); line-height:1.7;"></p></div>
         <button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
     </div>
+    
     <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; color:var(--text-sec);"></div></div>
 
     <div id="s-adm" class="section">
@@ -103,7 +111,7 @@
     <div style="display:flex; gap:10px;"><input type="text" id="fl-num" placeholder="Nr" style="width:80px;"><input type="text" id="fl-dir" placeholder="Kierunek"></div>
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Godziny Robocze"></textarea>
+    <textarea id="fl-h-work" placeholder="Godziny Robocze (HH:MM, HH:MM...)"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
     <div id="fl-stops-list"></div>
@@ -164,11 +172,12 @@
         allStops = [...sSet].sort(); render();
     });
 
+    // NAPRAWIONA FUNKCJA Z ?. ABY NIE ZWRACAŁA BŁĘDÓW W KONSOLI!
     function show(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.getElementById('s-'+id).classList.add('active-sec');
+        document.getElementById('s-'+id)?.classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        document.getElementById('n-'+id).classList.add('active');
+        document.getElementById('n-'+id)?.classList.add('active');
         if(id==='news') renderNews();
         if(id==='contact') document.getElementById('contact-display').innerText = db.contact || "";
     }
@@ -181,7 +190,7 @@
             html += `<div class="group-label">${cat}</div>`;
             [...new Set(lines.map(l => String(l.num)))].sort((a,b)=>a-b).forEach(num => {
                 const vars = lines.filter(v => String(v.num) === num);
-                html += `<div class="line-main-card" onclick="openVars('${num}')">
+                html += `<div class="line-main-card" onclick="openVars('${num}', 'home')">
                     <div class="line-main-top"><span class="line-badge ${vars[0].type==='tram'?'tram':'bus'}">${num}</span><span>${vars[0].type==='tram'?'Tramwaj':'Autobus'}</span></div>
                     <div class="line-main-abbrs">${vars.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('')}</div></div>`;
             });
@@ -189,15 +198,17 @@
         h.innerHTML = html; renderStopsList();
     }
 
-    function openVars(num) {
+    function openVars(num, back) {
         curLNum = num; show('vars');
         let html = `<div class="group-label">Linia ${num} - Kierunki</div>`;
-        db.lines.forEach((l, i) => { if(String(l.num) === num) {
-            const eta = getETA(l, 0);
-            html += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><span><b>DO:</b> ${l.dir}</span><span class="eta-tag">${eta!==null?formatETA(eta):'---'}</span></div></div>`;
-        }});
+        db.lines.forEach((l, i) => {
+            if(String(l.num) === num) {
+                const eta = getETA(l, 0);
+                html += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><span><b>DO:</b> ${l.dir}</span><span class="eta-tag">${eta!==null?formatETA(eta):'---'}</span></div></div>`;
+            }
+        });
         document.getElementById('vars-list').innerHTML = html;
-        document.getElementById('vars-back-btn').onclick = () => { curLNum = null; show('home'); };
+        document.getElementById('vars-back-btn').onclick = () => { curLNum = null; show(back || 'home'); };
     }
 
     function renderStopsList() {
@@ -227,7 +238,7 @@
             if(idx > -1) vs.push({ ...l, lIdx: i, sIdx: idx, eta: getETA(l, idx) });
         });
         vs.sort((a,b) => (a.eta===null?1:(b.eta===null?-1:a.eta-b.eta)));
-        let html = `<div class="group-label">Przystanek: ${name}</div>`;
+        let html = `<div class="group-label">Odjazdy z: ${name}</div>`;
         vs.forEach(v => { html += `<div class="app-card" onclick="renderTimetable(${v.lIdx}, ${v.sIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="line-badge ${v.type==='tram'?'tram':'bus'}">${v.num}</span> DO: ${v.dir}</div><span class="eta-tag ${v.eta===0?'eta-now':''}">${v.eta!==null?formatETA(v.eta):'---'}</span></div></div>`; });
         document.getElementById('sl-list').innerHTML = html;
     }
@@ -258,7 +269,7 @@
             html += `</div>`;
         }
         document.getElementById('tt-body').innerHTML = html;
-        document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? openVars(l.num) : renderTimetable(lIdx, -1);
+        document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? openVars(l.num, 'home') : renderTimetable(lIdx, -1);
     }
 
     function renderNews() {
@@ -287,7 +298,7 @@
 
     function renderAdminLines() {
         const list = document.getElementById('adm-lines-list'); list.innerHTML = '';
-        db.lines.forEach((l, i) => list.innerHTML += `<div class="adm-row"><span>${l.num} -> ${l.dir}</span><div><button onclick="openLineForm(${i})">EDYTUJ</button><button onclick="deleteLine(${i})" style="background:var(--danger); margin-left:5px;">USUŃ</button></div></div>`);
+        db.lines.forEach((l, i) => list.innerHTML += `<div class="adm-row"><span>${l.num} -> ${l.dir}</span><div><button onclick="openLineForm(${i})" style="padding:5px 10px;">EDYTUJ</button><button onclick="deleteLine(${i})" style="padding:5px 10px; background:var(--danger); margin-left:5px;">USUŃ</button></div></div>`);
     }
 
     function deleteLine(i) { if(confirm('Na pewno usunąć linię?')) { db.lines.splice(i, 1); dbRef.update({ lines: db.lines }); } }
@@ -299,10 +310,10 @@
             const l = db.lines[i]; document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir;
             document.getElementById('fl-type').value = l.type; document.getElementById('fl-cat').value = l.category;
             document.getElementById('fl-h-work').value = l.hoursWorking; document.getElementById('fl-h-sat').value = l.hoursSat; document.getElementById('fl-h-sun').value = l.hoursSun;
-            document.getElementById('fl-stops-list').innerHTML = (l.stops || []).map(st => `<div><input value="${st.name}" class="stop-n"> <input value="${st.time}" class="stop-t" style="width:50px;"></div>`).join('');
+            document.getElementById('fl-stops-list').innerHTML = (l.stops || []).map(st => `<div><input value="${st.name}" class="stop-n"> <input value="${st.time}" class="stop-t" style="width:50px;"> <button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; padding:5px; border-radius:5px; color:white;">X</button></div>`).join('');
         } else { document.getElementById('fl-num').value=''; document.getElementById('fl-stops-list').innerHTML=''; }
     }
-    function addStopRow() { document.getElementById('fl-stops-list').insertAdjacentHTML('beforeend', `<div><input placeholder="Nazwa" class="stop-n"> <input placeholder="Min" class="stop-t" style="width:50px;"></div>`); }
+    function addStopRow() { document.getElementById('fl-stops-list').insertAdjacentHTML('beforeend', `<div><input placeholder="Nazwa" class="stop-n"> <input placeholder="Min" class="stop-t" style="width:50px;"> <button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; padding:5px; border-radius:5px; color:white;">X</button></div>`); }
     function saveLine() {
         const stops = []; document.querySelectorAll('#fl-stops-list div').forEach(d => stops.push({ name: d.querySelector('.stop-n').value, time: d.querySelector('.stop-t').value }));
         const l = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops };
@@ -312,7 +323,7 @@
 
     function renderAdminNews() {
         const list = document.getElementById('adm-news-list'); list.innerHTML = '';
-        db.news.forEach((n, i) => list.innerHTML += `<div class="adm-row"><span>${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`);
+        (db.news || []).forEach((n, i) => list.innerHTML += `<div class="adm-row"><span>${n.title}</span><button onclick="openNewsForm(${i})" style="padding:5px 10px;">EDYTUJ</button></div>`);
     }
     function openNewsForm(i) {
         curNewsIdx = i; document.getElementById('form-news').style.display = 'block';
@@ -331,8 +342,8 @@
         allStops.forEach(name => {
             const key = cleanKey(name); const det = db.stopDetails?.[key] || { globalNz: false, outZone: false };
             list.innerHTML += `<div class="adm-row"><span>${name}</span><div>
-                <button onclick="toggleStopDet('${key}', 'globalNz')" style="background:${det.globalNz? 'var(--accent)':'#444'}">NŻ</button>
-                <button onclick="toggleStopDet('${key}', 'outZone')" style="background:${det.outZone? 'var(--accent)':'#444'}">STREFA</button>
+                <button onclick="toggleStopDet('${key}', 'globalNz')" style="padding:5px 10px; background:${det.globalNz? 'var(--accent)':'#444'}; color:white; border:none; border-radius:5px;">NŻ</button>
+                <button onclick="toggleStopDet('${key}', 'outZone')" style="padding:5px 10px; background:${det.outZone? 'var(--accent)':'#444'}; color:white; border:none; border-radius:5px; margin-left:5px;">STREFA</button>
             </div></div>`;
         });
     }
@@ -345,18 +356,19 @@
     function saveSettings() {
         const lc = document.getElementById('set-line-cats').value.split(',').map(c => c.trim());
         const nc = document.getElementById('set-news-cats').value.split(',').map(c => c.trim());
-        dbRef.update({ lineCategories: lc, newsCategories: nc, contact: document.getElementById('set-contact').value });
+        dbRef.update({ lineCategories: lc, newsCategories: nc, contact: document.getElementById('set-contact').value }).then(() => alert('Zapisano!'));
     }
 
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display = 'none'); }
     function setDay(d) { curDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(curLineIdx, curStopIdx); }
 
+    // ODŚWIEŻANIE BEZPSUCIA WIDOKÓW
     setInterval(() => {
         if(!db.lines || db.lines.length === 0) return;
         const active = document.querySelector('.section.active-sec')?.id;
         if(active === 's-home') render();
         if(active === 's-stops') renderStopsList();
-        if(active === 's-vars' && curLNum) openVars(curLNum);
+        if(active === 's-vars' && curLNum) openVars(curLNum, 'home');
         if(active === 's-stop-lines' && curSName) openStopLines(curSName);
         if(active === 's-tt' && curLineIdx !== -1) renderTimetable(curLineIdx, curStopIdx);
     }, 5000);

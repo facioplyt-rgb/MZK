@@ -33,6 +33,7 @@
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
         
+        /* Styl opisu okolicy */
         .nearby-info { color: var(--warn); font-size: 0.85rem; margin-top: 6px; font-weight: 600; display: block; }
         
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
@@ -157,7 +158,8 @@
     let db = { lines: [], news: [], contact: "", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
     let currentLineIndex = -1, currentDay = 'working', focusedStopIndex = -1, allAutoStops = [];
 
-    function cleanKey(name) { return name ? name.trim().toLowerCase().replace(/\s/g, '_') : "unknown"; }
+    // Najbezpieczniejszy sposób na klucz - po prostu nazwa przystanku
+    function cleanKey(name) { return name ? name.trim() : "unknown"; }
 
     function init() {
         dbRef.on('value', (s) => {
@@ -233,7 +235,6 @@
             const card = document.createElement('div');
             card.className = 'app-card'; card.style.display = 'block';
             
-            // Logika: pokaż ikonę i tekst tylko jeśli pole "nearby" nie jest puste
             let nearbyHTML = (det.nearby && det.nearby.trim() !== "") 
                 ? `<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>` 
                 : "";
@@ -294,7 +295,7 @@
         return lines.length ? lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('') : '<span style="font-size:0.7rem">Brak przesiadek</span>';
     }
 
-    // LISTA PRZYSTANKÓW DLA PASAŻERÓW - TU POPRAWIONO LOGIKĘ WYŚWIETLANIA
+    // LISTA PRZYSTANKÓW DLA PASAŻERÓW
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list'); 
@@ -304,7 +305,7 @@
             const key = cleanKey(s);
             const det = db.stopDetails[key] || {nearby:""};
             
-            // Pokaż opis TYLKO jeśli został wpisany przez admina
+            // Pokaż opis TYLKO jeśli został wpisany
             let passengerNearby = (det.nearby && det.nearby.trim() !== "") 
                 ? `<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>` 
                 : "";
@@ -373,16 +374,17 @@
             return `
                 <div class="adm-stop-card">
                     <b style="color:var(--accent)">${s}</b>
-                    <input type="text" placeholder="Wpisz co w okolicy (puste = nie wyświetlaj)..." value="${det.nearby}" onchange="updateNearby('${s}', this.value)">
+                    <input type="text" placeholder="Co w okolicy? (puste = nie pokazuj)" value="${det.nearby || ''}" onchange="updateNearby('${s}', this.value)">
                 </div>`;
         }).join('');
     }
 
     function updateNearby(stopName, val) {
         const key = cleanKey(stopName);
-        if(!db.stopDetails[key]) db.stopDetails[key] = {};
+        if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", isNz:false};
         db.stopDetails[key].nearby = val;
         save();
+        render(); // Odśwież widok pasażera natychmiast po zmianie
     }
 
     function show(id) { 
@@ -390,6 +392,7 @@
         document.getElementById('s-'+id).classList.add('active-sec');
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
         if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
+        if(id === 'stops') render(); // Odśwież dane przy każdym wejściu w przystanki
     }
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }

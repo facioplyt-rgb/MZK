@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V114</title>
+    <title>MZK GORZÓW PRO V115</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -41,7 +41,7 @@
 
         .dir-abbr { background: rgba(255,255,255,0.08); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; color: var(--text); border: 1px solid var(--border); font-weight: 800; }
 
-        .eta-tag { font-size: 0.85rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0, 171, 85, 0.2); }
+        .eta-tag { font-size: 0.85rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.15); padding: 6px 12px; border-radius: 10px; border: 1px solid rgba(0, 171, 85, 0.2); display: flex; align-items: center; gap: 5px; }
         .transfer-eta { font-size: 0.75rem; font-weight: 900; margin-left: 10px; color: #fff; background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 6px; box-shadow: inset 0 0 5px rgba(0,0,0,0.2); }
 
         .eta-now { animation: blink 1s infinite; color: var(--warn); font-weight: 900; text-shadow: 0 0 10px rgba(254, 202, 5, 0.4); }
@@ -314,10 +314,18 @@
         db.lines.forEach((l, i) => { 
             if(String(l.num) === String(num)) { 
                 const eta = getETA(l, 0); 
+                // Sprawdzenie czy wariant ma przystanek NŻ lub Strefowy (na całej trasie)
+                const hasNz = l.stops.some(st => st.nz || (db.stopDetails[cleanKey(st.name)] && db.stopDetails[cleanKey(st.name)].globalNz));
+                const hasZone = l.stops.some(st => (db.stopDetails[cleanKey(st.name)] && db.stopDetails[cleanKey(st.name)].outZone));
+                
                 v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center;"><span class="dir-abbr" style="margin-right:10px;">${getDirAbbr(l.dir)}</span><div style="font-weight:700;">DO: ${l.dir}</div></div>
-                        <span class="eta-tag">${eta!==null?formatETA(eta):'---'}</span>
+                        <span class="eta-tag">
+                            ${hasNz?'<span class="badge badge-nz">NŻ</span>':''}
+                            ${hasZone?'<span class="badge badge-strefa">STREFA</span>':''}
+                            ${eta!==null?formatETA(eta):'---'}
+                        </span>
                     </div></div>`; 
             } 
         }); 
@@ -347,7 +355,6 @@
             ttBody.innerHTML += l.stops.map((s, i) => {
                 const currentLineETA = getETA(l, i);
                 const sd = db.stopDetails[cleanKey(s.name)] || {};
-                // PONIŻEJ POPRAWKA: Wyświetlanie NŻ i Strefy na liście trasy
                 const badges = `${(s.nz || sd.globalNz) ? '<span class="badge badge-nz">NŻ</span>' : ''} ${sd.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}`;
                 const transfers = getLinesForStop(s.name, l.num);
                 const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:10px; opacity:0.9;">` + transfers.map(t => `<span class="line-badge ${t.type==='tram'?'tram':'bus'}" style="font-size:0.65rem; padding:4px 8px;" onclick="event.stopPropagation(); openInterTransfer('${t.num}', '${s.name}', ${lIdx})">${t.num} <span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${t.eta===0?'>>>':t.eta!==null?formatETA(t.eta):'---'}</span></span>`).join('') + `</div>` : "";

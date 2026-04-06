@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V76</title>
+    <title>MZK GORZÓW PRO V77</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -20,9 +20,11 @@
         header { background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(15px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.4rem; }
         .container { max-width: 550px; margin: 0 auto; padding: 15px; }
         
+        /* Główne karty */
         .app-card { background: var(--surface); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; }
         .app-card:active { transform: scale(0.98); background: var(--surface-light); }
         
+        /* Rozwijane warianty */
         .variant-box { background: rgba(255,255,255,0.03); border-radius: 12px; margin-top: 10px; display: none; border: 1px solid var(--border); overflow: hidden; }
         .variant-item { padding: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; transition: 0.2s; }
         .variant-item:last-child { border-bottom: none; }
@@ -31,6 +33,7 @@
         .stop-name { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; }
         .line-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; min-height: 24px; }
         
+        /* Pigułka linii na liście przystanków */
         .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.75rem; color: white; border: 1px solid rgba(0,0,0,0.1); white-space: nowrap; }
         .line-badge i { font-size: 0.7rem; }
         .line-badge.bus { background: var(--bus-col); }
@@ -45,12 +48,14 @@
         .eta-now { animation: blink 0.8s infinite; color: var(--warn); font-weight: 800; letter-spacing: 1px; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
+        /* Rozkład jazdy */
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
         .tt-hour-col { background: rgba(255,255,255,0.03); width: 60px; padding: 15px 0; text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--accent); border-right: 1px solid var(--border); }
         .tt-min-col { flex: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
         .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.1rem; color: #fff; }
 
+        /* Admin i Formularze */
         .adm-stop-card { background: var(--surface-light); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; font-size: 1rem; }
@@ -82,21 +87,28 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
+    
     <div id="s-stops" class="section">
         <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
+    
     <div id="s-stop-lines" class="section">
         <div id="sl-list"></div>
         <button onclick="show('stops')" class="main-btn" style="background:#333; margin-top:10px;">Wróć do listy</button>
     </div>
+    
     <div id="s-news" class="section"><div id="public-news-list"></div></div>
+    
     <div id="s-news-details" class="section">
         <div class="app-card" style="display:block;"><h2 id="nd-title"></h2><small id="nd-date" style="color:var(--warn)"></small><p id="nd-body" style="margin-top:15px; white-space:pre-wrap; color:var(--text-sec); line-height:1.5;"></p></div>
         <button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
     </div>
+    
     <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; color:var(--text-sec); line-height:1.5;"></div></div>
+    
     <div id="s-vars" class="section"><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    
     <div id="s-tt" class="section">
         <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
@@ -106,6 +118,7 @@
         <div id="tt-body"></div>
         <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
     </div>
+    
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;"><div class="group-label">Autoryzacja</div><input type="password" id="pass" placeholder="Hasło"><button onclick="login()" class="main-btn">Zaloguj</button></div>
         <div id="adm-ui" style="display:none;">
@@ -158,16 +171,6 @@
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
     <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
     <button onclick="deleteLine()" id="btn-del-line" class="main-btn" style="background:var(--danger); display:none;">Usuń Linię</button>
-    <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
-</div>
-
-<div id="form-news" class="overlay-form">
-    <input type="text" id="fn-title" placeholder="Tytuł newsa">
-    <input type="text" id="fn-date" placeholder="Data">
-    <select id="fn-cat"></select>
-    <textarea id="fn-body" style="height:200px;" placeholder="Treść newsa"></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz News</button>
-    <button onclick="deleteNews()" id="btn-del-news" class="main-btn" style="background:var(--danger); display:none;">Usuń News</button>
     <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
 </div>
 
@@ -265,27 +268,7 @@
                 h.appendChild(g);
             }
         });
-        renderStopsList(); renderAdmin();
-    }
-
-    function renderAdmin() {
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><div><b>${l.num}</b> - ${l.dir}</div><button onclick="openLineForm(${i})" style="padding:7px; background:#444; color:white; border:none; border-radius:5px;">EDYTUJ</button></div>`).join('');
-        const uniqueDirs = [...new Set(db.lines.map(l => l.dir.trim()))].sort();
-        document.getElementById('abbr-manager').innerHTML = uniqueDirs.map(d => {
-            const current = db.customAbbrs ? (db.customAbbrs[cleanKey(d)] || "") : "";
-            return `<div class="abbr-item"><span>${d}</span><input type="text" value="${current}" data-dir="${d}" placeholder="${getDirAbbr(d)}"></div>`;
-        }).join('');
-        document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
-        document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
-        document.getElementById('edit-contact-text').value = db.contact || "";
-    }
-
-    function saveAbbrs() {
-        const abbrs = {};
-        document.querySelectorAll('#abbr-manager input').forEach(inp => {
-            if(inp.value.trim()) abbrs[cleanKey(inp.getAttribute('data-dir'))] = inp.value.trim();
-        });
-        dbRef.child('customAbbrs').set(abbrs).then(() => alert("Skróty zapisane!"));
+        renderStopsList();
     }
 
     function getLinesForStop(stopName, excludeLineNum = null) {
@@ -304,8 +287,10 @@
         });
     }
 
+    // Renderowanie listy przystanków - główne badges
     function renderStopsList() { 
-        const q = document.getElementById('stop-search').value.toLowerCase(); const listDiv = document.getElementById('public-stops-list'); listDiv.innerHTML = ''; 
+        const q = document.getElementById('stop-search').value.toLowerCase(); 
+        const listDiv = document.getElementById('public-stops-list'); listDiv.innerHTML = ''; 
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
             const d = db.stopDetails[cleanKey(name)] || {};
             const stopLines = getLinesForStop(name);
@@ -331,18 +316,20 @@
                         ${Object.values(uniqueLines).map(l => {
                             const icon = l.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
                             const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(l.eta)})`;
-                            // Dodanie słowa "oraz" między skrótami
                             const abbrs = l.dirs.map(dr => `<span class="dir-abbr">${getDirAbbr(dr)}</span>`).join('<span class="abbr-joiner">oraz</span>');
-                            return `<span class="line-badge ${l.type}"><i class="fa-solid ${icon}"></i>${l.num}${abbrs}${l.eta!==null?`<span class="transfer-eta">${etaStr}</span>`:''}</span>`;
+                            return `<span class="line-badge ${l.type}"><i class="fa-solid ${icon}"></i>${l.num}${abbrs}<span class="transfer-eta">${etaStr}</span></span>`;
                         }).join('')}
                     </div>
                 </div>`; 
         }); 
     }
 
+    // Otwarcie listy linii na danym przystanku (rozwijane menu)
     function openStopLines(name) { 
-        currentStopName = name; show('stop-lines'); const list = document.getElementById('sl-list'); 
-        list.innerHTML = `<div class="group-label" style="color:var(--accent)">${name}</div>`; 
+        currentStopName = name; show('stop-lines'); 
+        const list = document.getElementById('sl-list'); 
+        list.innerHTML = `<div class="group-label" style="color:var(--accent)">Odjazdy z: ${name}</div>`; 
+        
         let groups = {}; 
         db.lines.forEach((l, i) => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
@@ -351,6 +338,7 @@
                 groups[l.num].push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
             }
         });
+
         Object.keys(groups).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
             const variants = groups[num].sort((a,b) => {
                 if(a.eta === null) return 1; if(b.eta === null) return -1;
@@ -365,7 +353,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center;">
                             <span class="line-badge ${best.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${num}</span>
-                            <div style="font-weight:700;">${best.dir} <small style="display:block; font-weight:400; font-size:0.7rem; color:var(--text-sec)">Wszystkie kierunki tej linii...</small></div>
+                            <div style="font-weight:700;">${best.dir} <small style="display:block; font-weight:400; font-size:0.7rem; color:var(--text-sec)">Dotknij, aby zobaczyć kierunki...</small></div>
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
                             <span class="eta-tag">${etaLabel}</span>
@@ -388,7 +376,7 @@
         const icon = document.getElementById('chevron-' + lineNum);
         const isVisible = box.style.display === 'block';
         box.style.display = isVisible ? 'none' : 'block';
-        icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+        icon.style.transform = isVisible ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 
     function renderLineStops(lIdx) {
@@ -409,7 +397,7 @@
                     <div class="line-badges">
                         ${Object.values(uniqueLines).map(bl => {
                             const icon = bl.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
-                            return `<span class="line-badge ${bl.type}"><i class="fa-solid ${icon}"></i>${bl.num}<span class="dir-abbr">${getDirAbbr(bl.dir)}</span>${bl.eta!==null?`<span class="transfer-eta">${formatETA(bl.eta)}</span>`:''}</span>`;
+                            return `<span class="line-badge ${bl.type}"><i class="fa-solid ${icon}"></i>${bl.num}<span class="dir-abbr">${getDirAbbr(bl.dir)}</span><span class="transfer-eta">${formatETA(bl.eta)}</span></span>`;
                         }).join('')}
                     </div>
                 </div>`;

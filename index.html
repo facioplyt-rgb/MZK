@@ -35,10 +35,6 @@
         .nearby-info { color: var(--warn); font-size: 0.75rem; margin-top: 3px; font-weight: 400; opacity: 0.9; line-height: 1.4; }
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; margin-right: 5px; margin-bottom: 5px; }
-        .stop-line-item i { font-size: 0.75rem; color: var(--accent); }
-        .stop-line-item.is-tram i { color: var(--danger); }
-        
-        .focused-stop-info { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
         
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
@@ -70,6 +66,7 @@
         <div id="public-news-list"></div>
     </div>
     <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
+    
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     
     <div id="s-tt" class="section">
@@ -94,16 +91,14 @@
                 <button onclick="setTab('p')" id="mt-p">PRZYST</button>
                 <button onclick="setTab('n')" id="mt-n">NEWS</button>
                 <button onclick="setTab('c')" id="mt-c">INFO</button>
-                <button onclick="setTab('s')" id="mt-s">KOPIA</button>
             </div>
             <div id="tab-l" class="adm-tab">
                 <button onclick="openLineForm(-1)" class="main-btn">Dodaj linię</button>
                 <div id="adm-lines-list"></div>
             </div>
-            <div id="tab-p" class="adm-tab" style="display:none;"><div class="group-label">Baza Przystanków</div><div id="adm-stops-list"></div></div>
+            <div id="tab-p" class="adm-tab" style="display:none;"><div class="group-label">Baza Przystanków (Okolica)</div><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-s" class="adm-tab" style="display:none;"><button onclick="exportFullBackup()" class="main-btn">Eksportuj Backup</button><input type="file" id="importFile" style="display:none" onchange="importFullBackup(event)"><button onclick="document.getElementById('importFile').click()" class="main-btn" style="background:#800">Importuj Backup</button></div>
         </div>
     </div>
 </div>
@@ -122,23 +117,20 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <div class="group-label">Godziny kursowania (oddziel przecinkiem)</div>
-    <textarea id="fl-h-work" placeholder="Dni Robocze"></textarea>
-    <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
-    <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
-    <textarea id="fl-bulk" placeholder="Wklej listę przystanków..." style="height:80px;"></textarea>
+    
+    <div class="group-label">Dni Robocze (godziny)</div>
+    <textarea id="fl-h-work" placeholder="np. 06:10, 07:15..."></textarea>
+    <div class="group-label">Soboty (godziny)</div>
+    <textarea id="fl-h-sat" placeholder="np. 08:00, 10:00..."></textarea>
+    <div class="group-label">Niedziele (godziny)</div>
+    <textarea id="fl-h-sun" placeholder="np. 09:30, 11:30..."></textarea>
+
+    <div class="group-label">Przystanki</div>
+    <textarea id="fl-bulk" placeholder="Wklej listę przystanków..." style="height:60px;"></textarea>
     <button onclick="convertBulk()" class="main-btn" style="background:#333">Konwertuj listę ↓</button>
     <div id="fl-stops-list"></div>
     <button onclick="addStopRow()" class="main-btn">+ Dodaj ręcznie</button>
     <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
-    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
-</div>
-
-<div id="form-news" class="overlay-form">
-    <h2>Dodaj News</h2>
-    <input type="text" id="fn-title" placeholder="Tytuł">
-    <textarea id="fn-content" style="height:150px" placeholder="Treść..."></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -158,10 +150,9 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    // PRZYWRÓCONO ŚCIEŻKĘ v12, ABY TWOJE DANE DZIAŁAŁY
     const dbRef = firebase.database().ref('mzk_v12_pro');
 
-    let db = { lines: [], news: [], contact: "MZK Gorzów", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
+    let db = { lines: [], news: [], contact: "", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
     let currentLineIndex = -1, currentDay = 'working', focusedStopIndex = -1, allAutoStops = [];
 
     function init() {
@@ -170,6 +161,7 @@
             if(data) {
                 db = data;
                 if(!db.stopDetails) db.stopDetails = {};
+                if(!db.lineCategories) db.lineCategories = ["Tramwaje", "Autobusy"];
                 extractStops();
                 render();
             }
@@ -180,7 +172,7 @@
 
     function extractStops() { 
         let sSet = new Set(); 
-        db.lines.forEach(l => l.stops && l.stops.forEach(s => { 
+        (db.lines || []).forEach(l => l.stops && l.stops.forEach(s => { 
             sSet.add(s.name); 
             if(!db.stopDetails[s.name]) db.stopDetails[s.name] = {nearby:"", isNz: s.nz}; 
         }));
@@ -189,10 +181,8 @@
 
     function render() {
         const home = document.getElementById('s-home'); home.innerHTML = '';
-        if(!db.lineCategories) db.lineCategories = ["Tramwaje", "Autobusy"];
-        
         db.lineCategories.forEach(cat => {
-            const lines = db.lines.filter(l => l.category === cat);
+            const lines = (db.lines || []).filter(l => l.category === cat);
             if(lines.length) {
                 home.innerHTML += `<div class="group-label">${cat}</div>`;
                 const grid = document.createElement('div'); grid.className = 'lines-grid';
@@ -204,8 +194,8 @@
             }
         });
         document.getElementById('public-news-list').innerHTML = (db.news || []).map(n => `<div class="app-card news-card"><b>${n.title}</b><p>${n.content}</p></div>`).reverse().join('');
-        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
-        document.getElementById('contact-display').innerText = db.contact || "";
+        document.getElementById('adm-lines-list').innerHTML = (db.lines || []).map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
+        document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
         filterStops();
         renderAdminStops();
     }
@@ -217,11 +207,9 @@
     }
 
     function renderTimetable(lineIdx, stopIdx = -1) {
-        currentLineIndex = lineIdx;
-        focusedStopIndex = stopIdx;
+        currentLineIndex = lineIdx; focusedStopIndex = stopIdx;
         const line = db.lines[lineIdx];
         show('tt');
-        
         document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num} | Kierunek: ${line.dir}</div>`;
         document.getElementById('day-tabs-container').style.display = focusedStopIndex === -1 ? 'none' : 'flex';
         
@@ -250,7 +238,7 @@
                     <div class="focused-stop-info">
                         <div class="group-label" style="margin:0">Przesiadki:</div>
                         <div class="stop-lines-row">${others}</div>
-                        <div class="group-label" style="margin:15px 0 5px 0">Godziny odjazdów:</div>
+                        <div class="group-label" style="margin:15px 0 5px 0">Odjazdy:</div>
                         <div class="tt-grid">${calculateHours(line, currentDay, timeOffset)}</div>
                     </div>
                 ` : ''}
@@ -259,13 +247,23 @@
         });
 
         const backBtn = document.getElementById('tt-back-btn');
-        if(focusedStopIndex !== -1) {
-            backBtn.innerText = "Wróć do listy przystanków";
-            backBtn.onclick = () => renderTimetable(lineIdx, -1);
-        } else {
-            backBtn.innerText = "Wróć do kierunków";
-            backBtn.onclick = () => show('vars');
-        }
+        if(focusedStopIndex !== -1) { backBtn.innerText = "Wróć do listy przystanków"; backBtn.onclick = () => renderTimetable(lineIdx, -1); }
+        else { backBtn.innerText = "Wróć do kierunków"; backBtn.onclick = () => show('vars'); }
+    }
+
+    function calculateHours(line, day, offset) {
+        // Kluczowa funkcja: jeśli nowe pola są puste, bierzemy stare pole 'hours'
+        let raw = "";
+        if(day === 'working') raw = line.hoursWorking || line.hours || "";
+        else if(day === 'saturday') raw = line.hoursSat || line.hours || "";
+        else if(day === 'sunday') raw = line.hoursSun || line.hours || "";
+
+        if(!raw) return '<span style="color:var(--text-sec); font-size:0.8rem">Brak kursów.</span>';
+        return raw.split(',').map(h => {
+            let p = h.trim().split(':'); if(p.length < 2) return "";
+            let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
+            return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
+        }).join('');
     }
 
     function setDay(day) {
@@ -275,21 +273,6 @@
         renderTimetable(currentLineIndex, focusedStopIndex);
     }
 
-    function calculateHours(line, day, offset) {
-        let field = 'hours'; // Kompatybilność wsteczna
-        if(day === 'working') field = line.hoursWorking ? 'hoursWorking' : 'hours';
-        else if(day === 'saturday') field = line.hoursSat ? 'hoursSat' : 'hours';
-        else if(day === 'sunday') field = line.hoursSun ? 'hoursSun' : 'hours';
-
-        const raw = line[field] || "";
-        if(!raw) return '<span style="color:var(--text-sec); font-size:0.8rem">Brak kursów.</span>';
-        return raw.split(',').map(h => {
-            let p = h.trim().split(':'); if(p.length < 2) return "";
-            let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
-            return `<span class="tt-time">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-        }).join('');
-    }
-
     function getOtherLines(stopName, currentNum) {
         let lines = [];
         db.lines.forEach(l => {
@@ -297,7 +280,7 @@
                 if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type});
             }
         });
-        return lines.length ? lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('') : '<span style="font-size:0.7rem">Brak innych linii</span>';
+        return lines.length ? lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('') : '<span style="font-size:0.7rem">Brak przesiadek</span>';
     }
 
     function filterStops() {
@@ -318,13 +301,17 @@
 
     function openLineForm(idx) {
         currentLineIndex = idx;
-        const l = idx === -1 ? {num:"", dir:"", type:"bus", hoursWorking:"", hoursSat:"", hoursSun:"", category: db.lineCategories[0], stops:[]} : db.lines[idx];
+        const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", hoursWorking:"", hoursSat:"", hoursSun:"", category: "Autobusy", stops:[]} : db.lines[idx];
+        
         document.getElementById('fl-num').value = l.num;
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
+        
+        // AUTOMATYCZNA SYNCHRONIZACJA: jeśli stare 'hours' istnieje, a nowe są puste - wypełnij nowe starymi danymi
         document.getElementById('fl-h-work').value = l.hoursWorking || l.hours || "";
-        document.getElementById('fl-h-sat').value = l.hoursSat || "";
-        document.getElementById('fl-h-sun').value = l.hoursSun || "";
+        document.getElementById('fl-h-sat').value = l.hoursSat || l.hours || "";
+        document.getElementById('fl-h-sun').value = l.hoursSun || l.hours || "";
+        
         document.getElementById('fl-cat').innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
         document.getElementById('fl-stops-list').innerHTML = '';
         (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
@@ -343,6 +330,7 @@
             time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
             nz: el.querySelector('input[type="checkbox"]').checked
         })).filter(s => s.name !== "");
+
         const data = {
             num: document.getElementById('fl-num').value,
             dir: document.getElementById('fl-dir').value,
@@ -351,8 +339,10 @@
             hoursWorking: document.getElementById('fl-h-work').value,
             hoursSat: document.getElementById('fl-h-sat').value,
             hoursSun: document.getElementById('fl-h-sun').value,
+            hours: document.getElementById('fl-h-work').value, // Zapisujemy też do starego pola dla bezpieczeństwa
             stops: stops
         };
+
         if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
         save(); closeForms();
     }
@@ -372,7 +362,7 @@
             return `
                 <div class="adm-stop-card">
                     <b style="color:var(--accent)">${s}</b>
-                    <input type="text" placeholder="Opis okolicy (co w pobliżu?)..." value="${det.nearby}" onchange="db.stopDetails['${s}'].nearby=this.value; save()">
+                    <input type="text" placeholder="Opis okolicy (np. Biedronka)..." value="${det.nearby}" onchange="db.stopDetails['${s}'].nearby=this.value; save()">
                 </div>`;
         }).join('');
     }
@@ -386,9 +376,7 @@
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
-    function saveNews() { if(!db.news) db.news = []; db.news.push({title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value}); save(); closeForms(); }
     function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); }
-    function exportFullBackup() { const blob = new Blob([JSON.stringify(db)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'mzk_backup.json'; a.click(); }
 
     init();
 </script>

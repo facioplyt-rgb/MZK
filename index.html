@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V80</title>
+    <title>MZK GORZÓW PRO V82</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -31,16 +30,15 @@
         .line-badge.bus { background: var(--bus-col); }
         .line-badge.tram { background: var(--tram-col); }
         
-        .dir-abbr { background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; margin-left: 2px; color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1); }
+        .dir-abbr { background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; margin-left: 2px; color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1); font-weight: 800; }
         .abbr-joiner { font-size: 0.6rem; color: #ffffff; margin: 0 3px; font-weight: 600; text-transform: lowercase; }
 
-        .eta-tag { font-size: 0.75rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.1); padding: 2px 6px; border-radius: 4px; }
+        .eta-tag { font-size: 0.75rem; color: var(--accent); font-weight: 800; margin-left: auto; background: rgba(0, 171, 85, 0.1); padding: 4px 8px; border-radius: 6px; }
         .transfer-eta { font-size: 0.65rem; opacity: 0.95; font-weight: 600; margin-left: 4px; color: #fff; background: rgba(0,0,0,0.15); padding: 1px 4px; border-radius: 3px; }
 
         .eta-now { animation: blink 0.8s infinite; color: var(--warn); font-weight: 800; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        /* Admin i Formularze */
         .adm-stop-card { background: var(--surface-light); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
@@ -227,6 +225,19 @@
         return Math.floor((times[0] - now) / 60000);
     }
 
+    function getLinesForStop(stopName, excludeLineNum = null) {
+        let found = [];
+        db.lines.forEach(l => { 
+            if(excludeLineNum !== null && String(l.num) === String(excludeLineNum)) return; 
+            const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1;
+            if(sIdx !== -1) { 
+                const eta = getETA(l, sIdx);
+                found.push({num: l.num, type: l.type, eta: eta, dir: l.dir}); 
+            } 
+        });
+        return found.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
+    }
+
     init();
     function init() {
         dbRef.on('value', (s) => {
@@ -275,31 +286,21 @@
         renderAdmin();
     }
 
-    function getLinesForStop(stopName, excludeLineNum = null) {
-        let found = [];
-        db.lines.forEach(l => { 
-            if(excludeLineNum !== null && String(l.num) === String(excludeLineNum)) return; 
-            const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1;
-            if(sIdx !== -1) { 
-                const eta = getETA(l, sIdx);
-                found.push({num: l.num, type: l.type, eta: eta, dir: l.dir}); 
-            } 
-        });
-        return found.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
-    }
-
     function renderStopsList() { 
         const q = document.getElementById('stop-search').value.toLowerCase(); 
         const listDiv = document.getElementById('public-stops-list'); listDiv.innerHTML = ''; 
         allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
             const d = db.stopDetails[cleanKey(name)] || {};
-            const stopLines = getLinesForStop(name);
             let uniqueLines = {};
-            stopLines.forEach(sl => {
-                if(!uniqueLines[sl.num] || (sl.eta !== null && (uniqueLines[sl.num].eta === null || sl.eta < uniqueLines[sl.num].eta))) {
-                    uniqueLines[sl.num] = { ...sl, dirs: [sl.dir] };
-                } else if (sl.eta === uniqueLines[sl.num].eta && sl.eta !== null) {
-                    uniqueLines[sl.num].dirs.push(sl.dir);
+            db.lines.forEach(l => {
+                const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1;
+                if(sIdx !== -1) {
+                    const eta = getETA(l, sIdx);
+                    if(!uniqueLines[l.num] || (eta !== null && (uniqueLines[l.num].eta === null || eta < uniqueLines[l.num].eta))) {
+                        uniqueLines[l.num] = { num: l.num, type: l.type, eta: eta, dirs: [l.dir] };
+                    } else if (eta === uniqueLines[l.num].eta && eta !== null) {
+                        if(!uniqueLines[l.num].dirs.includes(l.dir)) uniqueLines[l.num].dirs.push(l.dir);
+                    }
                 }
             });
 
@@ -322,7 +323,6 @@
         const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label" style="color:var(--accent)">Odjazdy z: ${name}</div>`; 
         
-        // Pobierz wszystkie linie przejeżdżające przez ten przystanek
         let variants = []; 
         db.lines.forEach((l, i) => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
@@ -331,17 +331,15 @@
             }
         });
 
-        // Sortuj po ETA (najbliższe na górze)
         variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
 
-        // Wyświetl od razu wszystkie warianty/kierunki bez zwijania
         variants.forEach(v => {
-            const etaLabel = v.eta === 0 ? '<span class="eta-now">>>></span>' : v.eta !== null ? `za ${formatETA(v.eta)}` : "---";
+            const etaLabel = v.eta === 0 ? '<span class="eta-now">>>></span>' : v.eta !== null ? `${formatETA(v.eta)}` : "---";
             list.innerHTML += `
                 <div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="display:flex; align-items:center;">
-                            <span class="line-badge ${v.type}" style="margin-right:10px">${v.num}</span>
+                            <span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span>
                             <div style="font-weight:700;">
                                 <span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}
                             </div>
@@ -357,7 +355,11 @@
         if (sIdx === -1) { 
             document.getElementById('tt-day-sel').style.display = 'none'; 
             ttBody.innerHTML = `<div class="group-label">Trasa: ${l.dir}</div>`;
-            ttBody.innerHTML += l.stops.map((s, i) => `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">${s.name}</div>`).join('');
+            ttBody.innerHTML += l.stops.map((s, i) => {
+                const transfers = getLinesForStop(s.name, l.num);
+                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.8;">` + transfers.slice(0,4).map(t => `<span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;">${t.num}<span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
+                return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})"><div>${s.name}</div>${transHtml}</div>`;
+            }).join('');
         } else {
             document.getElementById('tt-day-sel').style.display = 'flex';
             let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time || 0);

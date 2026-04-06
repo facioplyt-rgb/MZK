@@ -31,8 +31,8 @@
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.9rem; }
         .nearby-info { color: var(--warn); font-size: 0.85rem; margin-top: 6px; font-weight: 600; display: block; }
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
-        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; margin-right: 5px; margin-bottom: 5px; cursor: pointer; transition: 0.2s; }
-        .stop-line-item:active { transform: scale(0.9); background: var(--accent); color: white; }
+        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 8px; margin-right: 5px; margin-bottom: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+        .stop-line-item:active { background: var(--accent); }
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
@@ -218,11 +218,11 @@
     }
 
     function goToLineFromStop(lineNum, stopName) {
-        // Znajdź pierwszą linię o tym numerze, która zawiera dany przystanek
         const lineIdx = db.lines.findIndex(l => String(l.num) === String(lineNum) && l.stops.some(st => st.name === stopName));
         if (lineIdx !== -1) {
             const stopIdx = db.lines[lineIdx].stops.findIndex(st => st.name === stopName);
             renderTimetable(lineIdx, stopIdx);
+            window.scrollTo(0, 0);
         }
     }
 
@@ -233,8 +233,8 @@
                 if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); 
             } 
         });
-        // Dodano onclick do ikony linii
-        return lines.map(ln => `<span class="stop-line-item" onclick="event.stopPropagation(); goToLineFromStop('${ln.num}', '${stopName}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
+        // Poprawione cudzysłowy w onclick
+        return lines.map(ln => `<span class="stop-line-item" onclick="event.stopPropagation(); goToLineFromStop('${ln.num}', '${stopName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
     function renderTimetable(lineIdx, stopIdx = -1) {
@@ -272,7 +272,7 @@
         const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({ name: el.querySelector('.edit-stop-name').value.trim(), time: parseInt(el.querySelector('.edit-stop-time').value) || 0, nz: el.querySelector('input[type="checkbox"]').checked }));
         const data = { num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value, type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value, hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value, hoursSun: document.getElementById('fl-h-sun').value, stops: stops };
         if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
-        dbRef.update({ lines: db.lines }).then(() => { alert("ZAPISANO!"); closeForms(); });
+        dbRef.update({ lines: db.lines }).then(() => { alert("Zapisano!"); closeForms(); });
     }
 
     function saveNews() {

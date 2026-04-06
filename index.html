@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V84</title>
+    <title>MZK GORZÓW PRO V85</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -58,10 +58,6 @@
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.2rem; margin-bottom: 4px; }
 
-        /* Grid */
-        .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 10px; }
-        .line-square { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-bottom: 4px solid transparent; }
-        
         /* Timetable */
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
@@ -142,7 +138,7 @@
     <div style="display:flex; gap:10px;"><input type="text" id="fl-num" placeholder="Nr" style="width:80px;"><input type="text" id="fl-dir" placeholder="Kierunek"></div>
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Godziny Robocze (HH:MM, HH:MM...)"></textarea>
+    <textarea id="fl-h-work" placeholder="Godziny Robocze"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
     <div id="fl-list"></div>
@@ -163,7 +159,7 @@
 
 <div id="form-stop-global" class="overlay-form">
     <h3 id="fsg-name"></h3>
-    <label><input type="checkbox" id="fsg-nz"> Przystanek NŻ (cały dzień)</label><br><br>
+    <label><input type="checkbox" id="fsg-nz"> Przystanek NŻ</label><br><br>
     <label><input type="checkbox" id="fsg-zone"> Granica Strefy</label><br><br>
     <button onclick="saveGlobalStop()" class="main-btn">Zapisz Ustawienia</button>
     <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
@@ -184,9 +180,7 @@
         if (mins === null) return "";
         if (mins === 0) return ">>>";
         if (mins < 60) return mins + "m";
-        const h = Math.floor(mins / 60);
-        const m = mins % 60;
-        return h + "h " + (m > 0 ? m + "m" : "");
+        return Math.floor(mins/60) + "h " + (mins%60 > 0 ? (mins%60)+"m" : "");
     }
 
     function getDirAbbr(dir) {
@@ -206,9 +200,7 @@
         if(!line || !line.stops || line.stops.length === 0) return null;
         const now = new Date();
         const dayOfWeek = now.getDay();
-        let dayType = 'working';
-        if(dayOfWeek === 6) dayType = 'saturday';
-        if(dayOfWeek === 0) dayType = 'sunday';
+        let dayType = (dayOfWeek === 6) ? 'saturday' : (dayOfWeek === 0 ? 'sunday' : 'working');
         const raw = dayType === 'working' ? line.hoursWorking : (dayType === 'saturday' ? line.hoursSat : line.hoursSun);
         if (!raw || raw.trim() === "") return null;
         let offset = 0;
@@ -220,25 +212,18 @@
             d.setHours(parseInt(parts[0]), parseInt(parts[1]) + offset, 0, 0);
             return d;
         }).filter(d => d !== null && d > now).sort((a,b) => a - b);
-        if (times.length === 0) return null;
-        return Math.floor((times[0] - now) / 60000);
+        return times.length === 0 ? null : Math.floor((times[0] - now) / 60000);
     }
 
-    // PRZYWRÓCONA FUNKCJA PRZESIADEK
     function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
         db.lines.forEach(l => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1;
-            if(sIdx !== -1) { 
-                const eta = getETA(l, sIdx);
-                found.push({num: l.num, type: l.type, eta: eta, dir: l.dir}); 
-            } 
+            if(sIdx !== -1) found.push({num: l.num, type: l.type, eta: getETA(l, sIdx), dir: l.dir}); 
         });
         let unique = {};
         found.forEach(f => {
-            if(!unique[f.num] || (f.eta !== null && (unique[f.num].eta === null || f.eta < unique[f.num].eta))) {
-                unique[f.num] = f;
-            }
+            if(!unique[f.num] || (f.eta !== null && (unique[f.num].eta === null || f.eta < unique[f.num].eta))) unique[f.num] = f;
         });
         return Object.values(unique).filter(f => excludeLineNum === null || String(f.num) !== String(excludeLineNum)).sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
     }
@@ -255,12 +240,8 @@
         dbRef.on('value', (s) => {
             const val = s.val(); if(val) { 
                 db = val; 
-                if(!db.lines) db.lines = []; 
-                if(!db.stopDetails) db.stopDetails = {}; 
-                if(!db.news) db.news = [];
-                if(!db.customAbbrs) db.customAbbrs = {};
                 let sSet = new Set(); 
-                db.lines.forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name)); }); 
+                (db.lines || []).forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name)); }); 
                 allStops = [...sSet].sort(); 
                 render(); 
             }
@@ -268,22 +249,38 @@
     }
 
     function render() {
-        // Główna lista linii
+        // Główny widok LINIE - analogicznie do przystanków
         const h = document.getElementById('s-home'); h.innerHTML = '';
         (db.lineCategories || []).forEach(cat => {
-            const lines = db.lines.filter(l => l.category === cat);
-            if(lines.length) {
+            const linesInCat = db.lines.filter(l => l.category === cat);
+            if(linesInCat.length) {
                 h.innerHTML += `<div class="group-label">${cat}</div>`;
-                const g = document.createElement('div'); g.className = 'lines-grid';
-                [...new Set(lines.map(l => String(l.num)))].sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
-                    const lObj = lines.find(x => String(x.num) === num);
-                    g.innerHTML += `<div class="line-square" style="border-bottom-color:${lObj.type==='bus'?'var(--bus-col)':'var(--tram-col)'}" onclick="openVars('${num}')">${num}</div>`;
+                // Grupowanie wariantów dla danej linii, aby na głównym pokazać info zbiorcze
+                let grouped = {};
+                linesInCat.forEach(l => {
+                    if(!grouped[l.num]) grouped[l.num] = { num: l.num, type: l.type, variants: [] };
+                    // Pobierz ETA dla pierwszego przystanku tego wariantu (lub najbliższy odjazd)
+                    const eta = getETA(l, 0); 
+                    grouped[l.num].variants.push({ dir: l.dir, eta: eta });
                 });
-                h.appendChild(g);
+
+                Object.values(grouped).sort((a,b) => parseInt(a.num) - parseInt(b.num)).forEach(lObj => {
+                    // Znajdź najbliższy odjazd spośród wariantów
+                    const bestEta = lObj.variants.reduce((min, v) => (v.eta !== null && (min === null || v.eta < min)) ? v.eta : min, null);
+                    const etaLabel = bestEta === 0 ? '<span class="eta-now">>>></span>' : bestEta !== null ? `(${formatETA(bestEta)})` : "";
+                    const abbrsHtml = lObj.variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('<span class="abbr-joiner">|</span>');
+
+                    h.innerHTML += `
+                        <div class="app-card" onclick="openVars('${lObj.num}')">
+                            <div class="stop-name">Linia ${lObj.num}</div>
+                            <div class="line-badges">
+                                <span class="line-badge ${lObj.type}">${lObj.num}${abbrsHtml}<span class="transfer-eta">${etaLabel}</span></span>
+                            </div>
+                        </div>`;
+                });
             }
         });
 
-        // Newsy
         const nDiv = document.getElementById('public-news-list'); nDiv.innerHTML = '';
         (db.newsCategories || []).forEach(cat => {
             const news = (db.news || []).filter(n => n.category === cat);
@@ -294,7 +291,6 @@
                 });
             }
         });
-
         document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
         renderStopsList();
         renderAdmin();
@@ -317,14 +313,13 @@
                     }
                 }
             });
-
             listDiv.innerHTML += `
                 <div class="app-card" onclick="openStopLines('${name}')">
                     <div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
                     <div class="line-badges">
                         ${Object.values(uniqueLines).map(l => {
                             const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(l.eta)})`;
-                            const abbrs = l.dirs.map(dr => `<span class="dir-abbr">${getDirAbbr(dr)}</span>`).join('<span class="abbr-joiner">oraz</span>');
+                            const abbrs = l.dirs.map(dr => `<span class="dir-abbr">${getDirAbbr(dr)}</span>`).join('<span class="abbr-joiner">|</span>');
                             return `<span class="line-badge ${l.type}">${l.num}${abbrs}<span class="transfer-eta">${etaStr}</span></span>`;
                         }).join('')}
                     </div>
@@ -336,35 +331,17 @@
         show('stop-lines'); 
         const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label" style="color:var(--accent)">Odjazdy z: ${name}</div>`; 
-        
         let variants = []; 
         db.lines.forEach((l, i) => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
-            if(sIdx !== -1) {
-                variants.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
-            }
+            if(sIdx !== -1) variants.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
         });
-
-        variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
-
-        variants.forEach(v => {
-            const etaLabel = v.eta === 0 ? '<span class="eta-now">>>></span>' : v.eta !== null ? `${formatETA(v.eta)}` : "---";
-            list.innerHTML += `
-                <div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center;">
-                            <span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span>
-                            <div style="font-weight:700;">
-                                <span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}
-                            </div>
-                        </div>
-                        <span class="eta-tag">${etaLabel}</span>
-                    </div>
-                </div>`;
+        variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta))).forEach(v => {
+            const etaLabel = v.eta === 0 ? '<span class="eta-now">>>></span>' : v.eta !== null ? formatETA(v.eta) : "---";
+            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center;"><span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}</div></div><span class="eta-tag">${etaLabel}</span></div></div>`;
         });
     }
 
-    // PRZYWRÓCONY WIDOK TRASY Z PRZESIADKAMI
     function renderTimetable(lIdx, sIdx = -1) {
         curLineIdx = lIdx; curStopIdx = sIdx; show('tt'); const l = db.lines[lIdx]; const ttBody = document.getElementById('tt-body');
         if (sIdx === -1) { 
@@ -394,7 +371,7 @@
 
     function renderAdmin() {
         const lList = document.getElementById('adm-lines-list'); lList.innerHTML = '';
-        db.lines.forEach((l, i) => lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})">${l.num} -> ${l.dir}</div>`);
+        (db.lines || []).forEach((l, i) => lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})">${l.num} -> ${l.dir}</div>`);
         const sList = document.getElementById('adm-stops-list'); sList.innerHTML = '';
         allStops.forEach(s => sList.innerHTML += `<div class="app-card" onclick="openGlobalStopForm('${s}')">${s}</div>`);
         const nList = document.getElementById('adm-news-list'); nList.innerHTML = '';
@@ -405,27 +382,17 @@
     }
 
     function openLineForm(idx) {
-        curLineIdx = idx;
-        const l = idx === -1 ? {num:"", dir:"", type:"bus", category:"", stops:[], hoursWorking:"", hoursSat:"", hoursSun:""} : db.lines[idx];
-        document.getElementById('fl-num').value = l.num;
-        document.getElementById('fl-dir').value = l.dir;
-        document.getElementById('fl-type').value = l.type || "bus";
+        curLineIdx = idx; const l = idx === -1 ? {num:"", dir:"", type:"bus", category:"", stops:[], hoursWorking:"", hoursSat:"", hoursSun:""} : db.lines[idx];
+        document.getElementById('fl-num').value = l.num; document.getElementById('fl-dir').value = l.dir; document.getElementById('fl-type').value = l.type || "bus";
         document.getElementById('fl-cat').innerHTML = (db.lineCategories || []).map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
-        document.getElementById('fl-h-work').value = l.hoursWorking || "";
-        document.getElementById('fl-h-sat').value = l.hoursSat || "";
-        document.getElementById('fl-h-sun').value = l.hoursSun || "";
-        document.getElementById('fl-list').innerHTML = '';
-        (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
-        document.getElementById('btn-del-line').style.display = idx === -1 ? 'none' : 'block';
-        document.getElementById('form-line').style.display = 'block';
+        document.getElementById('fl-h-work').value = l.hoursWorking || ""; document.getElementById('fl-h-sat').value = l.hoursSat || ""; document.getElementById('fl-h-sun').value = l.hoursSun || "";
+        document.getElementById('fl-list').innerHTML = ''; (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
+        document.getElementById('btn-del-line').style.display = idx === -1 ? 'none' : 'block'; document.getElementById('form-line').style.display = 'block';
     }
 
     function addStopRow(name="", time=2, nz=false) {
         const div = document.createElement('div'); div.className = 'adm-stop-card';
-        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa Przystanku">
-        <input type="number" value="${time}" class="stop-time-in" style="width:70px;"> min 
-        <label><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label>
-        <button onclick="this.parentElement.remove()" style="float:right; background:var(--danger); border:none; color:white; border-radius:4px; padding:2px 6px;">X</button>`;
+        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa Przystanku"><input type="number" value="${time}" class="stop-time-in" style="width:70px;"> min <label><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label><button onclick="this.parentElement.remove()" style="float:right; background:var(--danger); border:none; color:white; border-radius:4px; padding:2px 6px;">X</button>`;
         document.getElementById('fl-list').appendChild(div);
     }
 
@@ -437,34 +404,27 @@
         dbRef.update({ lines: db.lines }).then(() => closeForms());
     }
 
-    function saveNews() {
-        const data = { title: document.getElementById('fn-title').value, body: document.getElementById('fn-body').value, category: document.getElementById('fn-cat').value, date: new Date().toLocaleDateString() };
-        if(!db.news) db.news = [];
-        if(curNewsIdx === -1) db.news.push(data); else db.news[curNewsIdx] = data;
-        dbRef.update({ news: db.news }).then(() => closeForms());
+    function openNewsForm(idx) {
+        curNewsIdx = idx; const n = idx === -1 ? {title:"", body:"", category:""} : db.news[idx];
+        document.getElementById('fn-title').value = n.title; document.getElementById('fn-body').value = n.body;
+        document.getElementById('fn-cat').innerHTML = (db.newsCategories || []).map(c => `<option value="${c}" ${n.category===c?'selected':''}>${c}</option>`).join('');
+        document.getElementById('btn-del-news').style.display = idx === -1 ? 'none' : 'block'; document.getElementById('form-news').style.display = 'block';
     }
 
-    function openNewsForm(idx) {
-        curNewsIdx = idx;
-        const n = idx === -1 ? {title:"", body:"", category:""} : db.news[idx];
-        document.getElementById('fn-title').value = n.title;
-        document.getElementById('fn-body').value = n.body;
-        document.getElementById('fn-cat').innerHTML = (db.newsCategories || []).map(c => `<option value="${c}" ${n.category===c?'selected':''}>${c}</option>`).join('');
-        document.getElementById('btn-del-news').style.display = idx === -1 ? 'none' : 'block';
-        document.getElementById('form-news').style.display = 'block';
+    function saveNews() {
+        const data = { title: document.getElementById('fn-title').value, body: document.getElementById('fn-body').value, category: document.getElementById('fn-cat').value, date: new Date().toLocaleDateString() };
+        if(!db.news) db.news = []; if(curNewsIdx === -1) db.news.push(data); else db.news[curNewsIdx] = data;
+        dbRef.update({ news: db.news }).then(() => closeForms());
     }
 
     function openGlobalStopForm(name) {
         const d = db.stopDetails[cleanKey(name)] || {};
-        document.getElementById('fsg-name').innerText = name;
-        document.getElementById('fsg-nz').checked = d.globalNz || false;
-        document.getElementById('fsg-zone').checked = d.outZone || false;
+        document.getElementById('fsg-name').innerText = name; document.getElementById('fsg-nz').checked = d.globalNz || false; document.getElementById('fsg-zone').checked = d.outZone || false;
         document.getElementById('form-stop-global').style.display = 'block';
     }
 
     function saveGlobalStop() {
-        if(!db.stopDetails) db.stopDetails = {};
-        db.stopDetails[cleanKey(document.getElementById('fsg-name').innerText)] = { globalNz: document.getElementById('fsg-nz').checked, outZone: document.getElementById('fsg-zone').checked };
+        if(!db.stopDetails) db.stopDetails = {}; db.stopDetails[cleanKey(document.getElementById('fsg-name').innerText)] = { globalNz: document.getElementById('fsg-nz').checked, outZone: document.getElementById('fsg-zone').checked };
         dbRef.update({ stopDetails: db.stopDetails }).then(() => closeForms());
     }
 
@@ -473,11 +433,20 @@
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
-    function openVars(num) { show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Warianty linii ${num}</div>`; db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>DO: ${l.dir}</b></div>`; }); }
-    function deleteLine() { if(confirm("Usunąć linię?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ lines: db.lines }).then(closeForms); } }
-    function deleteNews() { if(confirm("Usunąć news?")) { db.news.splice(curNewsIdx, 1); dbRef.update({ news: db.news }).then(closeForms); } }
-    function saveAllCategories() { const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c); const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c); dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("Zapisano kategorie!")); }
-    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano info!")); }
+    function openVars(num) { 
+        show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
+        db.lines.forEach((l, i) => { 
+            if(String(l.num) === String(num)) {
+                const eta = getETA(l, 0);
+                const etaStr = eta === 0 ? '<span class="eta-now">>>></span>' : eta !== null ? formatETA(eta) : "---";
+                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>DO: ${l.dir}</b></div><span class="eta-tag">${etaStr}</span></div></div>`;
+            }
+        }); 
+    }
+    function deleteLine() { if(confirm("Usunąć?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ lines: db.lines }).then(closeForms); } }
+    function deleteNews() { if(confirm("Usunąć?")) { db.news.splice(curNewsIdx, 1); dbRef.update({ news: db.news }).then(closeForms); } }
+    function saveAllCategories() { const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c); const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c); dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("OK")); }
+    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("OK")); }
     function exportDB() { const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); const a = document.createElement('a'); a.href = data; a.download = "mzk_backup.json"; a.click(); }
 </script>
 </body>

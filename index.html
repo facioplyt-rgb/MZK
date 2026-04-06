@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -33,7 +32,7 @@
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 15px; }
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
-        .nearby-info { color: var(--warn); font-size: 0.75rem; margin-top: 3px; font-weight: 400; opacity: 0.9; line-height: 1.4; }
+        .nearby-info { color: var(--warn); font-size: 0.8rem; margin-top: 5px; font-weight: 600; opacity: 1; line-height: 1.4; display: block; }
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; margin-right: 5px; margin-bottom: 5px; }
         
@@ -156,6 +155,9 @@
     let db = { lines: [], news: [], contact: "", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
     let currentLineIndex = -1, currentDay = 'working', focusedStopIndex = -1, allAutoStops = [];
 
+    // Funkcja czyszcząca klucz (aby uniknąć problemów z polskimi znakami w bazie)
+    function cleanKey(name) { return name ? name.trim() : "unknown"; }
+
     function init() {
         dbRef.on('value', (s) => {
             const data = s.val();
@@ -175,7 +177,8 @@
         let sSet = new Set(); 
         (db.lines || []).forEach(l => l.stops && l.stops.forEach(s => { 
             sSet.add(s.name); 
-            if(!db.stopDetails[s.name]) db.stopDetails[s.name] = {nearby:"", isNz: s.nz}; 
+            const key = cleanKey(s.name);
+            if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", isNz: s.nz}; 
         }));
         allAutoStops = [...sSet].sort();
     }
@@ -221,7 +224,8 @@
             timeOffset += parseInt(s.time) || 0;
             if(focusedStopIndex !== -1 && focusedStopIndex !== i) return;
 
-            const det = db.stopDetails[s.name] || {nearby:""};
+            const key = cleanKey(s.name);
+            const det = db.stopDetails[key] || {nearby:""};
             const others = getOtherLines(s.name, line.num);
 
             const card = document.createElement('div');
@@ -283,15 +287,17 @@
         return lines.length ? lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('') : '<span style="font-size:0.7rem">Brak przesiadek</span>';
     }
 
+    // POPRAWIONA FUNKCJA FILTROWANIA - TERAZ WYŚWIETLA OPISY
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list'); list.innerHTML = '';
         allAutoStops.filter(s => s.toLowerCase().includes(q)).forEach(s => {
-            const det = db.stopDetails[s] || {nearby:""};
+            const key = cleanKey(s);
+            const det = db.stopDetails[key] || {nearby:""};
             list.innerHTML += `
                 <div class="app-card" style="display:block; cursor:default;">
                     <b style="font-size:1.1rem">${s}</b>
-                    <div class="nearby-info" style="margin-bottom:8px; color: var(--warn);">
+                    <div class="nearby-info">
                         <i class="fa-solid fa-location-dot"></i> ${det.nearby || 'Przystanek MZK'}
                     </div>
                     <div class="stop-lines-row">${getOtherLines(s, "")}</div>
@@ -302,15 +308,12 @@
     function openLineForm(idx) {
         currentLineIndex = idx;
         const l = idx === -1 ? {num:"", dir:"", type:"bus", hours:"", hoursWorking:"", hoursSat:"", hoursSun:"", category: "Autobusy", stops:[]} : db.lines[idx];
-        
         document.getElementById('fl-num').value = l.num;
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
-        
         document.getElementById('fl-h-work').value = l.hoursWorking || l.hours || "";
         document.getElementById('fl-h-sat').value = l.hoursSat || l.hours || "";
         document.getElementById('fl-h-sun').value = l.hoursSun || l.hours || "";
-        
         document.getElementById('fl-cat').innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
         document.getElementById('fl-stops-list').innerHTML = '';
         (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
@@ -329,7 +332,6 @@
             time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
             nz: el.querySelector('input[type="checkbox"]').checked
         })).filter(s => s.name !== "");
-
         const data = {
             num: document.getElementById('fl-num').value,
             dir: document.getElementById('fl-dir').value,
@@ -341,7 +343,6 @@
             hours: document.getElementById('fl-h-work').value, 
             stops: stops
         };
-
         if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
         save(); closeForms();
     }
@@ -355,15 +356,24 @@
         document.getElementById('fl-bulk').value = "";
     }
 
+    // ADMIN: TUTAJ WPISUJESZ OPISY
     function renderAdminStops() {
         document.getElementById('adm-stops-list').innerHTML = allAutoStops.map(s => {
-            const det = db.stopDetails[s] || {nearby:""};
+            const key = cleanKey(s);
+            const det = db.stopDetails[key] || {nearby:""};
             return `
                 <div class="adm-stop-card">
                     <b style="color:var(--accent)">${s}</b>
-                    <input type="text" placeholder="Opis okolicy (np. Biedronka)..." value="${det.nearby}" onchange="if(!db.stopDetails['${s}']) db.stopDetails['${s}']={}; db.stopDetails['${s}'].nearby=this.value; save()">
+                    <input type="text" placeholder="Opis okolicy (np. Biedronka, Szkoła)..." value="${det.nearby}" onchange="updateNearby('${s}', this.value)">
                 </div>`;
         }).join('');
+    }
+
+    function updateNearby(stopName, val) {
+        const key = cleanKey(stopName);
+        if(!db.stopDetails[key]) db.stopDetails[key] = {};
+        db.stopDetails[key].nearby = val;
+        save();
     }
 
     function show(id) { 

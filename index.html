@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V89</title>
+    <title>MZK GORZÓW PRO V91</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -166,7 +166,7 @@
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
     let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "", customAbbrs: {} };
-    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [], activeSection = 'home', curLineNum = "";
+    let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [], activeSection = 'home', curLineNumGlobal = "";
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
     
@@ -209,34 +209,29 @@
         return times.length === 0 ? null : Math.floor((times[0] - now) / 60000);
     }
 
+    // ROZBUDOWANA LOGIKA PRZESIADEK DLA KAŻDEGO WARIANUT (SKRÓTAMI)
     function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
         db.lines.forEach(l => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1;
-            if(sIdx !== -1) found.push({num: l.num, type: l.type, eta: getETA(l, sIdx), dir: l.dir}); 
-        });
-        let unique = {};
-        found.forEach(f => {
-            if(!unique[f.num] || (f.eta !== null && (unique[f.num].eta === null || f.eta < unique[f.num].eta))) unique[f.num] = f;
-        });
-        return Object.values(unique).filter(f => excludeLineNum === null || String(f.num) !== String(excludeLineNum)).sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
-    }
-
-    function getAllTransfersForLine(lineNum) {
-        let allTransfers = {};
-        db.lines.filter(l => String(l.num) === String(lineNum)).forEach(variant => {
-            if(variant.stops) {
-                variant.stops.forEach(st => {
-                    const stopTransfers = getLinesForStop(st.name, lineNum);
-                    stopTransfers.forEach(t => {
-                        if(!allTransfers[t.num] || (t.eta !== null && (allTransfers[t.num].eta === null || t.eta < allTransfers[t.num].eta))) {
-                            allTransfers[t.num] = t;
-                        }
-                    });
-                });
+            if(sIdx !== -1) {
+                const eta = getETA(l, sIdx);
+                found.push({num: l.num, type: l.type, eta: eta, dir: l.dir}); 
             }
         });
-        return Object.values(allTransfers).sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta))).slice(0, 6);
+        
+        // Grupowanie po numerze linii i kierunku (wariancie), żeby pokazać skróty i czasy
+        let grouped = {};
+        found.forEach(f => {
+            const key = f.num + "_" + f.dir;
+            if(!grouped[key] || (f.eta !== null && (grouped[key].eta === null || f.eta < grouped[key].eta))) {
+                grouped[key] = f;
+            }
+        });
+
+        return Object.values(grouped)
+            .filter(f => excludeLineNum === null || String(f.num) !== String(excludeLineNum))
+            .sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
     }
 
     function show(id) { 
@@ -259,7 +254,6 @@
                 render(); 
             }
         });
-        // AUTO-REFRESH CO 10 SEKUND
         setInterval(() => {
             if (document.querySelectorAll('.overlay-form[style*="block"]').length === 0) {
                 render();
@@ -272,7 +266,8 @@
         if(activeSection === 'stops') renderStopsList();
         if(activeSection === 'news') renderNews();
         if(activeSection === 'adm') renderAdmin();
-        if(activeSection === 'vars') openVars(curLineNum);
+        if(activeSection === 'vars') openVars(curLineNumGlobal);
+        if(activeSection === 'tt' && curLineIdx !== -1) renderTimetable(curLineIdx, curStopIdx);
     }
 
     function renderHome() {
@@ -281,97 +276,44 @@
             const linesInCat = db.lines.filter(l => l.category === cat);
             if(linesInCat.length) {
                 h.innerHTML += `<div class="group-label">${cat}</div>`;
-                let grouped = {};
-                linesInCat.forEach(l => {
-                    if(!grouped[l.num]) grouped[l.num] = { num: l.num, type: l.type, variants: [] };
-                    grouped[l.num].variants.push({ dir: l.dir, eta: getETA(l, 0) });
-                });
-
-                Object.values(grouped).sort((a,b) => parseInt(a.num) - parseInt(b.num)).forEach(lObj => {
-                    const transfers = getAllTransfersForLine(lObj.num);
-                    const transHtml = transfers.length ? `<div class="group-label" style="margin: 10px 0 5px 0; font-size: 0.6rem;">Możliwe przesiadki:</div><div class="line-badges" style="opacity:0.85;">` + transfers.map(t => `<span class="line-badge ${t.type}" style="font-size:0.65rem; padding:2px 5px;">${t.num}<span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
-
-                    h.innerHTML += `
-                        <div class="app-card" onclick="openVars('${lObj.num}')">
-                            <div class="stop-name">Linia ${lObj.num}</div>
-                            <div class="line-badges">
-                                <span class="line-badge ${lObj.type}" style="padding: 8px 16px; font-size: 1rem;">${lObj.num}</span>
-                            </div>
-                            ${transHtml}
-                        </div>`;
+                let uniqueNums = [...new Set(linesInCat.map(l => l.num))].sort((a,b) => parseInt(a)-parseInt(b));
+                uniqueNums.forEach(num => {
+                    const lData = linesInCat.find(x => x.num === num);
+                    h.innerHTML += `<div class="app-card" onclick="openVars('${num}')"><div class="stop-name">Linia ${num}</div><div class="line-badges"><span class="line-badge ${lData.type}">${num}</span></div></div>`;
                 });
             }
         });
     }
 
-    function renderStopsList() { 
-        const q = document.getElementById('stop-search').value.toLowerCase(); 
-        const listDiv = document.getElementById('public-stops-list'); if(!listDiv) return; listDiv.innerHTML = ''; 
-        allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
-            const d = db.stopDetails[cleanKey(name)] || {};
-            let uniqueLines = {};
-            db.lines.forEach(l => {
-                const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1;
-                if(sIdx !== -1) {
-                    const eta = getETA(l, sIdx);
-                    if(!uniqueLines[l.num] || (eta !== null && (uniqueLines[l.num].eta === null || eta < uniqueLines[l.num].eta))) {
-                        uniqueLines[l.num] = { num: l.num, type: l.type, eta: eta, dirs: [l.dir] };
-                    } else if (eta === uniqueLines[l.num].eta && eta !== null) {
-                        if(!uniqueLines[l.num].dirs.includes(l.dir)) uniqueLines[l.num].dirs.push(l.dir);
-                    }
-                }
-            });
-            listDiv.innerHTML += `
-                <div class="app-card" onclick="openStopLines('${name}')">
-                    <div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
-                    <div class="line-badges">
-                        ${Object.values(uniqueLines).map(l => {
-                            const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(l.eta)})`;
-                            const abbrs = l.dirs.map(dr => `<span class="dir-abbr">${getDirAbbr(dr)}</span>`).join('<span class="abbr-joiner">|</span>');
-                            return `<span class="line-badge ${l.type}">${l.num}${abbrs}<span class="transfer-eta">${etaStr}</span></span>`;
-                        }).join('')}
-                    </div>
-                </div>`; 
+    function openVars(num) { 
+        curLineNumGlobal = num;
+        show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
+        db.lines.forEach((l, i) => { 
+            if(String(l.num) === String(num)) {
+                const eta = getETA(l, 0);
+                const etaStr = eta === 0 ? '<span class="eta-now">>>></span>' : eta !== null ? formatETA(eta) : "---";
+                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>DO: ${l.dir}</b> <span class="dir-abbr">${getDirAbbr(l.dir)}</span></div><span class="eta-tag">${etaStr}</span></div></div>`;
+            }
         }); 
     }
 
-    function renderNews() {
-        const nDiv = document.getElementById('public-news-list'); if(!nDiv) return; nDiv.innerHTML = '';
-        (db.newsCategories || []).forEach(cat => {
-            const news = (db.news || []).filter(n => n.category === cat);
-            if(news.length) {
-                nDiv.innerHTML += `<div class="group-label">${cat}</div>`;
-                news.forEach(item => {
-                    nDiv.innerHTML += `<div class="app-card" onclick="openNewsDetails(${db.news.indexOf(item)})"><b>${item.title}</b><br><small>${item.date || ''}</small></div>`;
-                });
-            }
-        });
-        document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
-    }
-
-    function openStopLines(name) { 
-        show('stop-lines'); 
-        const list = document.getElementById('sl-list'); 
-        list.innerHTML = `<div class="group-label" style="color:var(--accent)">Odjazdy z: ${name}</div>`; 
-        let variants = []; 
-        db.lines.forEach((l, i) => { 
-            const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
-            if(sIdx !== -1) variants.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
-        });
-        variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta))).forEach(v => {
-            const etaLabel = v.eta === 0 ? '<span class="eta-now">>>></span>' : v.eta !== null ? formatETA(v.eta) : "---";
-            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center;"><span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}</div></div><span class="eta-tag">${etaLabel}</span></div></div>`;
-        });
-    }
-
     function renderTimetable(lIdx, sIdx = -1) {
-        curLineIdx = lIdx; curStopIdx = sIdx; show('tt'); const l = db.lines[lIdx]; const ttBody = document.getElementById('tt-body');
+        curLineIdx = lIdx; curStopIdx = sIdx; activeSection = 'tt';
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+        document.getElementById('s-tt').classList.add('active-sec');
+        
+        const l = db.lines[lIdx]; const ttBody = document.getElementById('tt-body');
         if (sIdx === -1) { 
             document.getElementById('tt-day-sel').style.display = 'none'; 
             ttBody.innerHTML = `<div class="group-label">Trasa: ${l.dir}</div>`;
             ttBody.innerHTML += l.stops.map((s, i) => {
                 const transfers = getLinesForStop(s.name, l.num);
-                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.8;">` + transfers.slice(0,6).map(t => `<span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;">${t.num}<span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
+                // PRZESIADKI ZE SKRÓTAMI I CZASEM (jak w zakładce przystanki)
+                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.85;">` + transfers.map(t => {
+                    const etaLabel = t.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(t.eta)})`;
+                    return `<span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;">${t.num}<span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${etaLabel}</span></span>`;
+                }).join('') + `</div>` : "";
+
                 return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})"><div>${s.name}</div>${transHtml}</div>`;
             }).join('');
         } else {
@@ -389,6 +331,41 @@
             ttBody.innerHTML = html + `</div>`;
         }
         document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);
+    }
+
+    function renderStopsList() { 
+        const q = document.getElementById('stop-search').value.toLowerCase(); 
+        const listDiv = document.getElementById('public-stops-list'); if(!listDiv) return; listDiv.innerHTML = ''; 
+        allStops.filter(s => s.toLowerCase().includes(q)).forEach(name => { 
+            const d = db.stopDetails[cleanKey(name)] || {};
+            let linesAtStop = getLinesForStop(name);
+            listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')"><div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div><div class="line-badges">${linesAtStop.map(l => `<span class="line-badge ${l.type}">${l.num}<span class="dir-abbr">${getDirAbbr(l.dir)}</span><span class="transfer-eta">${l.eta===0?'>>>':formatETA(l.eta)}</span></span>`).join('')}</div></div>`; 
+        }); 
+    }
+
+    function openStopLines(name) { 
+        show('stop-lines'); const list = document.getElementById('sl-list'); 
+        list.innerHTML = `<div class="group-label">Odjazdy z: ${name}</div>`; 
+        let variants = []; 
+        db.lines.forEach((l, i) => { 
+            const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
+            if(sIdx !== -1) variants.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
+        });
+        variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta))).forEach(v => {
+            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="display:flex; align-items:center;"><span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}</div></div><span class="eta-tag">${v.eta===0?'>>>':formatETA(v.eta)}</span></div></div>`;
+        });
+    }
+
+    function renderNews() {
+        const nDiv = document.getElementById('public-news-list'); if(!nDiv) return; nDiv.innerHTML = '';
+        (db.newsCategories || []).forEach(cat => {
+            const news = (db.news || []).filter(n => n.category === cat);
+            if(news.length) {
+                nDiv.innerHTML += `<div class="group-label">${cat}</div>`;
+                news.forEach(item => { nDiv.innerHTML += `<div class="app-card" onclick="openNewsDetails(${db.news.indexOf(item)})"><b>${item.title}</b><br><small>${item.date || ''}</small></div>`; });
+            }
+        });
+        document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
     }
 
     function renderAdmin() {
@@ -455,18 +432,6 @@
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
-    
-    function openVars(num) { 
-        curLineNum = num;
-        show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
-        db.lines.forEach((l, i) => { 
-            if(String(l.num) === String(num)) {
-                const eta = getETA(l, 0);
-                const etaStr = eta === 0 ? '<span class="eta-now">>>></span>' : eta !== null ? formatETA(eta) : "---";
-                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>DO: ${l.dir}</b> <span class="dir-abbr">${getDirAbbr(l.dir)}</span></div><span class="eta-tag">${etaStr}</span></div></div>`;
-            }
-        }); 
-    }
     function deleteLine() { if(confirm("Usunąć?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ lines: db.lines }).then(closeForms); } }
     function deleteNews() { if(confirm("Usunąć?")) { db.news.splice(curNewsIdx, 1); dbRef.update({ news: db.news }).then(closeForms); } }
     function saveAllCategories() { const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c); const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c); dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("OK")); }

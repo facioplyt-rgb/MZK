@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V89</title>
+    <title>MZK GORZÓW PRO V90</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -66,6 +66,9 @@
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+        
+        /* Styl dla importu */
+        #import-area { background: rgba(0,0,0,0.3); border: 1px dashed var(--accent); font-size: 0.85rem; height: 120px; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -155,6 +158,11 @@
     <textarea id="fl-h-work" placeholder="Godziny Robocze (HH:MM, HH:MM...)"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
+    
+    <div class="group-label">Szybki import trasy</div>
+    <textarea id="import-area" placeholder="Wklej listę przystanków (jeden pod drugim)..."></textarea>
+    <button onclick="importStopsFromText()" class="main-btn" style="background:#1e293b; border: 1px dashed var(--accent);">Konwertuj na trasę (+1 min)</button>
+
     <div id="fl-list"></div>
     <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
     <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
@@ -245,7 +253,6 @@
                 found.push({num: l.num, type: l.type, eta: eta, dir: l.dir, lIdx: db.lines.indexOf(l), sIdx: sIdx}); 
             } 
         });
-        // Grupowanie unikalnych numerów linii dla plakietek
         let unique = {};
         found.forEach(f => {
             if(!unique[f.num] || (f.eta !== null && (unique[f.num].eta === null || f.eta < unique[f.num].eta))) {
@@ -277,15 +284,12 @@
                 render(); 
             }
         });
-        
-        // AUTO ODŚWIEŻANIE CO 10 SEKUND
         setInterval(() => {
             const activeSec = document.querySelector('.section.active-sec')?.id;
             if(activeSec === 's-home') render();
             if(activeSec === 's-stops') renderStopsList();
             if(activeSec === 's-stop-lines' && lastOpenedStopName) openStopLines(lastOpenedStopName);
             if(activeSec === 's-tt') renderTimetable(curLineIdx, curStopIdx);
-            if(activeSec === 's-transfer-view') { /* Odświeżanie logiki przesiadkowej wymagałoby ponownego renderu jeśli chcemy ETA na bieżąco */ }
         }, 10000);
     }
 
@@ -303,7 +307,6 @@
                 h.appendChild(g);
             }
         });
-
         const nDiv = document.getElementById('public-news-list'); nDiv.innerHTML = '';
         (db.newsCategories || []).forEach(cat => {
             const news = (db.news || []).filter(n => n.category === cat);
@@ -314,7 +317,6 @@
                 });
             }
         });
-
         document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
         renderStopsList();
         renderAdmin();
@@ -337,86 +339,32 @@
                     }
                 }
             });
-
-            listDiv.innerHTML += `
-                <div class="app-card" onclick="openStopLines('${name}')">
+            listDiv.innerHTML += `<div class="app-card" onclick="openStopLines('${name}')">
                     <div class="stop-name">${name} ${d.globalNz?'<span class="badge badge-nz">NŻ</span>':''} ${d.outZone?'<span class="badge badge-strefa">Gr. Strefy</span>':''}</div>
-                    <div class="line-badges">
-                        ${Object.values(uniqueLines).map(l => {
+                    <div class="line-badges">${Object.values(uniqueLines).map(l => {
                             const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(l.eta)})`;
                             const abbrs = l.dirs.map(dr => `<span class="dir-abbr">${getDirAbbr(dr)}</span>`).join('<span class="abbr-joiner">i</span>');
                             return `<span class="line-badge ${l.type}">${l.num}${abbrs}<span class="transfer-eta">${etaStr}</span></span>`;
-                        }).join('')}
-                    </div>
-                </div>`; 
+                        }).join('')}</div></div>`; 
         }); 
     }
 
     function openStopLines(name) { 
-        lastOpenedStopName = name;
-        show('stop-lines'); 
-        const list = document.getElementById('sl-list'); 
+        lastOpenedStopName = name; show('stop-lines'); const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label" style="color:var(--accent)">Odjazdy z: ${name}</div>`; 
-        
         let variants = []; 
         db.lines.forEach((l, i) => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
-            if(sIdx !== -1) {
-                variants.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
-            }
+            if(sIdx !== -1) variants.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
         });
-
         variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
-
         variants.forEach(v => {
             const etaLabel = v.eta === 0 ? '<span class="eta-now">>>></span>' : v.eta !== null ? `${formatETA(v.eta)}` : "---";
-            list.innerHTML += `
-                <div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})">
+            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center;">
-                            <span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span>
-                            <div style="font-weight:700;">
-                                <span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}
-                            </div>
-                        </div>
-                        <span class="eta-tag">${etaLabel}</span>
-                    </div>
-                </div>`;
+                        <div style="display:flex; align-items:center;"><span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}</div></div>
+                        <span class="eta-tag">${etaLabel}</span></div></div>`;
         });
-    }
-
-    // FUNKCJA DLA INTERAKTYWNYCH PRZESIADEK
-    function openInterTransfer(lineNum, stopName, backLineIdx) {
-        show('transfer-view');
-        const cont = document.getElementById('transfer-view-content');
-        cont.innerHTML = `<div class="group-label">Linia ${lineNum} z przystanku ${stopName}</div>`;
-        
-        let found = [];
-        db.lines.forEach((l, i) => {
-            if(String(l.num) === String(lineNum)) {
-                const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1;
-                if(sIdx !== -1) {
-                    found.push({ line: l, lIdx: i, sIdx: sIdx, eta: getETA(l, sIdx) });
-                }
-            }
-        });
-
-        found.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
-
-        found.forEach(f => {
-            const etaLabel = f.eta === 0 ? '<span class="eta-now">>>></span>' : f.eta !== null ? formatETA(f.eta) : "---";
-            cont.innerHTML += `
-                <div class="app-card" onclick="renderTimetable(${f.lIdx}, ${f.sIdx})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <span class="dir-abbr">${getDirAbbr(f.line.dir)}</span> <b>${f.line.dir}</b>
-                        </div>
-                        <span class="eta-tag">${etaLabel}</span>
-                    </div>
-                </div>`;
-        });
-
-        document.getElementById('transfer-view-back').onclick = () => renderTimetable(backLineIdx, -1);
     }
 
     function renderTimetable(lIdx, sIdx = -1) {
@@ -427,29 +375,16 @@
             ttBody.innerHTML += l.stops.map((s, i) => {
                 const currentLineETA = getETA(l, i);
                 const currentEtaHtml = currentLineETA !== null ? `<span class="eta-tag">${currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)}</span>` : `<span class="eta-tag" style="background:rgba(255,255,255,0.05); color:var(--text-sec)">---</span>`;
-                
-                // NŻ i STREFA W TRASIE
                 const sd = db.stopDetails[cleanKey(s.name)] || {};
-                const badges = `
-                    ${(s.nz || sd.globalNz) ? '<span class="badge badge-nz">NŻ</span>' : ''}
-                    ${sd.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}
-                `;
-
-                // PRZESIADKI ZE SKRÓTAMI I KLIKALNOŚCIĄ
+                const badges = `${(s.nz || sd.globalNz) ? '<span class="badge badge-nz">NŻ</span>' : ''} ${sd.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}`;
                 const transfers = getLinesForStop(s.name, l.num);
                 const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.9;">` + transfers.slice(0,8).map(t => `
                     <span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;" onclick="event.stopPropagation(); openInterTransfer('${t.num}', '${s.name}', ${lIdx})">
                         ${t.num} <span class="dir-abbr">${getDirAbbr(t.dir)}</span>
                         <span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span>
                     </span>`).join('') + `</div>` : "";
-                
                 return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <div style="font-weight:bold;">${s.name} ${badges}</div>
-                                ${currentEtaHtml}
-                            </div>
-                            ${transHtml}
-                        </div>`;
+                            <div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-weight:bold;">${s.name} ${badges}</div>${currentEtaHtml}</div>${transHtml}</div>`;
             }).join('');
         } else {
             document.getElementById('tt-day-sel').style.display = 'flex';
@@ -457,12 +392,7 @@
             const currentLineETA = getETA(l, sIdx);
             const currentEtaHtml = currentLineETA !== null ? `<span class="eta-tag">${currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)}</span>` : `<span class="eta-tag" style="background:rgba(255,255,255,0.05); color:var(--text-sec)">---</span>`;
             const hMap = {}; let rawTimes = (curDay==='working'?l.hoursWorking : curDay==='saturday'?l.hoursSat : l.hoursSun) || "";
-            let html = `<div class="app-card">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <div><b>${l.num}</b> - ${l.stops[sIdx].name}</div>
-                                ${currentEtaHtml}
-                            </div>
-                        </div><div class="tt-container">`;
+            let html = `<div class="app-card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>${l.num}</b> - ${l.stops[sIdx].name}</div>${currentEtaHtml}</div></div><div class="tt-container">`;
             rawTimes.split(',').forEach(entry => {
                 let parts = entry.trim().split(':'); if(parts.length < 2) return;
                 let d = new Date(); d.setHours(parseInt(parts[0]), parseInt(parts[1]) + offset);
@@ -475,7 +405,23 @@
         document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);
     }
 
-    // Pozostałe funkcje niezmienione
+    /* === NOWA FUNKCJA IMPORTU === */
+    function importStopsFromText() {
+        const area = document.getElementById('import-area');
+        const text = area.value.trim();
+        if (!text) { alert("Wklej najpierw listę przystanków!"); return; }
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if (confirm(`Czy dodać ${lines.length} przystanków?`)) {
+            lines.forEach((stopName, index) => {
+                // Jeśli lista jest pusta, pierwszy dostaje 0, inaczej narastająco o 1 minutę
+                const existingCount = document.querySelectorAll('#fl-list > div').length;
+                const timeValue = (index === 0 && existingCount === 0) ? 0 : 1;
+                addStopRow(stopName, timeValue, false);
+            });
+            area.value = "";
+        }
+    }
+
     function renderAdmin() {
         const lList = document.getElementById('adm-lines-list'); lList.innerHTML = '';
         db.lines.forEach((l, i) => lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})">${l.num} -> ${l.dir}</div>`);
@@ -559,24 +505,16 @@
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
     
     function openVars(num, backTo, backIdx) { 
-        show('vars'); 
-        const v = document.getElementById('vars-list'); 
+        show('vars'); const v = document.getElementById('vars-list'); 
         v.innerHTML = `<div class="group-label">Warianty linii ${num}</div>`; 
         db.lines.forEach((l, i) => { 
             if(String(l.num) === String(num)) {
                 const eta = getETA(l, 0);
-                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <b><span class="dir-abbr">${getDirAbbr(l.dir)}</span> DO: ${l.dir}</b>
-                        <span class="eta-tag" style="margin-left:10px;">${eta!==null?formatETA(eta):'---'}</span>
-                    </div>
-                </div>`; 
+                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><b><span class="dir-abbr">${getDirAbbr(l.dir)}</span> DO: ${l.dir}</b><span class="eta-tag" style="margin-left:10px;">${eta!==null?formatETA(eta):'---'}</span></div></div>`; 
             }
         }); 
-        
         const backBtn = document.getElementById('vars-back-btn');
-        if(backTo === 'tt') backBtn.onclick = () => renderTimetable(backIdx);
-        else backBtn.onclick = () => show('home');
+        if(backTo === 'tt') backBtn.onclick = () => renderTimetable(backIdx); else backBtn.onclick = () => show('home');
     }
 
     function deleteLine() { if(confirm("Usunąć linię?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ lines: db.lines }).then(closeForms); } }
@@ -584,6 +522,17 @@
     function saveAllCategories() { const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c); const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c); dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("Zapisano kategorie!")); }
     function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano info!")); }
     function exportDB() { const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); const a = document.createElement('a'); a.href = data; a.download = "mzk_backup.json"; a.click(); }
+    function openInterTransfer(lineNum, stopName, backLineIdx) {
+        show('transfer-view'); const cont = document.getElementById('transfer-view-content');
+        cont.innerHTML = `<div class="group-label">Linia ${lineNum} z przystanku ${stopName}</div>`;
+        let found = [];
+        db.lines.forEach((l, i) => { if(String(l.num) === String(lineNum)) { const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1; if(sIdx !== -1) found.push({ line: l, lIdx: i, sIdx: sIdx, eta: getETA(l, sIdx) }); } });
+        found.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
+        found.forEach(f => { const etaLabel = f.eta === 0 ? '<span class="eta-now">>>></span>' : f.eta !== null ? formatETA(f.eta) : "---";
+            cont.innerHTML += `<div class="app-card" onclick="renderTimetable(${f.lIdx}, ${f.sIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="dir-abbr">${getDirAbbr(f.line.dir)}</span> <b>${f.line.dir}</b></div><span class="eta-tag">${etaLabel}</span></div></div>`;
+        });
+        document.getElementById('transfer-view-back').onclick = () => renderTimetable(backLineIdx, -1);
+    }
 </script>
 </body>
 </html>

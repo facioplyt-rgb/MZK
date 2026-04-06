@@ -16,13 +16,25 @@
         .section { display: none; }
         .active-sec { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* NEWS STYLES */
+        .news-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: inline-block; }
+        .cat-rozkład { background: var(--info); color: white; }
+        .cat-utrudnienia { background: var(--danger); color: white; }
+        .cat-zatrudnimy { background: var(--accent); color: white; }
+        .cat-inne { background: #637381; color: white; }
+        .news-date { font-size: 0.75rem; color: var(--text-sec); margin-left: auto; }
+        .news-header { display: flex; flex-direction: column; width: 100%; }
+        .news-content-area { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; line-height: 1.5; color: #ced4da; }
+        .news-card.open .news-content-area { display: block; }
+        .news-card.open { border-color: var(--accent); }
+
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; margin-bottom: 15px; }
         .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .line-square.bus { border-bottom: 4px solid var(--accent); }
         .line-square.tram { border-bottom: 4px solid var(--danger); }
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-        .news-card { display: block; cursor: default; }
         .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
         .day-selector { display: flex; gap: 8px; margin-bottom: 15px; }
         .day-btn { flex: 1; padding: 10px; border-radius: 12px; background: var(--surface); color: var(--text-sec); border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
@@ -32,7 +44,7 @@
         .nearby-info { color: var(--warn); font-size: 0.85rem; margin-top: 6px; font-weight: 600; display: block; }
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
         .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 8px; margin-right: 5px; margin-bottom: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
-        .stop-line-item:active { background: var(--accent); }
+        
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
@@ -42,8 +54,6 @@
         .adm-nav-main { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
-        .adm-stop-card { background: #1c252e; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #333; }
-        .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr 65px 45px 40px; gap: 8px; align-items: center; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
     </style>
 </head>
@@ -53,18 +63,22 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
+    
     <div id="s-stops" class="section">
         <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
+    
     <div id="s-news" class="section">
         <div class="group-label">Komunikaty</div>
         <div id="public-news-list"></div>
     </div>
+    
     <div id="s-contact" class="section">
         <div class="group-label">Informacje</div>
         <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
     </div>
+
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
@@ -131,8 +145,16 @@
 <div id="form-news" class="overlay-form">
     <h2>Komunikat</h2>
     <input type="text" id="fn-title" placeholder="Tytuł">
+    <input type="date" id="fn-date">
+    <select id="fn-cat">
+        <option value="Zmiana Rozkładu Jazdy">Zmiana Rozkładu Jazdy</option>
+        <option value="Utrudnienia">Utrudnienia</option>
+        <option value="Zatrudnimy">Zatrudnimy</option>
+        <option value="Inne">Inne</option>
+    </select>
     <textarea id="fn-content" style="height:200px" placeholder="Treść komunikatu..."></textarea>
     <button onclick="saveNews()" class="main-btn">Zapisz Komunikat</button>
+    <button id="del-news-btn" class="main-btn" style="background:var(--danger); display:none;">USUŃ KOMUNIKAT</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -179,6 +201,7 @@
     }
 
     function render() {
+        // HOME
         const home = document.getElementById('s-home'); home.innerHTML = '';
         db.lineCategories.forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
@@ -192,13 +215,25 @@
             }
         });
 
+        // NEWS PUBLIC
         const newsList = document.getElementById('public-news-list');
-        newsList.innerHTML = db.news.length ? db.news.map(n => `<div class="app-card news-card"><h3>${n.title}</h3><p style="font-size:0.85rem; color:var(--text-sec); margin-top:5px;">${n.content}</p></div>`).join('') : '<div class="app-card">Brak nowych komunikatów.</div>';
+        newsList.innerHTML = db.news.length ? db.news.map((n, i) => `
+            <div class="app-card news-card" id="news-${i}" onclick="this.classList.toggle('open')">
+                <div class="news-header">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="news-badge cat-${(n.category || 'inne').toLowerCase().split(' ')[0]}">${n.category || 'Inne'}</span>
+                        <span class="news-date">${n.date || ''}</span>
+                    </div>
+                    <h3 style="font-size:1rem; margin-top:5px;">${n.title}</h3>
+                </div>
+                <div class="news-content-area">${n.content.replace(/\n/g, '<br>')}</div>
+            </div>`).join('') : '<div class="app-card">Brak nowych komunikatów.</div>';
         
         filterStops();
 
+        // ADMIN LISTS
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
-        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>[${n.date || '---'}] ${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "";
         renderAdminStops();
     }
@@ -228,11 +263,7 @@
 
     function getOtherLines(stopName, currentNum) {
         let lines = [];
-        db.lines.forEach(l => { 
-            if(String(l.num) !== String(currentNum) && l.stops?.some(st => st.name === stopName)) { 
-                if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); 
-            } 
-        });
+        db.lines.forEach(l => { if(String(l.num) !== String(currentNum) && l.stops?.some(st => st.name === stopName)) { if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); } });
         return lines.map(ln => `<span class="stop-line-item" onclick="event.stopPropagation(); goToLineFromStop('${ln.num}', '${stopName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
@@ -275,9 +306,14 @@
     }
 
     function saveNews() {
-        const nData = { title: document.getElementById('fn-title').value, content: document.getElementById('fn-content').value };
+        const nData = { 
+            title: document.getElementById('fn-title').value, 
+            date: document.getElementById('fn-date').value,
+            category: document.getElementById('fn-cat').value,
+            content: document.getElementById('fn-content').value 
+        };
         if(currentNewsIdx === -1) db.news.push(nData); else db.news[currentNewsIdx] = nData;
-        dbRef.update({ news: db.news }).then(() => { alert("Zapisano!"); closeForms(); });
+        dbRef.update({ news: db.news }).then(() => { alert("Komunikat zapisany!"); closeForms(); });
     }
 
     function renderAdminStops() {
@@ -289,13 +325,8 @@
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
         const target = document.getElementById('s-'+id);
         if(target) target.classList.add('active-sec');
-        
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        
-        // Mapowanie: jeśli id to 'vars' lub 'tt', podświetlamy przycisk 'home' (Linie)
-        let navId = id;
-        if(id === 'vars' || id === 'tt') navId = 'home';
-        
+        let navId = (id === 'vars' || id === 'tt') ? 'home' : id;
         const navBtn = document.getElementById('n-'+navId);
         if(navBtn) navBtn.classList.add('active');
     }
@@ -324,9 +355,20 @@
 
     function openNewsForm(idx) {
         currentNewsIdx = idx;
-        const n = idx === -1 ? {title:"", content:""} : db.news[idx];
+        const n = idx === -1 ? {title:"", date: new Date().toISOString().split('T')[0], category:"Inne", content:""} : db.news[idx];
         document.getElementById('fn-title').value = n.title;
+        document.getElementById('fn-date').value = n.date;
+        document.getElementById('fn-cat').value = n.category;
         document.getElementById('fn-content').value = n.content;
+        
+        const delBtn = document.getElementById('del-news-btn');
+        if(idx !== -1) {
+            delBtn.style.display = 'block';
+            delBtn.onclick = () => { if(confirm("Usunąć ten komunikat?")) { db.news.splice(idx, 1); dbRef.update({news: db.news}); closeForms(); } };
+        } else {
+            delBtn.style.display = 'none';
+        }
+        
         document.getElementById('form-news').style.display = 'block';
     }
 

@@ -51,8 +51,7 @@
         .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr 65px 45px 40px; gap: 8px; align-items: center; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         
-        /* Nowy przycisk zapisu */
-        .cloud-save-btn { background: #2196F3; color: white; padding: 12px; border-radius: 12px; font-weight: 800; margin-bottom: 15px; width: 100%; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3); }
+        .cloud-save-btn { background: #2196F3; color: white; padding: 12px; border-radius: 12px; font-weight: 800; margin-bottom: 15px; width: 100%; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; }
     </style>
 </head>
 <body>
@@ -102,8 +101,8 @@
                 <div id="adm-lines-list"></div>
             </div>
             <div id="tab-p" class="adm-tab" style="display:none;">
-                <button onclick="save()" class="cloud-save-btn"><i class="fa-solid fa-cloud-arrow-up"></i> ZAPISZ OKOLICĘ W CHMURZE</button>
                 <div class="group-label">Baza Przystanków (Okolica)</div>
+                <p style="font-size:0.7rem; color:var(--text-sec); margin-bottom:10px;">Zmiany zapisują się automatycznie po wpisaniu.</p>
                 <div id="adm-stops-list"></div>
             </div>
             <div id="tab-n" class="adm-tab" style="display:none;">
@@ -145,7 +144,7 @@
     <button onclick="convertBulk()" class="main-btn" style="background:#333">Konwertuj listę ↓</button>
     <div id="fl-stops-list"></div>
     <button onclick="addStopRow()" class="main-btn">+ Dodaj ręcznie</button>
-    <button onclick="saveLine()" class="main-btn">Zapisz Linię w chmurze</button>
+    <button onclick="saveLine()" class="main-btn" style="background:#2196F3">WYŚLIJ LINIĘ DO CHMURY</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -179,21 +178,23 @@
                 db = data;
                 if(!db.stopDetails) db.stopDetails = {};
                 if(!db.lineCategories) db.lineCategories = ["Tramwaje", "Autobusy"];
+                if(!db.lines) db.lines = [];
                 extractStops();
                 render();
             }
         });
     }
 
+    // Funkcja wymuszająca zapis całego obiektu DB
     function save() { 
-        dbRef.set(db).then(() => {
-            alert("Zapisano pomyślnie w chmurze!");
-        }); 
+        return dbRef.set(db).then(() => {
+            console.log("Database updated");
+        }).catch(e => alert("Błąd zapisu: " + e));
     }
 
     function extractStops() { 
         let sSet = new Set(); 
-        (db.lines || []).forEach(l => l.stops && l.stops.forEach(s => { 
+        db.lines.forEach(l => l.stops && l.stops.forEach(s => { 
             sSet.add(s.name); 
             const key = cleanKey(s.name);
             if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", isNz: s.nz}; 
@@ -204,7 +205,7 @@
     function render() {
         const home = document.getElementById('s-home'); home.innerHTML = '';
         db.lineCategories.forEach(cat => {
-            const lines = (db.lines || []).filter(l => l.category === cat);
+            const lines = db.lines.filter(l => l.category === cat);
             if(lines.length) {
                 home.innerHTML += `<div class="group-label">${cat}</div>`;
                 const grid = document.createElement('div'); grid.className = 'lines-grid';
@@ -216,7 +217,7 @@
             }
         });
         document.getElementById('public-news-list').innerHTML = (db.news || []).map(n => `<div class="app-card news-card"><b>${n.title}</b><p>${n.content}</p></div>`).reverse().join('');
-        document.getElementById('adm-lines-list').innerHTML = (db.lines || []).map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
         
         filterStops(); 
@@ -357,14 +358,25 @@
             time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
             nz: el.querySelector('input[type="checkbox"]').checked
         })).filter(s => s.name !== "");
+        
         const data = {
-            num: document.getElementById('fl-num').value, dir: document.getElementById('fl-dir').value,
-            type: document.getElementById('fl-type').value, category: document.getElementById('fl-cat').value,
-            hoursWorking: document.getElementById('fl-h-work').value, hoursSat: document.getElementById('fl-h-sat').value,
-            hoursSun: document.getElementById('fl-h-sun').value, hours: document.getElementById('fl-h-work').value, stops: stops
+            num: document.getElementById('fl-num').value, 
+            dir: document.getElementById('fl-dir').value,
+            type: document.getElementById('fl-type').value, 
+            category: document.getElementById('fl-cat').value,
+            hoursWorking: document.getElementById('fl-h-work').value, 
+            hoursSat: document.getElementById('fl-h-sat').value,
+            hoursSun: document.getElementById('fl-h-sun').value, 
+            hours: document.getElementById('fl-h-work').value, 
+            stops: stops
         };
+        
         if(currentLineIndex === -1) db.lines.push(data); else db.lines[currentLineIndex] = data;
-        save(); closeForms();
+        
+        save().then(() => {
+            alert("Linia została zapisana w chmurze!");
+            closeForms();
+        });
     }
 
     function convertBulk() {
@@ -385,16 +397,17 @@
             return `
                 <div class="adm-stop-card">
                     <b style="color:var(--accent)">${s}</b>
-                    <input type="text" placeholder="Co w okolicy? (puste = nie pokazuj)" value="${det.nearby || ''}" onchange="updateNearby('${s}', this.value)">
+                    <input type="text" placeholder="Co w okolicy? (puste = brak)" value="${det.nearby || ''}" onchange="updateNearby('${s}', this.value)">
                 </div>`;
         }).join('');
     }
 
+    // Automatyczny zapis po zmianie tekstu w okolicy
     function updateNearby(stopName, val) {
         const key = cleanKey(stopName);
         if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", isNz:false};
         db.stopDetails[key].nearby = val;
-        // Tutaj nie zapisujemy automatycznie, żebyś mógł użyć przycisku na górze
+        save(); // Wyślij od razu do Firebase
     }
 
     function show(id) { 
@@ -407,7 +420,7 @@
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
-    function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save(); }
+    function saveContact() { db.contact = document.getElementById('edit-contact-text').value; save().then(() => alert("Info zapisane!")); }
 
     init();
 </script>

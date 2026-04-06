@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V85</title>
+    <title>MZK GORZÓW PRO V86</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -20,7 +20,6 @@
         header { background: rgba(11, 15, 25, 0.9); backdrop-filter: blur(15px); padding: 20px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); text-align: center; font-weight: 800; font-size: 1.4rem; }
         .container { max-width: 550px; margin: 0 auto; padding: 15px; }
         
-        /* Karty i UI */
         .app-card { background: var(--surface); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; }
         .app-card:active { transform: scale(0.98); background: var(--surface-light); }
         
@@ -40,30 +39,25 @@
         .eta-now { animation: blink 0.8s infinite; color: var(--warn); font-weight: 800; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        /* Admin Styles */
         .adm-stop-card { background: var(--surface-light); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         
-        /* Badges */
         .badge { font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
         .badge-nz { background: var(--warn); color: #000; }
         .badge-strefa { background: #444; color: #fff; }
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         
-        /* Nav */
         nav { position: fixed; bottom: 0; width: 100%; background: var(--surface); display: flex; height: 75px; border-top: 1px solid var(--border); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); font-size: 0.65rem; cursor: pointer; }
         nav div.active { color: var(--accent); }
         nav i { font-size: 1.2rem; margin-bottom: 4px; }
 
-        /* Timetable */
         .tt-container { background: var(--surface); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-top: 15px; }
         .tt-row { display: flex; border-bottom: 1px solid var(--border); }
         .tt-hour-col { background: rgba(255,255,255,0.03); width: 60px; padding: 15px 0; text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--accent); border-right: 1px solid var(--border); }
         .tt-min-col { flex: 1; padding: 15px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-        .tt-min-val { font-family: 'Roboto Mono', monospace; font-size: 1.1rem; color: #fff; }
         .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
     </style>
@@ -249,25 +243,22 @@
     }
 
     function render() {
-        // Główny widok LINIE - analogicznie do przystanków
+        // GŁÓWNA LISTA LINII
         const h = document.getElementById('s-home'); h.innerHTML = '';
         (db.lineCategories || []).forEach(cat => {
             const linesInCat = db.lines.filter(l => l.category === cat);
             if(linesInCat.length) {
                 h.innerHTML += `<div class="group-label">${cat}</div>`;
-                // Grupowanie wariantów dla danej linii, aby na głównym pokazać info zbiorcze
                 let grouped = {};
                 linesInCat.forEach(l => {
                     if(!grouped[l.num]) grouped[l.num] = { num: l.num, type: l.type, variants: [] };
-                    // Pobierz ETA dla pierwszego przystanku tego wariantu (lub najbliższy odjazd)
-                    const eta = getETA(l, 0); 
-                    grouped[l.num].variants.push({ dir: l.dir, eta: eta });
+                    grouped[l.num].variants.push({ dir: l.dir, eta: getETA(l, 0) });
                 });
 
                 Object.values(grouped).sort((a,b) => parseInt(a.num) - parseInt(b.num)).forEach(lObj => {
-                    // Znajdź najbliższy odjazd spośród wariantów
                     const bestEta = lObj.variants.reduce((min, v) => (v.eta !== null && (min === null || v.eta < min)) ? v.eta : min, null);
                     const etaLabel = bestEta === 0 ? '<span class="eta-now">>>></span>' : bestEta !== null ? `(${formatETA(bestEta)})` : "";
+                    // Skróty kierunków na pierwszy rzut oka
                     const abbrsHtml = lObj.variants.map(v => `<span class="dir-abbr">${getDirAbbr(v.dir)}</span>`).join('<span class="abbr-joiner">|</span>');
 
                     h.innerHTML += `
@@ -433,13 +424,15 @@
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
+    
+    // ZAWSZE OTWIERA WARIANTY
     function openVars(num) { 
         show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Kierunki linii ${num}</div>`; 
         db.lines.forEach((l, i) => { 
             if(String(l.num) === String(num)) {
                 const eta = getETA(l, 0);
                 const etaStr = eta === 0 ? '<span class="eta-now">>>></span>' : eta !== null ? formatETA(eta) : "---";
-                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>DO: ${l.dir}</b></div><span class="eta-tag">${etaStr}</span></div></div>`;
+                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>DO: ${l.dir}</b> <span class="dir-abbr">${getDirAbbr(l.dir)}</span></div><span class="eta-tag">${etaStr}</span></div></div>`;
             }
         }); 
     }

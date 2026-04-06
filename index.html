@@ -33,7 +33,6 @@
         .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
         .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
         
-        /* Styl opisu okolicy dla pasażera */
         .nearby-info { color: var(--warn); font-size: 0.85rem; margin-top: 6px; font-weight: 600; display: block; }
         
         .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
@@ -158,7 +157,6 @@
     let db = { lines: [], news: [], contact: "", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
     let currentLineIndex = -1, currentDay = 'working', focusedStopIndex = -1, allAutoStops = [];
 
-    // Czyszczenie klucza bazy danych
     function cleanKey(name) { return name ? name.trim().toLowerCase().replace(/\s/g, '_') : "unknown"; }
 
     function init() {
@@ -169,7 +167,7 @@
                 if(!db.stopDetails) db.stopDetails = {};
                 if(!db.lineCategories) db.lineCategories = ["Tramwaje", "Autobusy"];
                 extractStops();
-                render(); // To odświeży całą aplikację po pobraniu danych
+                render();
             }
         });
     }
@@ -204,7 +202,7 @@
         document.getElementById('adm-lines-list').innerHTML = (db.lines || []).map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "Brak informacji.";
         
-        filterStops(); // WYMUSZONE ODŚWIEŻENIE LISTY PRZYSTANKÓW DLA PASAŻERÓW
+        filterStops(); 
         renderAdminStops();
     }
 
@@ -234,11 +232,17 @@
 
             const card = document.createElement('div');
             card.className = 'app-card'; card.style.display = 'block';
+            
+            // Logika: pokaż ikonę i tekst tylko jeśli pole "nearby" nie jest puste
+            let nearbyHTML = (det.nearby && det.nearby.trim() !== "") 
+                ? `<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>` 
+                : "";
+
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center;" onclick="renderTimetable(${lineIdx}, ${i})">
                     <div>
                         <b style="font-size:1.1rem">${s.name}</b>${s.nz?'<span class="nz-badge">NŻ</span>':''}
-                        <div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby || 'Przystanek MZK'}</div>
+                        ${nearbyHTML}
                         ${focusedStopIndex === -1 ? `<div class="stop-lines-row">${others}</div>` : ''}
                     </div>
                     <i class="fa-solid ${focusedStopIndex === -1 ? 'fa-clock' : 'fa-compress'}"></i>
@@ -290,7 +294,7 @@
         return lines.length ? lines.map(ln => `<span class="stop-line-item ${ln.type==='tram'?'is-tram':''}"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i>${ln.num}</span>`).join('') : '<span style="font-size:0.7rem">Brak przesiadek</span>';
     }
 
-    // LISTA PRZYSTANKÓW DLA PASAŻERÓW Z WIDOCZNYM "CO W POBLIŻU"
+    // LISTA PRZYSTANKÓW DLA PASAŻERÓW - TU POPRAWIONO LOGIKĘ WYŚWIETLANIA
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list'); 
@@ -299,12 +303,16 @@
         allAutoStops.filter(s => s.toLowerCase().includes(q)).forEach(s => {
             const key = cleanKey(s);
             const det = db.stopDetails[key] || {nearby:""};
+            
+            // Pokaż opis TYLKO jeśli został wpisany przez admina
+            let passengerNearby = (det.nearby && det.nearby.trim() !== "") 
+                ? `<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>` 
+                : "";
+
             list.innerHTML += `
                 <div class="app-card" style="display:block; cursor:default;">
                     <b style="font-size:1.1rem">${s}</b>
-                    <div class="nearby-info">
-                        <i class="fa-solid fa-location-dot"></i> ${det.nearby || 'Przystanek MZK'}
-                    </div>
+                    ${passengerNearby}
                     <div class="stop-lines-row">${getOtherLines(s, "")}</div>
                 </div>`;
         });
@@ -365,7 +373,7 @@
             return `
                 <div class="adm-stop-card">
                     <b style="color:var(--accent)">${s}</b>
-                    <input type="text" placeholder="Co jest w pobliżu? (np. Sklep, Poczta)..." value="${det.nearby}" onchange="updateNearby('${s}', this.value)">
+                    <input type="text" placeholder="Wpisz co w okolicy (puste = nie wyświetlaj)..." value="${det.nearby}" onchange="updateNearby('${s}', this.value)">
                 </div>`;
         }).join('');
     }

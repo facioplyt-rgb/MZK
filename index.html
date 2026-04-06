@@ -22,22 +22,13 @@
         .line-square.bus { border-bottom: 4px solid var(--accent); }
         .line-square.tram { border-bottom: 4px solid var(--danger); }
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
-        .news-card { display: block; cursor: default; }
         .search-box { width: 100%; padding: 15px; border-radius: 15px; background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; }
-        
         .day-selector { display: flex; gap: 8px; margin-bottom: 15px; }
-        .day-btn { flex: 1; padding: 10px; border-radius: 12px; background: var(--surface); color: var(--text-sec); border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .day-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-
+        .day-btn { flex: 1; padding: 10px; border-radius: 12px; background: var(--surface); color: var(--text-sec); border: 1px solid rgba(255,255,255,0.1); font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+        .day-btn.active { background: var(--accent); color: white; }
         .tt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; margin-top: 15px; }
-        .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; font-size: 0.95rem; }
-        .nz-badge { background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; font-weight: 800; }
-        
+        .tt-time { background: var(--accent); color: white; padding: 10px 5px; border-radius: 12px; text-align: center; font-weight: 700; }
         .nearby-info { color: var(--warn); font-size: 0.85rem; margin-top: 6px; font-weight: 600; display: block; }
-        
-        .stop-lines-row { display: flex; flex-wrap: wrap; align-items: center; margin-top: 8px; color: var(--text-sec); font-size: 0.85rem; }
-        .stop-line-item { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; margin-right: 5px; margin-bottom: 5px; }
-        
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
         nav div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-sec); cursor: pointer; font-size: 0.65rem; font-weight: 600; }
         nav div.active { color: var(--accent); }
@@ -47,7 +38,7 @@
         .adm-nav-main { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 15px; }
         .adm-nav-main button { padding: 10px 2px; font-size: 0.6rem; border-radius: 10px; border: none; background: var(--surface); color: var(--text-sec); font-weight: 700; }
         .adm-nav-main button.active { background: var(--accent); color: white; }
-        .adm-stop-card { background: #1c252e; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #333; position: relative; }
+        .adm-stop-card { background: #1c252e; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid #333; }
         .stop-edit-item { background: #1c252e; padding: 10px; border-radius: 10px; margin-bottom: 8px; display: grid; grid-template-columns: 1fr 65px 45px 40px; gap: 8px; align-items: center; }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
     </style>
@@ -59,39 +50,32 @@
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
     <div id="s-stops" class="section">
-        <div class="group-label">Wyszukiwarka Przystanków</div>
         <input type="text" id="stop-search" class="search-box" placeholder="Szukaj przystanku..." oninput="filterStops()">
         <div id="public-stops-list"></div>
     </div>
-    <div id="s-news" class="section">
-        <div class="group-label">Komunikaty i Zmiany</div>
-        <div id="public-news-list"></div>
-    </div>
-    <div id="s-contact" class="section"><div class="group-label">Informacje</div><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
-    
+    <div id="s-news" class="section"><div id="public-news-list"></div></div>
+    <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div></div>
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
-    
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
-        <div class="day-selector" id="day-tabs-container">
+        <div class="day-selector">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
             <button class="day-btn" id="btn-saturday" onclick="setDay('saturday')">Soboty</button>
             <button class="day-btn" id="btn-sunday" onclick="setDay('sunday')">Niedziele</button>
         </div>
         <div id="tt-body"></div>
-        <button id="tt-back-btn" onclick="show('vars')" class="main-btn" style="background:#333">Wróć</button>
+        <button id="tt-back-btn" class="main-btn" style="background:#333">Wróć</button>
     </div>
 
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
-            <input type="password" id="pass" placeholder="Hasło" style="text-align:center;">
+            <input type="password" id="pass" placeholder="Hasło">
             <button onclick="login()" class="main-btn">Zaloguj</button>
         </div>
         <div id="adm-ui" style="display:none;">
             <div class="adm-nav-main">
                 <button onclick="setTab('l')" id="mt-l" class="active">LINIE</button>
                 <button onclick="setTab('p')" id="mt-p">PRZYST</button>
-                <button onclick="setTab('n')" id="mt-n">NEWS</button>
                 <button onclick="setTab('c')" id="mt-c">INFO</button>
             </div>
             <div id="tab-l" class="adm-tab">
@@ -99,11 +83,13 @@
                 <div id="adm-lines-list"></div>
             </div>
             <div id="tab-p" class="adm-tab" style="display:none;">
-                <div class="group-label">Baza Przystanków (Okolica)</div>
+                <div class="group-label">Okolica (Zapis automatyczny po kliknięciu obok pola)</div>
                 <div id="adm-stops-list"></div>
             </div>
-            <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
-            <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz INFO</button></div>
+            <div id="tab-c" class="adm-tab" style="display:none;">
+                <textarea id="edit-contact-text" style="height:200px"></textarea>
+                <button onclick="saveContact()" class="main-btn">Zapisz INFO</button>
+            </div>
         </div>
     </div>
 </div>
@@ -111,7 +97,6 @@
 <nav>
     <div onclick="show('home')" id="n-home" class="active"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
     <div onclick="show('stops')" id="n-stops"><i class="fa-solid fa-map-pin"></i><span>Przystanki</span></div>
-    <div onclick="show('news')" id="n-news"><i class="fa-solid fa-bell"></i><span>News</span></div>
     <div onclick="show('contact')" id="n-contact"><i class="fa-solid fa-info-circle"></i><span>Info</span></div>
     <div onclick="show('adm')" id="n-adm"><i class="fa-solid fa-lock"></i><span>Admin</span></div>
 </nav>
@@ -122,15 +107,12 @@
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Robocze: 06:10, 07:15..."></textarea>
-    <textarea id="fl-h-sat" placeholder="Soboty: 08:00, 10:00..."></textarea>
-    <textarea id="fl-h-sun" placeholder="Niedziele: 09:30, 11:30..."></textarea>
-    <div class="group-label">Przystanki</div>
-    <textarea id="fl-bulk" placeholder="Wklej listę..." style="height:50px;"></textarea>
-    <button onclick="convertBulk()" class="main-btn" style="background:#333">Konwertuj ↓</button>
+    <textarea id="fl-h-work" placeholder="Robocze (np. 06:00, 07:00)"></textarea>
+    <textarea id="fl-h-sat" placeholder="Soboty"></textarea>
+    <textarea id="fl-h-sun" placeholder="Niedziele"></textarea>
     <div id="fl-stops-list"></div>
     <button onclick="addStopRow()" class="main-btn">+ Dodaj przystanek</button>
-    <button id="save-line-btn" onclick="saveLine()" class="main-btn" style="background:#2196F3">WYŚLIJ LINIĘ DO CHMURY</button>
+    <button onclick="saveLine()" class="main-btn" style="background:#2196F3">ZAPISZ LINIĘ W CHMURZE</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -148,14 +130,13 @@
         appId: "1:676970411647:web:5703d5fb5fb499ff83714a",
         measurementId: "G-EZ1WKZXX6K"
     };
-
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
 
-    let db = { lines: [], news: [], contact: "", stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"] };
+    let db = { lines: [], stopDetails: {}, lineCategories: ["Tramwaje", "Autobusy"], contact: "" };
     let currentLineIndex = -1, allAutoStops = [], currentDay = 'working';
 
-    function cleanKey(name) { return name ? name.trim() : "unknown"; }
+    function cleanKey(name) { return name ? name.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
 
     function init() {
         dbRef.on('value', (s) => {
@@ -170,50 +151,45 @@
         });
     }
 
-    function syncDB() {
-        return dbRef.update({
-            lines: db.lines,
-            news: db.news || [],
-            contact: db.contact || "",
-            stopDetails: db.stopDetails || {},
-            lineCategories: db.lineCategories || ["Tramwaje", "Autobusy"]
-        });
-    }
-
     function extractStops() { 
         let sSet = new Set(); 
-        db.lines.forEach(l => l.stops && l.stops.forEach(s => { 
-            sSet.add(s.name); 
-            const key = cleanKey(s.name);
-            if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", isNz: s.nz}; 
-        }));
+        db.lines.forEach(l => l.stops && l.stops.forEach(s => sSet.add(s.name)));
         allAutoStops = [...sSet].sort();
     }
 
     function render() {
         const home = document.getElementById('s-home'); home.innerHTML = '';
-        (db.lineCategories || []).forEach(cat => {
+        db.lineCategories.forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
             if(lines.length) {
                 home.innerHTML += `<div class="group-label">${cat}</div>`;
                 const grid = document.createElement('div'); grid.className = 'lines-grid';
                 [...new Set(lines.map(l => l.num))].sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
-                    const l = lines.find(x => x.num === num);
-                    grid.innerHTML += `<div class="line-square ${l.type}" onclick="openVariants('${num}')">${num}</div>`;
+                    grid.innerHTML += `<div class="line-square ${lines.find(x=>x.num===num).type}" onclick="openVariants('${num}')">${num}</div>`;
                 });
                 home.appendChild(grid);
             }
         });
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "";
-        filterStops(); 
         renderAdminStops();
     }
 
-    function saveLine() {
-        const btn = document.getElementById('save-line-btn');
-        btn.innerText = "ZAPISYWANIE...";
+    // KLUCZOWA FUNKCJA: Zapis w okolicy
+    function updateNearby(stopName, val) {
+        const key = cleanKey(stopName);
+        if(!db.stopDetails) db.stopDetails = {};
+        if(!db.stopDetails[key]) db.stopDetails[key] = {nearby: ""};
         
+        db.stopDetails[key].nearby = val;
+        
+        // Zapisujemy tylko ten jeden klucz, aby uniknąć błędów
+        dbRef.child('stopDetails').child(key).set({
+            nearby: val
+        }).then(() => console.log("Okolica zapisana: " + stopName));
+    }
+
+    function saveLine() {
         const stops = Array.from(document.querySelectorAll('.stop-edit-item')).map(el => ({
             name: el.querySelector('.edit-stop-name').value.trim(),
             time: parseInt(el.querySelector('.edit-stop-time').value) || 0,
@@ -228,26 +204,33 @@
             hoursWorking: document.getElementById('fl-h-work').value,
             hoursSat: document.getElementById('fl-h-sat').value,
             hoursSun: document.getElementById('fl-h-sun').value,
-            hours: document.getElementById('fl-h-work').value,
             stops: stops
         };
 
         if(currentLineIndex === -1) db.lines.push(lineData);
         else db.lines[currentLineIndex] = lineData;
 
-        syncDB().then(() => {
+        dbRef.update({ lines: db.lines }).then(() => {
             alert("LINIA ZAPISANA!");
-            btn.innerText = "ZAPISANO!";
-            btn.style.background = "#00ab55";
-            setTimeout(() => { closeForms(); btn.innerText = "WYŚLIJ LINIĘ DO CHMURY"; btn.style.background = "#2196F3"; }, 1000);
+            closeForms();
         });
     }
 
-    function updateNearby(stopName, val) {
-        const key = cleanKey(stopName);
-        if(!db.stopDetails[key]) db.stopDetails[key] = {nearby:"", isNz:false};
-        db.stopDetails[key].nearby = val;
-        syncDB(); 
+    function renderAdminStops() {
+        const list = document.getElementById('adm-stops-list'); if(!list) return;
+        list.innerHTML = allAutoStops.map(s => `
+            <div class="adm-stop-card">
+                <b>${s}</b>
+                <input type="text" value="${db.stopDetails[cleanKey(s)]?.nearby || ''}" 
+                placeholder="Co w okolicy?" onblur="updateNearby('${s}', this.value)">
+            </div>`).join('');
+    }
+
+    function show(id) { 
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
+        document.getElementById('s-'+id).classList.add('active-sec');
+        document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
+        document.getElementById('n-'+id).classList.add('active');
     }
 
     function openLineForm(idx) {
@@ -259,7 +242,7 @@
         document.getElementById('fl-h-work').value = l.hoursWorking || "";
         document.getElementById('fl-h-sat').value = l.hoursSat || "";
         document.getElementById('fl-h-sun').value = l.hoursSun || "";
-        document.getElementById('fl-cat').innerHTML = (db.lineCategories || []).map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
+        document.getElementById('fl-cat').innerHTML = db.lineCategories.map(c => `<option value="${c}" ${l.category===c?'selected':''}>${c}</option>`).join('');
         document.getElementById('fl-stops-list').innerHTML = '';
         (l.stops || []).forEach(s => addStopRow(s.name, s.time, s.nz));
         document.getElementById('form-line').style.display = 'block';
@@ -272,7 +255,7 @@
     }
 
     function openVariants(num) {
-        show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num} - Kierunki</div>`;
+        show('vars'); document.getElementById('vars-head').innerHTML = `<div class="group-label">Linia ${num}</div>`;
         const list = document.getElementById('vars-list'); list.innerHTML = '';
         db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>Kierunek: ${l.dir}</b></div>`; });
     }
@@ -288,10 +271,11 @@
             const det = db.stopDetails[cleanKey(s.name)] || {nearby:""};
             body.innerHTML += `<div class="app-card" style="display:block" onclick="renderTimetable(${lineIdx},${i})">
                 <b>${s.name}</b>${s.nz?' (NŻ)':''}
-                ${det.nearby?`<div class="nearby-info">${det.nearby}</div>`:''}
+                ${det.nearby?`<div class="nearby-info"><i class="fa-solid fa-location-dot"></i> ${det.nearby}</div>`:''}
                 ${stopIdx !== -1 ? `<div class="tt-grid">${calculateHours(line, currentDay, offset)}</div>` : ''}
             </div>`;
         });
+        document.getElementById('tt-back-btn').onclick = () => stopIdx === -1 ? show('vars') : renderTimetable(lineIdx, -1);
     }
 
     function calculateHours(line, day, offset) {
@@ -303,29 +287,25 @@
         }).join('');
     }
 
+    function setDay(d) {
+        currentDay = d;
+        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-'+d).classList.add('active');
+    }
+
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
-        const list = document.getElementById('public-stops-list'); if(!list) return;
-        list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => `<div class="app-card"><b>${s}</b></div>`).join('');
+        const list = document.getElementById('public-stops-list');
+        list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => {
+            const det = db.stopDetails[cleanKey(s)] || {nearby:""};
+            return `<div class="app-card" style="display:block"><b>${s}</b>${det.nearby?`<div class="nearby-info">${det.nearby}</div>`:''}</div>`;
+        }).join('');
     }
 
-    function renderAdminStops() {
-        const list = document.getElementById('adm-stops-list'); if(!list) return;
-        list.innerHTML = allAutoStops.map(s => `<div class="adm-stop-card"><b>${s}</b><input type="text" value="${db.stopDetails[cleanKey(s)]?.nearby || ''}" onchange="updateNearby('${s}', this.value)"></div>`).join('');
-    }
-
-    function show(id) { 
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        document.getElementById('s-'+id).classList.add('active-sec');
-    }
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.getElementById('form-line').style.display = 'none'; }
-    function convertBulk() {
-        document.getElementById('fl-bulk').value.split('\n').forEach((r,i) => { if(r.trim()) addStopRow(r.replace('nż','').trim(), i?2:0, r.includes('nż')); });
-        document.getElementById('fl-bulk').value = "";
-    }
-    function setDay(d) { currentDay = d; }
+    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano!")); }
 
     init();
 </script>

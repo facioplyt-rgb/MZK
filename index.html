@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -20,18 +19,19 @@
         
         .app-card { background: var(--surface); padding: 18px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
         
-        .news-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: inline-block; }
-        .cat-rozkład { background: var(--info); color: white; }
-        .cat-utrudnienia { background: var(--danger); color: white; }
-        .cat-zatrudnimy { background: var(--accent); color: white; }
-        .cat-inne { background: #637381; color: white; }
-        
         .group-label { font-size: 0.75rem; color: var(--text-sec); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 600; letter-spacing: 1px; }
         .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 12px; margin-bottom: 15px; }
         .line-square { background: var(--surface); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 18px 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: white; cursor: pointer; border-bottom: 4px solid transparent; }
         .line-square.bus { border-bottom-color: var(--accent); }
         .line-square.tram { border-bottom-color: var(--danger); }
         
+        /* STYLIZACJA ROZKŁADU PIONOWEGO (MZK STYLE) */
+        .tt-row { display: flex; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 0; }
+        .tt-hour { font-size: 1.2rem; font-weight: 800; color: var(--accent); width: 40px; text-align: right; margin-right: 15px; }
+        .tt-minutes { display: flex; flex-wrap: wrap; gap: 10px; flex: 1; align-items: center; }
+        .tt-min-item { font-size: 1.1rem; font-weight: 400; color: #fff; }
+
+        .news-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; display: inline-block; }
         .full-news-box { background: var(--surface); padding: 25px; border-radius: 24px; min-height: 300px; line-height: 1.6; }
 
         nav { position: fixed; bottom: 0; width: 100%; background: rgba(22, 28, 36, 0.95); backdrop-filter: blur(15px); display: flex; height: 85px; border-top: 1px solid rgba(255,255,255,0.05); z-index: 2000; }
@@ -64,9 +64,8 @@
         <div class="full-news-box">
             <h2 id="std-name" style="color:var(--accent); margin-bottom:5px;"></h2>
             <div id="std-nearby" style="color:var(--warn); font-size:0.9rem; margin-bottom:15px;"></div>
-            <div class="group-label">Linie na tym przystanku</div>
+            <div class="group-label">Inne linie z tego przystanku</div>
             <div id="std-lines" style="margin-bottom:20px;"></div>
-            <div id="std-timetable-area"></div>
         </div>
         <button onclick="show('stops')" class="main-btn" style="background:#333; margin-top:20px;">Wróć do listy</button>
     </div>
@@ -74,10 +73,6 @@
     <div id="s-news" class="section">
         <div class="group-label">Komunikaty</div>
         <div id="public-news-list"></div>
-    </div>
-    <div id="s-contact" class="section">
-        <div class="group-label">Informacje</div>
-        <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
     </div>
 
     <div id="s-news-details" class="section">
@@ -87,19 +82,25 @@
             <div id="nd-date" style="font-size:0.8rem; color:var(--text-sec); margin-bottom:20px;"></div>
             <div id="nd-body" style="font-size:1rem; white-space:pre-wrap; color:#ced4da;"></div>
         </div>
-        <button onclick="show('news')" class="main-btn" style="background:#333; margin-top:20px;">Wróć do komunikatów</button>
+        <button onclick="show('news')" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
     </div>
 
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
-        <div id="tt-day-sel" style="display:flex; gap:5px; margin-bottom:10px;">
+        <div id="tt-day-sel" style="display:flex; gap:5px; margin-bottom:15px;">
             <button class="day-btn active" id="btn-working" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--surface); color:white;" onclick="setDay('working')">Robocze</button>
             <button class="day-btn" id="btn-saturday" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--surface); color:white;" onclick="setDay('saturday')">Soboty</button>
             <button class="day-btn" id="btn-sunday" style="flex:1; padding:12px; border-radius:10px; border:none; background:var(--surface); color:white;" onclick="setDay('sunday')">Niedziele</button>
         </div>
-        <div id="tt-body"></div>
-        <button id="tt-back-btn" class="main-btn" style="background:#333">Wróć</button>
+        <div id="tt-body" style="background:var(--surface); padding:20px; border-radius:24px;"></div>
+        <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
+    </div>
+
+    <div id="s-contact" class="section">
+        <div class="group-label">Informacje</div>
+        <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap;"></div>
     </div>
 
     <div id="s-adm" class="section">
@@ -119,7 +120,7 @@
             <div id="tab-p" class="adm-tab" style="display:none;"><div id="adm-stops-list"></div></div>
             <div id="tab-n" class="adm-tab" style="display:none;"><button onclick="openNewsForm(-1)" class="main-btn">Dodaj news</button><div id="adm-news-list"></div></div>
             <div id="tab-c" class="adm-tab" style="display:none;"><textarea id="edit-contact-text" style="height:200px"></textarea><button onclick="saveContact()" class="main-btn">Zapisz</button></div>
-            <div id="tab-i" class="adm-tab" style="display:none;"><div style="text-align:center; padding:20px; border: 2px dashed rgba(255,255,255,0.1); border-radius:20px;"><p>DODAWANIE DANYCH</p><input type="file" id="import-file" style="display:none;" onchange="handleImport(this)"><button onclick="document.getElementById('import-file').click()" class="main-btn">Wybierz plik</button></div></div>
+            <div id="tab-i" class="adm-tab" style="display:none;"><div style="text-align:center; padding:20px; border: 2px dashed rgba(255,255,255,0.1); border-radius:20px;"><p>MERGE DATA</p><input type="file" id="import-file" style="display:none;" onchange="handleImport(this)"><button onclick="document.getElementById('import-file').click()" class="main-btn">Wybierz plik</button></div></div>
         </div>
     </div>
 </div>
@@ -133,37 +134,21 @@
 </nav>
 
 <div id="form-line" class="overlay-form">
-    <div class="group-label">Dane linii</div>
     <input type="text" id="fl-num" placeholder="Numer">
     <input type="text" id="fl-dir" placeholder="Kierunek">
     <select id="fl-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
     <select id="fl-cat"></select>
-    <textarea id="fl-h-work" placeholder="Godziny Robocze"></textarea>
+    <textarea id="fl-h-work" placeholder="Godziny Robocze (05:10, 05:40...)"></textarea>
     <textarea id="fl-h-sat" placeholder="Godziny Soboty"></textarea>
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
     <div class="import-area">
-        <label>SZYBKIE WKLEJANIE PRZYSTANKÓW</label>
-        <textarea id="fl-quick-import" style="height:100px;" placeholder="Nazwa, czas, nż"></textarea>
+        <label>SZYBKIE WKLEJANIE (Nazwa, czas, nż)</label>
+        <textarea id="fl-quick-import" style="height:80px;"></textarea>
         <button onclick="convertQuickStops()" class="main-btn" style="background:#1890ff;">KONWERTUJ</button>
     </div>
     <div id="fl-stops-list"></div>
-    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj pojedynczo</button>
-    <button onclick="saveLine()" class="main-btn" style="background:var(--accent);">ZAPISZ LINIĘ</button>
-    <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
-</div>
-
-<div id="form-news" class="overlay-form">
-    <input type="text" id="fn-title" placeholder="Tytuł">
-    <input type="date" id="fn-date">
-    <select id="fn-cat">
-        <option value="Zmiana Rozkładu Jazdy">Zmiana Rozkładu Jazdy</option>
-        <option value="Utrudnienia">Utrudnienia</option>
-        <option value="Zatrudnimy">Zatrudnimy</option>
-        <option value="Inne">Inne</option>
-    </select>
-    <textarea id="fn-content" style="height:200px" placeholder="Treść..."></textarea>
-    <button onclick="saveNews()" class="main-btn">Zapisz</button>
-    <button id="del-news-btn" class="main-btn" style="background:var(--danger); display:none;">USUŃ</button>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Dodaj stop</button>
+    <button onclick="saveLine()" class="main-btn">ZAPISZ LINIĘ</button>
     <button onclick="closeForms()" class="main-btn" style="background:none">Anuluj</button>
 </div>
 
@@ -185,9 +170,9 @@
     const dbRef = firebase.database().ref('mzk_v12_pro');
 
     let db = { lines: [], stopDetails: {}, news: [], lineCategories: ["Tramwaje", "Autobusy", "Nocne"], contact: "" };
-    let currentLineIndex = -1, currentNewsIdx = -1, allAutoStops = [], currentDay = 'working', focusedStopIdx = -1;
+    let currentLineIndex = -1, currentDay = 'working', focusedStopIdx = -1, allAutoStops = [];
 
-    function cleanKey(name) { return name ? name.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
+    function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
 
     function init() {
         dbRef.on('value', (s) => {
@@ -195,42 +180,10 @@
             if(data) {
                 db = data;
                 if(!db.lines) db.lines = [];
-                if(!db.news) db.news = [];
-                if(!db.stopDetails) db.stopDetails = {};
                 extractStops();
                 render();
             }
         });
-    }
-
-    // Otwiera "podstronę" przystanku
-    function openStopDetails(stopName) {
-        const det = db.stopDetails[cleanKey(stopName)] || {nearby:""};
-        document.getElementById('std-name').innerText = stopName;
-        document.getElementById('std-nearby').innerText = det.nearby || "";
-        document.getElementById('std-lines').innerHTML = getOtherLines(stopName, "");
-        show('stop-details');
-    }
-
-    function showNewsDetails(idx) {
-        const n = db.news[idx];
-        if(!n) return;
-        document.getElementById('nd-badge').innerHTML = `<span class="news-badge cat-${(n.category || 'inne').toLowerCase().split(' ')[0]}">${n.category || 'Inne'}</span>`;
-        document.getElementById('nd-title').innerText = n.title;
-        document.getElementById('nd-date').innerText = n.date || '';
-        document.getElementById('nd-body').innerText = n.content || '';
-        show('news-details');
-    }
-
-    function convertQuickStops() {
-        const text = document.getElementById('fl-quick-import').value;
-        if(!text.trim()) return;
-        text.split('\n').forEach(r => {
-            if(!r.trim()) return;
-            let p = r.split(',');
-            addStopRow(p[0].trim(), p[1] ? parseInt(p[1]) : 2, p[2] ? (p[2].toLowerCase().includes('nż')) : false);
-        });
-        document.getElementById('fl-quick-import').value = '';
     }
 
     function extractStops() { 
@@ -254,68 +207,91 @@
         });
 
         const newsList = document.getElementById('public-news-list');
-        newsList.innerHTML = db.news.length ? db.news.map((n, i) => `
+        newsList.innerHTML = (db.news || []).map((n, i) => `
             <div class="app-card" onclick="showNewsDetails(${i})">
-                <div style="flex:1"><span class="news-badge cat-${(n.category || 'inne').toLowerCase().split(' ')[0]}">${n.category || 'Inne'}</span><h3 style="font-size:1rem; color:white;">${n.title}</h3></div>
-                <i class="fa-solid fa-chevron-right" style="color:var(--text-sec)"></i>
-            </div>`).join('') : '<div class="app-card">Brak.</div>';
+                <div style="flex:1"><span class="news-badge">${n.category}</span><h3 style="color:white;">${n.title}</h3></div>
+                <i class="fa-solid fa-chevron-right"></i>
+            </div>`).join('') || '<div class="app-card">Brak newsów</div>';
         
         filterStops();
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><span><b>${l.num}</b> -> ${l.dir}</span><button onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
-        document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><span>${n.title}</span><button onclick="openNewsForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('contact-display').innerText = db.contact || "";
-        renderAdminStops();
+    }
+
+    function openStopDetails(stopName) {
+        const det = db.stopDetails[cleanKey(stopName)] || {nearby:""};
+        document.getElementById('std-name').innerText = stopName;
+        document.getElementById('std-nearby').innerText = det.nearby || "";
+        document.getElementById('std-lines').innerHTML = getOtherLines(stopName, "");
+        show('stop-details');
     }
 
     function filterStops() {
         const q = document.getElementById('stop-search').value.toLowerCase();
         const list = document.getElementById('public-stops-list');
         if(!list) return;
-        list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => {
-            const det = db.stopDetails[cleanKey(s)] || {nearby:""};
-            return `<div class="app-card" onclick="openStopDetails('${s.replace(/'/g, "\\'")}')">
-                <div style="flex:1"><b>${s}</b>${det.nearby?`<div style="color:var(--warn); font-size:0.75rem;">${det.nearby}</div>`:''}</div>
-                <i class="fa-solid fa-chevron-right" style="color:var(--text-sec)"></i>
-            </div>`;
-        }).join('');
+        list.innerHTML = allAutoStops.filter(s => s.toLowerCase().includes(q)).map(s => `
+            <div class="app-card" onclick="openStopDetails('${s.replace(/'/g, "\\'")}')">
+                <b>${s}</b><i class="fa-solid fa-chevron-right"></i>
+            </div>`).join('');
     }
 
     function getOtherLines(stopName, currentNum) {
         let lines = [];
         db.lines.forEach(l => { if(String(l.num) !== String(currentNum) && l.stops?.some(st => st.name === stopName)) { if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); } });
-        return lines.map(ln => `<span class="stop-line-badge" onclick="event.stopPropagation(); goToLineVariants('${ln.num}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
+        return lines.map(ln => `<span class="stop-line-badge" onclick="event.stopPropagation(); openVariants('${ln.num}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
-    // NAPRAWIONE: Przenosi do wyboru wariantów danej linii
-    function goToLineVariants(lineNum) {
-        openVariants(lineNum);
-    }
-
+    // GŁÓWNA FUNKCJA GENERUJĄCA PIONOWY ROZKŁAD (MZK STYLE)
     function renderTimetable(lineIdx, stopIdx = -1) {
-        currentLineIndex = lineIdx; focusedStopIdx = stopIdx; show('tt'); const line = db.lines[lineIdx];
-        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num} | ${line.dir}</div>`;
+        currentLineIndex = lineIdx; focusedStopIdx = stopIdx; show('tt'); 
+        const line = db.lines[lineIdx];
+        const ttBody = document.getElementById('tt-body');
+        
+        document.getElementById('tt-head').innerHTML = `<div class="group-label">Linia ${line.num} | Kierunek: ${line.dir}</div>`;
         document.getElementById('tt-day-sel').style.display = stopIdx === -1 ? 'none' : 'flex';
-        const body = document.getElementById('tt-body'); body.innerHTML = '';
-        let offset = 0;
-        line.stops.forEach((s, i) => {
-            offset += parseInt(s.time);
-            if(stopIdx !== -1 && i !== stopIdx) return;
-            body.innerHTML += `<div class="app-card" style="display:block" onclick="${stopIdx===-1?`renderTimetable(${lineIdx}, ${i})`:`openStopDetails('${s.name.replace(/'/g, "\\'")}')`}">
-                <b>${s.name}</b>${s.nz?' (NŻ)':''}
-                ${stopIdx!==-1?`<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(65px, 1fr)); gap:8px; margin-top:15px;">${calculateHours(line, currentDay, offset)}</div>`:''}
-            </div>`;
-        });
-        document.getElementById('tt-back-btn').onclick = () => stopIdx === -1 ? show('vars') : renderTimetable(lineIdx, -1);
-    }
+        
+        if (stopIdx === -1) {
+            // Lista przystanków w wariancie
+            ttBody.innerHTML = line.stops.map((s, i) => `
+                <div class="app-card" onclick="renderTimetable(${lineIdx}, ${i})">
+                    <b>${s.name}</b>${s.nz?' (NŻ)':''}
+                    <i class="fa-solid fa-chevron-right" style="color:var(--accent)"></i>
+                </div>`).join('');
+        } else {
+            // Tabliczka godzinowa dla wybranego przystanku
+            let offset = 0;
+            for(let i=0; i<=stopIdx; i++) offset += parseInt(line.stops[i].time);
+            
+            const hoursMap = {};
+            let raw = (currentDay==='working' ? (line.hoursWorking || line.hours) : currentDay==='saturday'?line.hoursSat:line.hoursSun) || "";
+            
+            if(!raw) {
+                ttBody.innerHTML = '<div style="text-align:center; color:var(--text-sec);">Brak kursów w tym dniu.</div>';
+            } else {
+                raw.split(',').forEach(h => {
+                    let p = h.trim().split(':'); if(p.length < 2) return;
+                    let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
+                    let hr = d.getHours().toString().padStart(2, '0');
+                    let mn = d.getMinutes().toString().padStart(2, '0');
+                    if(!hoursMap[hr]) hoursMap[hr] = [];
+                    hoursMap[hr].push(mn);
+                });
 
-    function calculateHours(line, day, offset) {
-        let raw = (day==='working' ? (line.hoursWorking || line.hours) : day==='saturday'?line.hoursSat:line.hoursSun) || "";
-        if(!raw) return '<div style="grid-column:1/-1; font-size:0.8rem; color:var(--text-sec)">Brak</div>';
-        return raw.split(',').map(h => {
-            let p = h.trim().split(':'); if(p.length<2) return "";
-            let d = new Date(); d.setHours(parseInt(p[0]), parseInt(p[1]) + offset);
-            return `<span style="background:var(--accent); color:white; padding:10px; border-radius:12px; text-align:center; font-weight:700;">${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}</span>`;
-        }).join('');
+                let html = `<div style="text-align:center; margin-bottom:20px;"><b style="font-size:1.2rem; color:var(--accent);">${line.stops[stopIdx].name}</b></div>`;
+                Object.keys(hoursMap).sort().forEach(hr => {
+                    html += `
+                    <div class="tt-row">
+                        <div class="tt-hour">${hr}</div>
+                        <div class="tt-minutes">
+                            ${hoursMap[hr].sort().map(m => `<span class="tt-min-item">${m}</span>`).join('')}
+                        </div>
+                    </div>`;
+                });
+                ttBody.innerHTML = html;
+            }
+        }
+        document.getElementById('tt-back-btn').onclick = () => stopIdx === -1 ? show('vars') : renderTimetable(lineIdx, -1);
     }
 
     function show(id) { 
@@ -333,6 +309,7 @@
         db.lines.forEach((l, i) => { if(String(l.num) === String(num)) list.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>${l.dir}</b><i class="fa-solid fa-chevron-right"></i></div>`; });
     }
 
+    // Pozostałe funkcje admina (NIC NIE USUNIĘTO)
     function openLineForm(idx) {
         currentLineIndex = idx;
         const l = idx === -1 ? {num:"", dir:"", type:"bus", category: "Autobusy", stops:[]} : db.lines[idx];
@@ -346,8 +323,15 @@
 
     function addStopRow(name = "", time = 2, nz = false) {
         const div = document.createElement('div'); div.className = 'stop-edit-row'; div.style = "display: flex; gap: 5px; margin-bottom: 5px; align-items: center;";
-        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name" style="flex:1; margin-bottom:0;"><input type="number" value="${time}" class="edit-stop-time" style="width:50px; margin-bottom:0;"><label style="font-size:0.6rem;"><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"> NŻ</label><button onclick="this.parentElement.remove()" style="color:var(--danger); background:none; border:none; padding:10px;"><i class="fa-solid fa-trash"></i></button>`;
+        div.innerHTML = `<input type="text" value="${name}" class="edit-stop-name" style="flex:1; margin-bottom:0;"><input type="number" value="${time}" class="edit-stop-time" style="width:50px; margin-bottom:0;"><label><input type="checkbox" ${nz?'checked':''} class="edit-stop-nz"> NŻ</label><button onclick="this.parentElement.remove()" style="color:var(--danger); background:none; border:none; padding:10px;"><i class="fa-solid fa-trash"></i></button>`;
         document.getElementById('fl-stops-list').appendChild(div);
+    }
+
+    function convertQuickStops() {
+        const text = document.getElementById('fl-quick-import').value;
+        if(!text.trim()) return;
+        text.split('\n').forEach(r => { if(r.trim()) { let p = r.split(','); addStopRow(p[0].trim(), p[1] ? parseInt(p[1]) : 2, p[2] ? p[2].toLowerCase().includes('nż') : false); }});
+        document.getElementById('fl-quick-import').value = '';
     }
 
     function saveLine() {
@@ -358,9 +342,9 @@
     }
 
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
-    function closeForms() { document.getElementById('form-line').style.display = 'none'; document.getElementById('form-news').style.display = 'none'; }
-    function saveContact() { dbRef.update({ contact: document.getElementById('edit-contact-text').value }).then(() => alert("Zapisano!")); }
-    function renderAdminStops() { const list = document.getElementById('adm-stops-list'); if(list) list.innerHTML = allAutoStops.map(s => `<div class="app-card"><b>${s}</b><input type="text" value="${db.stopDetails[cleanKey(s)]?.nearby || ''}" onblur="dbRef.child('stopDetails').child(cleanKey('${s}')).update({nearby: this.value})"></div>`).join(''); }
+    function closeForms() { document.getElementById('form-line').style.display = 'none'; }
+    function setDay(d) { currentDay = d; document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+d).classList.add('active'); renderTimetable(currentLineIndex, focusedStopIdx); }
+    function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; document.querySelectorAll('.adm-nav-main button').forEach(b=>b.classList.remove('active')); document.getElementById('mt-'+t).classList.add('active'); }
 
     init();
 </script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - System Pro V20</title>
+    <title>MZK GORZÓW - System Pro V21</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
@@ -11,7 +11,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; }
         
-        /* FIX: Ukrywanie nieaktywnych sekcji */
         .section { display: none; }
         .section.active-sec { display: block; animation: fadeIn 0.2s ease; }
         
@@ -64,18 +63,15 @@
 
 <div class="container">
     <div id="s-home" class="section active-sec"></div>
-    
     <div id="s-stops" class="section">
         <div class="group-label">Wyszukiwarka</div>
         <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="renderStopsList()">
         <div id="public-stops-list"></div>
     </div>
-
     <div id="s-news" class="section">
         <div class="group-label">Komunikaty i Aktualności</div>
         <div id="public-news-list"></div>
     </div>
-
     <div id="s-news-details" class="section">
         <div class="app-card stop-card">
             <span id="nd-date" class="details-date"></span>
@@ -84,14 +80,11 @@
         </div>
         <button onclick="show('news')" class="main-btn" style="background:#333; margin-top:20px;">Wróć do listy</button>
     </div>
-
     <div id="s-contact" class="section">
         <div class="group-label">Informacje o MZK</div>
         <div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; cursor:default;"></div>
     </div>
-
     <div id="s-vars" class="section"><div id="vars-head"></div><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
-    
     <div id="s-tt" class="section">
         <div id="tt-head"></div>
         <div id="tt-day-sel" style="display:flex; gap:5px; margin-bottom:15px;">
@@ -102,7 +95,6 @@
         <div id="tt-body"></div>
         <button id="tt-back-btn" class="main-btn" style="background:#333; margin-top:20px;">Wróć</button>
     </div>
-
     <div id="s-adm" class="section">
         <div id="adm-login" class="app-card" style="display:block; text-align:center;">
             <input type="password" id="pass" placeholder="Hasło"><button onclick="login()" class="main-btn">Zaloguj</button>
@@ -182,19 +174,13 @@
         return `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}`;
     }
 
-    /* FIX: Poprawiona funkcja nawigacji */
     function show(id) { 
-        // Ukryj wszystkie sekcje
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        // Pokaż wybraną sekcję
         const target = document.getElementById('s-'+id);
         if(target) target.classList.add('active-sec'); 
-        
-        // Aktualizuj ikony w menu
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
         const navBtn = document.getElementById('n-'+id);
         if(navBtn) navBtn.classList.add('active');
-        
         window.scrollTo(0,0);
     }
 
@@ -230,6 +216,13 @@
                 h.appendChild(g);
             }
         });
+
+        // PRZYWRÓCONA LISTA LINII W ADMINIE
+        document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `
+            <div class="app-card">
+                <div><b>Linia ${l.num}</b><br><small>${l.dir}</small></div>
+                <button onclick="openLineForm(${i})" style="padding:8px 15px; background:#444; color:white; border:none; border-radius:8px;">EDYTUJ</button>
+            </div>`).join('');
 
         document.getElementById('public-news-list').innerHTML = db.news.map((n, i) => `
             <div class="app-card" onclick="showNewsDet(${i})">
@@ -291,22 +284,12 @@
 
     function saveNews() {
         const inputDate = document.getElementById('fn-date').value.trim();
-        const n = {
-            title: document.getElementById('fn-title').value,
-            category: document.getElementById('fn-cat').value,
-            body: document.getElementById('fn-body').value,
-            date: inputDate || getToday()
-        };
+        const n = { title: document.getElementById('fn-title').value, category: document.getElementById('fn-cat').value, body: document.getElementById('fn-body').value, date: inputDate || getToday() };
         if(curNewsIdx === -1) db.news.push(n); else db.news[curNewsIdx] = n;
         dbRef.update({ news: db.news }).then(() => { alert("News zapisany!"); closeForms(); });
     }
 
-    function deleteNews() {
-        if(confirm("Usunąć news?")) {
-            db.news.splice(curNewsIdx, 1);
-            dbRef.update({ news: db.news }).then(() => { alert("Usunięto!"); closeForms(); });
-        }
-    }
+    function deleteNews() { if(confirm("Usunąć news?")) { db.news.splice(curNewsIdx, 1); dbRef.update({ news: db.news }).then(() => { alert("Usunięto!"); closeForms(); }); } }
 
     function showNewsDet(i) {
         const n = db.news[i];
@@ -320,6 +303,7 @@
     function setTab(t) { 
         document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); 
         document.getElementById('tab-'+t).style.display='block'; 
+        document.querySelectorAll('#adm-ui .main-btn').forEach(b => { if(b.innerText.length < 10) b.style.background = '#444'; });
     }
     
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }

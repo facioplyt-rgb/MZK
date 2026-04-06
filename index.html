@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V70</title>
+    <title>MZK GORZÓW PRO V73</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -23,6 +23,11 @@
         .app-card { background: var(--surface); padding: 16px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; transition: 0.2s; position: relative; }
         .app-card:active { transform: scale(0.98); background: var(--surface-light); }
         
+        .variant-box { background: rgba(255,255,255,0.03); border-radius: 12px; margin-top: 10px; display: none; border: 1px solid var(--border); overflow: hidden; }
+        .variant-item { padding: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; transition: 0.2s; }
+        .variant-item:last-child { border-bottom: none; }
+        .variant-item:active { background: rgba(255,255,255,0.05); }
+
         .stop-name { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; }
         .line-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; min-height: 24px; }
         .transfer-icon { color: var(--accent); font-size: 0.9rem; margin-right: 4px; }
@@ -66,6 +71,10 @@
         .line-square { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-bottom: 4px solid transparent; }
         .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
+
+        .abbr-item { display: grid; grid-template-columns: 1fr 80px; gap: 10px; align-items: center; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; margin-bottom: 5px; border: 1px solid var(--border); }
+        .abbr-item span { font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .abbr-item input { margin-bottom: 0; padding: 8px; font-size: 0.8rem; text-align: center; }
     </style>
 </head>
 <body>
@@ -117,6 +126,11 @@
                 <div class="group-label">Kategorie Newsów</div>
                 <input type="text" id="edit-news-cats-input" placeholder="Kategorie Newsów (po przecinku)">
                 <button onclick="saveAllCategories()" class="main-btn">Zapisz Kategorie</button>
+                
+                <div class="group-label">Skróty dla przesiadek (Lista)</div>
+                <div id="abbr-manager" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px;"></div>
+                <button onclick="saveAbbrs()" class="main-btn" style="background:#444">Zapisz Skróty</button>
+
                 <div class="group-label">Informacje o MZK</div>
                 <textarea id="edit-contact-text" style="height:150px;" placeholder="Kontakt / Info"></textarea>
                 <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
@@ -166,18 +180,20 @@
     const firebaseConfig = { apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio", storageBucket: "mzk-by-facio.firebasedatorage.app", messagingSenderId: "676970411647", appId: "1:676970411647:web:5703d5fb5fb499ff83714a" };
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('mzk_v12_pro');
-    let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "" };
+    let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "", customAbbrs: {} };
     let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [], currentSection = 'home', currentStopName = "";
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
     
-    // --- NOWA FUNKCJA GENERUJĄCA SKRÓT KIERUNKU ---
+    // Funkcja pobierająca skrót dla celów wyświetlania w "małych kółkach/badge"
     function getDirAbbr(dir) {
         if(!dir) return "";
-        const words = dir.trim().split(/\s+/);
+        const cleanDir = dir.trim();
+        if(db.customAbbrs && db.customAbbrs[cleanKey(cleanDir)]) return db.customAbbrs[cleanKey(cleanDir)].toUpperCase();
+
+        const words = cleanDir.split(/\s+/);
         if(words.length === 1) return words[0].substring(0,2).toUpperCase();
         if(words.length === 2) return (words[0][0] + words[1].substring(0,2)).toUpperCase();
-        // Dla 3 i więcej członów: pierwsze litery wszystkich prócz ostatniego + 2 ostatniego
         let res = "";
         for(let i=0; i < words.length - 1; i++) res += words[i][0];
         res += words[words.length-1].substring(0,2);
@@ -238,6 +254,7 @@
                 if(!db.news) db.news = [];
                 if(!db.newsCategories) db.newsCategories = [];
                 if(!db.lineCategories) db.lineCategories = [];
+                if(!db.customAbbrs) db.customAbbrs = {};
                 let sSet = new Set(); 
                 db.lines.forEach(l => { if(l.stops) l.stops.forEach(st => sSet.add(st.name)); }); 
                 allStops = [...sSet].sort(); 
@@ -284,9 +301,24 @@
             const key = cleanKey(s); const d = db.stopDetails[key] || {nearby:"", outZone: false, globalNz: false};
             return `<div class="adm-stop-card"><span style="font-weight:bold; color:var(--accent)">${s}</span><input type="text" value="${d.nearby || ''}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="Pobliże"><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;"><label class="adm-opt-label"><input type="checkbox" ${d.globalNz?'checked':''} onchange="upStop('${s}', this.checked, 'globalNz')"> NŻ</label><label class="adm-opt-label"><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Gr. Strefy</label></div></div>`;
         }).join('');
+        
+        const uniqueDirs = [...new Set(db.lines.map(l => l.dir.trim()))].sort();
+        document.getElementById('abbr-manager').innerHTML = uniqueDirs.map(d => {
+            const current = db.customAbbrs ? (db.customAbbrs[cleanKey(d)] || "") : "";
+            return `<div class="abbr-item"><span>${d}</span><input type="text" value="${current}" data-dir="${d}" placeholder="${getDirAbbr(d)}"></div>`;
+        }).join('');
+
         document.getElementById('edit-cats-input').value = (db.lineCategories || []).join(', ');
         document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
         document.getElementById('edit-contact-text').value = db.contact || "";
+    }
+
+    function saveAbbrs() {
+        const abbrs = {};
+        document.querySelectorAll('#abbr-manager input').forEach(inp => {
+            if(inp.value.trim()) abbrs[cleanKey(inp.getAttribute('data-dir'))] = inp.value.trim();
+        });
+        dbRef.child('customAbbrs').set(abbrs).then(() => alert("Skróty zapisane!"));
     }
 
     function sortLinesByETA(arr) {
@@ -367,23 +399,71 @@
         document.getElementById('tt-back-btn').onclick = () => show('vars');
     }
 
+    function toggleVariants(lineNum) {
+        const box = document.getElementById('var-box-' + lineNum);
+        const icon = document.getElementById('chevron-' + lineNum);
+        if(box.style.display === 'block') {
+            box.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            box.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+        }
+    }
+
     function openStopLines(name) { 
         currentStopName = name;
         show('stop-lines'); const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label" style="color:var(--accent)">${name}</div>`; 
         
-        let foundLines = [];
+        let groups = {}; 
         db.lines.forEach((l, i) => { 
             const sIdx = l.stops ? l.stops.findIndex(st => st.name === name) : -1; 
             if(sIdx !== -1) {
-                foundLines.push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
+                if(!groups[l.num]) groups[l.num] = [];
+                groups[l.num].push({ num: l.num, type: l.type, dir: l.dir, originalIdx: i, stopIdx: sIdx, eta: getETA(l, sIdx) });
             }
         });
 
-        sortLinesByETA(foundLines).forEach(item => {
-            const icon = item.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
-            const etaLabel = item.eta === 0 ? '<span class="eta-now">>>></span>' : `za ${item.eta} min`;
-            list.innerHTML += `<div class="app-card" onclick="renderTimetable(${item.originalIdx}, ${item.stopIdx})"><div><span class="line-badge ${item.type}" style="margin-right:10px"><i class="fa-solid ${icon}"></i> ${item.num}<span class="dir-abbr">${getDirAbbr(item.dir)}</span></span><b>${item.dir}</b></div> ${item.eta !== null ? `<span class="eta-tag">${etaLabel}</span>` : '<i class="fa-solid fa-clock"></i>'}</div>`; 
+        const sortedNums = Object.keys(groups).sort((a, b) => {
+            const minEtaA = Math.min(...groups[a].map(x => x.eta === null ? 999 : x.eta));
+            const minEtaB = Math.min(...groups[b].map(x => x.eta === null ? 999 : x.eta));
+            return minEtaA - minEtaB || parseInt(a) - parseInt(b);
+        });
+
+        sortedNums.forEach(num => {
+            const variants = sortLinesByETA(groups[num]);
+            const bestVariant = variants[0];
+            const icon = bestVariant.type === 'tram' ? 'fa-train-tram' : 'fa-bus';
+            const etaLabel = bestVariant.eta === 0 ? '<span class="eta-now">>>></span>' : bestVariant.eta !== null ? `za ${bestVariant.eta} min` : "---";
+
+            list.innerHTML += `
+                <div class="app-card" onclick="toggleVariants('${num}')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center;">
+                            <span class="line-badge ${bestVariant.type}" style="margin-right:10px">
+                                <i class="fa-solid ${icon}"></i> ${num}
+                            </span>
+                            <div style="font-weight:700;">Wszystkie warianty</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="eta-tag">${etaLabel}</span>
+                            <i class="fa-solid fa-chevron-down" id="chevron-${num}" style="transition:0.3s; font-size:0.8rem; color:var(--text-sec);"></i>
+                        </div>
+                    </div>
+                    <div class="variant-box" id="var-box-${num}" onclick="event.stopPropagation()">
+                        ${variants.map(v => {
+                            const vEta = v.eta === 0 ? '<span class="eta-now">>>></span>' : v.eta !== null ? `${v.eta}m` : '';
+                            return `
+                                <div class="variant-item" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})">
+                                    <span style="font-weight:600;">${v.dir}</span>
+                                    <span style="font-weight:800; color:var(--accent); font-size:0.8rem; display:flex; align-items:center; gap:5px;">
+                                        ${vEta} <i class="fa-solid fa-clock-rotate-left" style="font-size:0.7rem;"></i>
+                                    </span>
+                                </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
         });
     }
 

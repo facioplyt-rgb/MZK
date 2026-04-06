@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V91</title>
+    <title>MZK GORZÓW PRO V92</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -61,14 +61,14 @@
         .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
         .day-btn.active { background: var(--accent); }
 
-        /* Formularze Admin */
-        .adm-stop-card { background: var(--surface-light); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); }
+        /* Admin Styles */
+        .adm-stop-card { background: var(--surface-light); border: 1px solid var(--border); border-radius: 14px; padding: 15px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
         
-        /* Styl dla skrótów */
-        .abbr-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        .abbr-row { display: flex; gap: 8px; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; }
+        .abbr-row input { margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -126,8 +126,8 @@
                 <div class="group-label">Kategorie Linii</div><input type="text" id="edit-cats-input">
                 <div class="group-label">Kategorie Newsów</div><input type="text" id="edit-news-cats-input">
                 <button onclick="saveAllCategories()" class="main-btn">Zapisz Kategorie</button>
-                <div class="group-label">Skróty Kierunków</div><div id="abbr-manager"></div>
-                <button onclick="addAbbrRow()" class="main-btn" style="background:#444">+ Skrót</button>
+                <div class="group-label">Manager Skrótów</div><div id="abbr-manager"></div>
+                <button onclick="addAbbrRow()" class="main-btn" style="background:#444">+ Dodaj skrót</button>
                 <button onclick="saveAbbrs()" class="main-btn">Zapisz Skróty</button>
                 <div class="group-label">Info o MZK</div><textarea id="edit-contact-text" style="height:150px;"></textarea>
                 <button onclick="saveContact()" class="main-btn">Zapisz Info</button>
@@ -154,11 +154,11 @@
     <textarea id="fl-h-sun" placeholder="Godziny Niedziele"></textarea>
     
     <div class="group-label" style="border-top:1px solid var(--border); padding-top:10px;">Szybki import przystanków</div>
-    <textarea id="import-area" style="height:80px;" placeholder="Wklej listę nazw przystanków..."></textarea>
-    <button onclick="importStopsFromText()" class="main-btn" style="background:#1e293b; border:1px dashed var(--accent);">Konwertuj na trasę (+1 min)</button>
+    <textarea id="import-area" style="height:80px;" placeholder="Wklej listę nazw przystanków (jeden pod drugim)..."></textarea>
+    <button onclick="importStopsFromText()" class="main-btn" style="background:#1e293b; border: 1px dashed var(--accent);">Dodaj listę (+1 min interwał)</button>
 
     <div id="fl-list"></div>
-    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Przystanek</button>
+    <button onclick="addStopRow()" class="main-btn" style="background:#444">+ Pojedynczy Przystanek</button>
     <button onclick="saveLine()" class="main-btn">Zapisz Linię</button>
     <button onclick="deleteLine()" id="btn-del-line" class="main-btn" style="background:var(--danger); display:none;">Usuń Linię</button>
     <button onclick="closeForms()" class="main-btn" style="background:none; border:1px solid var(--border)">Anuluj</button>
@@ -278,13 +278,6 @@
                 render(); 
             }
         });
-        setInterval(() => {
-            const activeSec = document.querySelector('.section.active-sec')?.id;
-            if(activeSec === 's-home') render();
-            if(activeSec === 's-stops') renderStopsList();
-            if(activeSec === 's-stop-lines' && lastOpenedStopName) openStopLines(lastOpenedStopName);
-            if(activeSec === 's-tt') renderTimetable(curLineIdx, curStopIdx);
-        }, 10000);
     }
 
     function render() {
@@ -399,10 +392,13 @@
         document.getElementById('tt-back-btn').onclick = () => sIdx === -1 ? show('vars') : renderTimetable(lIdx, -1);
     }
 
-    /* === ADMIN FUNCTIONS === */
+    /* --- ADMIN --- */
     function renderAdmin() {
         const lList = document.getElementById('adm-lines-list'); lList.innerHTML = '';
-        db.lines.forEach((l, i) => lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})">${l.num} -> ${l.dir}</div>`);
+        db.lines.forEach((l, i) => {
+            const endStop = (l.stops && l.stops.length > 0) ? l.stops[l.stops.length-1].name : "Brak przystanków";
+            lList.innerHTML += `<div class="app-card" onclick="openLineForm(${i})"><b>${l.num}</b> &raquo; ${l.dir} <br><small style="color:var(--text-sec)">Koniec: ${endStop}</small></div>`;
+        });
         const sList = document.getElementById('adm-stops-list'); sList.innerHTML = '';
         allStops.forEach(s => sList.innerHTML += `<div class="app-card" onclick="openGlobalStopForm('${s}')">${s}</div>`);
         const nList = document.getElementById('adm-news-list'); nList.innerHTML = '';
@@ -411,39 +407,39 @@
         document.getElementById('edit-news-cats-input').value = (db.newsCategories || []).join(', ');
         document.getElementById('edit-contact-text').value = db.contact || "";
         
-        // Render skrótów
-        const ab = document.getElementById('abbr-manager'); ab.innerHTML = '';
-        Object.entries(db.customAbbrs || {}).forEach(([k, v]) => addAbbrRow(k, v));
+        // Skróty
+        const abm = document.getElementById('abbr-manager'); abm.innerHTML = '';
+        if(db.customAbbrs) {
+            Object.entries(db.customAbbrs).forEach(([k, v]) => addAbbrRow(k, v));
+        }
     }
 
     function addAbbrRow(k="", v="") {
-        const d = document.createElement('div'); d.className = 'abbr-row';
-        d.innerHTML = `<input type="text" placeholder="Kierunek" class="ab-key" value="${k}">
-                       <input type="text" placeholder="Skrót" class="ab-val" value="${v}" style="width:60px;">
-                       <button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:4px; padding:0 8px;">X</button>`;
-        document.getElementById('abbr-manager').appendChild(d);
+        const div = document.createElement('div'); div.className = 'abbr-row';
+        div.innerHTML = `<input type="text" placeholder="Kierunek" class="ab-key" value="${k}"> <input type="text" placeholder="Skrót" class="ab-val" value="${v}" style="width:70px;"> <button onclick="this.parentElement.remove()" style="background:var(--danger); border:none; color:white; border-radius:10px; padding:0 10px;">X</button>`;
+        document.getElementById('abbr-manager').appendChild(div);
     }
 
     function saveAbbrs() {
         let newAbbrs = {};
-        document.querySelectorAll('.abbr-row').forEach(r => {
-            const k = r.querySelector('.ab-key').value.trim();
-            const v = r.querySelector('.ab-val').value.trim();
-            if(k && v) newAbbrs[cleanKey(k)] = v;
+        document.querySelectorAll('.abbr-row').forEach(row => {
+            const key = row.querySelector('.ab-key').value.trim();
+            const val = row.querySelector('.ab-val').value.trim();
+            if(key && val) newAbbrs[cleanKey(key)] = val;
         });
         dbRef.update({ customAbbrs: newAbbrs }).then(() => alert("Zapisano skróty!"));
     }
 
     function importStopsFromText() {
-        const area = document.getElementById('import-area');
-        const lines = area.value.split('\n').map(l => l.trim()).filter(l => l);
-        if(!lines.length) return;
-        const list = document.getElementById('fl-list');
+        const text = document.getElementById('import-area').value.trim();
+        if(!text) return;
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l);
         lines.forEach((name, i) => {
-            const existing = list.querySelectorAll('.adm-stop-card').length;
-            addStopRow(name, (i === 0 && existing === 0) ? 0 : 1, false);
+            const listLen = document.querySelectorAll('#fl-list > .adm-stop-card').length;
+            const time = (i === 0 && listLen === 0) ? 0 : 1;
+            addStopRow(name, time, false);
         });
-        area.value = "";
+        document.getElementById('import-area').value = "";
     }
 
     function openLineForm(idx) {
@@ -464,10 +460,10 @@
 
     function addStopRow(name="", time=2, nz=false) {
         const div = document.createElement('div'); div.className = 'adm-stop-card';
-        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa">
-        <input type="number" value="${time}" class="stop-time-in" style="width:60px;"> min 
-        <label><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label>
-        <button onclick="this.parentElement.remove()" style="float:right; background:var(--danger); border:none; color:white; border-radius:4px; padding:2px 6px;">X</button>`;
+        div.innerHTML = `<input type="text" value="${name}" class="stop-name-in" placeholder="Nazwa przystanku">
+        <div style="display:flex; align-items:center; gap:10px;"><input type="number" value="${time}" class="stop-time-in" style="width:70px; margin-bottom:0;"> <span>min</span> 
+        <label style="font-size:0.8rem;"><input type="checkbox" class="stop-nz-in" ${nz?'checked':''}> NŻ</label>
+        <button onclick="this.parentElement.remove()" style="margin-left:auto; background:var(--danger); border:none; color:white; border-radius:6px; padding:5px 10px;">X</button></div>`;
         document.getElementById('fl-list').appendChild(div);
     }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V43</title>
+    <title>MZK GORZÓW PRO V44</title>
     
     <meta name="theme-color" content="#0b0f19">
     <meta name="mobile-web-app-capable" content="yes">
@@ -159,15 +159,20 @@
         document.getElementById('adm-lines-list').innerHTML = db.lines.map((l, i) => `<div class="app-card"><div><b>${l.num}</b> - ${l.dir}</div><button style="padding:5px 10px; background:#444; border:none; border-radius:5px; color:white" onclick="openLineForm(${i})">EDYTUJ</button></div>`).join('');
         document.getElementById('adm-news-list').innerHTML = db.news.map((n, i) => `<div class="app-card"><div><b>${n.title}</b></div><div><button style="padding:5px 10px; background:#444; border:none; border-radius:5px; color:white" onclick="openNewsForm(${i})">E</button> <button style="padding:5px 10px; background:var(--danger); border:none; border-radius:5px; color:white" onclick="deleteNews(${i})">X</button></div></div>`).join('');
         
-        // POPRAWIONA SEKCJA PRZYSTANKÓW W ADMINIE
+        // POPRAWIONA SEKCJA PRZYSTANKÓW W ADMINIE Z CHECKBOXEM NŻ
         document.getElementById('adm-stops-list').innerHTML = allStops.map(s => {
-            const d = db.stopDetails[cleanKey(s)] || {nearby:"", outZone: false, globalNz: false};
+            const key = cleanKey(s);
+            const d = db.stopDetails[key] || {nearby:"", outZone: false, globalNz: false};
             return `<div class="app-card" style="display:block">
-                <div style="font-weight:bold; color:var(--accent); margin-bottom:8px;">${s}</div>
-                <input type="text" value="${d.nearby || ''}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="Co w pobliżu?" style="margin-bottom:8px;">
-                <div style="display:flex; gap:15px;">
-                    <label style="font-size:0.8rem;"><input type="checkbox" ${d.globalNz?'checked':''} onchange="upStop('${s}', this.checked, 'globalNz')"> Przystanek NŻ</label>
-                    <label style="font-size:0.8rem;"><input type="checkbox" ${d.outZone?'checked':''} onchange="upStop('${s}', this.checked, 'outZone')"> Inna strefa</label>
+                <div style="font-weight:bold; color:var(--accent); margin-bottom:10px;">${s}</div>
+                <input type="text" value="${d.nearby || ''}" onchange="upStop('${s}', this.value, 'nearby')" placeholder="Co jest w pobliżu?" style="margin-bottom:10px;">
+                <div style="display:flex; flex-wrap:wrap; gap:15px;">
+                    <label style="font-size:0.85rem; display:flex; align-items:center; gap:5px;">
+                        <input type="checkbox" ${d.globalNz ? 'checked' : ''} onchange="upStop('${s}', this.checked, 'globalNz')"> Globalne NŻ
+                    </label>
+                    <label style="font-size:0.85rem; display:flex; align-items:center; gap:5px;">
+                        <input type="checkbox" ${d.outZone ? 'checked' : ''} onchange="upStop('${s}', this.checked, 'outZone')"> Inna strefa
+                    </label>
                 </div>
             </div>`;
         }).join('');
@@ -187,7 +192,10 @@
     function renderTimetable(lIdx, sIdx = -1) {
         curLineIdx = lIdx; curStopIdx = sIdx; show('tt'); const l = db.lines[lIdx]; const ttBody = document.getElementById('tt-body');
         document.getElementById('tt-day-sel').style.display = sIdx === -1 ? 'none' : 'flex';
-        if (sIdx === -1) { ttBody.innerHTML = (l.stops || []).map((s, i) => { const isGlobalNz = db.stopDetails[cleanKey(s.name)]?.globalNz; return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})"><span>${s.name}${(s.nz || isGlobalNz)?' <small style="color:var(--warn)">(NŻ)</small>':''}</span></div>`; }).join(''); document.getElementById('tt-back-btn').onclick = () => show('vars'); }
+        if (sIdx === -1) { ttBody.innerHTML = (l.stops || []).map((s, i) => { 
+            const isGlobalNz = db.stopDetails[cleanKey(s.name)]?.globalNz;
+            return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})"><span>${s.name}${(s.nz || isGlobalNz)?' <small style="color:var(--warn)">(NŻ)</small>':''}</span></div>`; 
+        }).join(''); document.getElementById('tt-back-btn').onclick = () => show('vars'); }
         else {
             let offset = 0; for(let i=0; i<=sIdx; i++) offset += parseInt(l.stops[i].time || 0);
             const hMap = {}; let raw = (curDay==='working' ? l.hoursWorking : curDay==='saturday' ? l.hoursSat : l.hoursSun) || "";

@@ -233,7 +233,6 @@
                 if(!lines.some(x => x.num === l.num)) lines.push({num: l.num, type: l.type}); 
             } 
         });
-        // Poprawione cudzysłowy w onclick
         return lines.map(ln => `<span class="stop-line-item" onclick="event.stopPropagation(); goToLineFromStop('${ln.num}', '${stopName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-${ln.type==='tram'?'tram':'bus'}"></i> ${ln.num}</span>`).join('');
     }
 
@@ -288,9 +287,17 @@
 
     function show(id) { 
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec')); 
-        document.getElementById('s-'+id).classList.add('active-sec');
+        const target = document.getElementById('s-'+id);
+        if(target) target.classList.add('active-sec');
+        
         document.querySelectorAll('nav div').forEach(d => d.classList.remove('active'));
-        if(document.getElementById('n-'+id)) document.getElementById('n-'+id).classList.add('active');
+        
+        // Mapowanie: jeśli id to 'vars' lub 'tt', podświetlamy przycisk 'home' (Linie)
+        let navId = id;
+        if(id === 'vars' || id === 'tt') navId = 'home';
+        
+        const navBtn = document.getElementById('n-'+navId);
+        if(navBtn) navBtn.classList.add('active');
     }
 
     function openLineForm(idx) {

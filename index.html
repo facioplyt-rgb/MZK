@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -252,7 +253,6 @@
     }
 
     function calculateHours(line, day, offset) {
-        // Kluczowa funkcja: jeśli nowe pola są puste, bierzemy stare pole 'hours'
         let raw = "";
         if(day === 'working') raw = line.hoursWorking || line.hours || "";
         else if(day === 'saturday') raw = line.hoursSat || line.hours || "";
@@ -291,7 +291,7 @@
             list.innerHTML += `
                 <div class="app-card" style="display:block; cursor:default;">
                     <b style="font-size:1.1rem">${s}</b>
-                    <div class="nearby-info" style="margin-bottom:8px;">
+                    <div class="nearby-info" style="margin-bottom:8px; color: var(--warn);">
                         <i class="fa-solid fa-location-dot"></i> ${det.nearby || 'Przystanek MZK'}
                     </div>
                     <div class="stop-lines-row">${getOtherLines(s, "")}</div>
@@ -307,7 +307,6 @@
         document.getElementById('fl-dir').value = l.dir;
         document.getElementById('fl-type').value = l.type;
         
-        // AUTOMATYCZNA SYNCHRONIZACJA: jeśli stare 'hours' istnieje, a nowe są puste - wypełnij nowe starymi danymi
         document.getElementById('fl-h-work').value = l.hoursWorking || l.hours || "";
         document.getElementById('fl-h-sat').value = l.hoursSat || l.hours || "";
         document.getElementById('fl-h-sun').value = l.hoursSun || l.hours || "";
@@ -339,7 +338,7 @@
             hoursWorking: document.getElementById('fl-h-work').value,
             hoursSat: document.getElementById('fl-h-sat').value,
             hoursSun: document.getElementById('fl-h-sun').value,
-            hours: document.getElementById('fl-h-work').value, // Zapisujemy też do starego pola dla bezpieczeństwa
+            hours: document.getElementById('fl-h-work').value, 
             stops: stops
         };
 
@@ -362,7 +361,7 @@
             return `
                 <div class="adm-stop-card">
                     <b style="color:var(--accent)">${s}</b>
-                    <input type="text" placeholder="Opis okolicy (np. Biedronka)..." value="${det.nearby}" onchange="db.stopDetails['${s}'].nearby=this.value; save()">
+                    <input type="text" placeholder="Opis okolicy (np. Biedronka)..." value="${det.nearby}" onchange="if(!db.stopDetails['${s}']) db.stopDetails['${s}']={}; db.stopDetails['${s}'].nearby=this.value; save()">
                 </div>`;
         }).join('');
     }

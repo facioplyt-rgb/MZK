@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V56</title>
+    <title>MZK GORZÓW PRO V57</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -41,8 +41,6 @@
         .overlay-form { position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:3000; display:none; padding:20px; overflow-y:auto; }
         textarea, input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; background: var(--surface-light); border: 1px solid var(--border); color: white; font-family: inherit; font-size: 1rem; }
         .main-btn { background: var(--accent); color: white; width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
-        .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
-        .day-btn.active { background: var(--accent); }
         
         .badge { font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
         .badge-nz { background: var(--warn); color: #000; }
@@ -55,6 +53,8 @@
         nav i { font-size: 1.2rem; margin-bottom: 4px; }
         .lines-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 10px; }
         .line-square { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px 0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; border-bottom: 4px solid transparent; }
+        .day-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-weight: bold; cursor: pointer; }
+        .day-btn.active { background: var(--accent); }
     </style>
 </head>
 <body>
@@ -196,7 +196,7 @@
             const newsItems = (db.news || []).filter(n => n.category === cat);
             if(newsItems.length) {
                 nList.innerHTML += `<div class="group-label">${cat}</div>`;
-                newsItems.forEach((n, originalIdx) => {
+                newsItems.forEach((n) => {
                     const realIdx = db.news.indexOf(n);
                     nList.innerHTML += `<div class="app-card" onclick="openNewsDetails(${realIdx})"><div><b>${n.title}</b><br><small style="color:var(--warn)">${n.date}</small></div></div>`;
                 });
@@ -219,6 +219,7 @@
         document.getElementById('edit-contact-text').value = db.contact || "";
     }
 
+    // WAŻNE: Filtr przesiadek (wyklucza linię w której jesteś)
     function getLinesForStop(stopName, excludeLineNum = null) {
         let found = [];
         db.lines.forEach(l => { 

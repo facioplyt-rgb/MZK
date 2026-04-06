@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V94</title>
+    <title>MZK GORZÓW PRO V95</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -27,8 +27,9 @@
         .line-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; min-height: 24px; }
         
         .line-badge { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 0.75rem; color: white; border: 1px solid rgba(0,0,0,0.1); white-space: nowrap; }
-        .line-badge.bus { background: var(--bus-col); }
-        .line-badge.tram { background: var(--tram-col); }
+        /* Klasy kolorów wymuszane w JS dla pewności przy dużej ilości */
+        .line-badge.bus { background-color: var(--bus-col) !important; }
+        .line-badge.tram { background-color: var(--tram-col) !important; }
         
         .dir-abbr { background: rgba(0,0,0,0.2); padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; margin-left: 2px; color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1); font-weight: 800; }
         .abbr-joiner { font-size: 0.6rem; color: #ffffff; margin: 0 3px; font-weight: 600; text-transform: lowercase; }
@@ -291,7 +292,8 @@
                 const g = document.createElement('div'); g.className = 'lines-grid';
                 [...new Set(lines.map(l => String(l.num)))].sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
                     const lObj = lines.find(x => String(x.num) === num);
-                    g.innerHTML += `<div class="line-square" style="border-bottom-color:${lObj.type==='bus'?'var(--bus-col)':'var(--tram-col)'}" onclick="openVars('${num}', 'home')">${num}</div>`;
+                    const colorClass = lObj.type === 'tram' ? 'tram' : 'bus';
+                    g.innerHTML += `<div class="line-square" style="border-bottom-color:var(--${colorClass}-col)" onclick="openVars('${num}', 'home')">${num}</div>`;
                 });
                 h.appendChild(g);
             }
@@ -334,7 +336,8 @@
                     <div class="line-badges">${Object.values(uniqueLines).map(l => {
                             const etaStr = l.eta === 0 ? '<span class="eta-now">>>></span>' : `(${formatETA(l.eta)})`;
                             const abbrs = l.dirs.map(dr => `<span class="dir-abbr">${getDirAbbr(dr)}</span>`).join('<span class="abbr-joiner">i</span>');
-                            return `<span class="line-badge ${l.type}">${l.num}${abbrs}<span class="transfer-eta">${etaStr}</span></span>`;
+                            const typeClass = l.type === 'tram' ? 'tram' : 'bus';
+                            return `<span class="line-badge ${typeClass}">${l.num}${abbrs}<span class="transfer-eta">${etaStr}</span></span>`;
                         }).join('')}</div></div>`; 
         }); 
     }
@@ -350,10 +353,11 @@
         variants.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
         variants.forEach(v => {
             const etaLabel = v.eta === 0 ? '<span class="eta-now">>>></span>' : v.eta !== null ? `${formatETA(v.eta)}` : "---";
+            const typeClass = v.type === 'tram' ? 'tram' : 'bus';
             list.innerHTML += `<div class="app-card" onclick="renderTimetable(${v.originalIdx}, ${v.stopIdx})">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="display:flex; align-items:center;"><span class="line-badge ${v.type}" style="margin-right:12px">${v.num}</span><div style="font-weight:700;"><span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}</div></div>
-                        <span class="eta-tag">${etaLabel}</span></div></div>`;
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap;">
+                        <div style="display:flex; align-items:center; overflow:hidden;"><span class="line-badge ${typeClass}" style="margin-right:12px">${v.num}</span><div style="font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><span class="dir-abbr">${getDirAbbr(v.dir)}</span> ${v.dir}</div></div>
+                        <span class="eta-tag" style="white-space:nowrap; margin-left:8px;">${etaLabel}</span></div></div>`;
         });
     }
 
@@ -368,11 +372,12 @@
                 const sd = db.stopDetails[cleanKey(s.name)] || {};
                 const badges = `${(s.nz || sd.globalNz) ? '<span class="badge badge-nz">NŻ</span>' : ''} ${sd.outZone ? '<span class="badge badge-strefa">Gr. Strefy</span>' : ''}`;
                 const transfers = getLinesForStop(s.name, l.num);
-                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.9;">` + transfers.slice(0,8).map(t => `
-                    <span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;" onclick="event.stopPropagation(); openInterTransfer('${t.num}', '${s.name}', ${lIdx})">
+                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.9;">` + transfers.slice(0,12).map(t => {
+                    const tType = t.type === 'tram' ? 'tram' : 'bus';
+                    return `<span class="line-badge ${tType}" style="font-size:0.6rem; padding:2px 4px;" onclick="event.stopPropagation(); openInterTransfer('${t.num}', '${s.name}', ${lIdx})">
                         ${t.num} <span class="dir-abbr">${getDirAbbr(t.dir)}</span>
                         <span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span>
-                    </span>`).join('') + `</div>` : "";
+                    </span>`}).join('') + `</div>` : "";
                 return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
                             <div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-weight:bold;">${s.name} ${badges}</div>${currentEtaHtml}</div>${transHtml}</div>`;
             }).join('');
@@ -491,15 +496,8 @@
     function saveGlobalStop() {
         if(!db.stopDetails) db.stopDetails = {};
         const stopName = document.getElementById('fsg-name').innerText;
-        db.stopDetails[cleanKey(stopName)] = { 
-            globalNz: document.getElementById('fsg-nz').checked, 
-            outZone: document.getElementById('fsg-zone').checked, 
-            nearby: document.getElementById('fsg-nearby').value 
-        };
-        dbRef.update({ stopDetails: db.stopDetails }).then(() => {
-            alert("Ustawienia przystanku zapisane!");
-            closeForms();
-        });
+        db.stopDetails[cleanKey(stopName)] = { globalNz: document.getElementById('fsg-nz').checked, outZone: document.getElementById('fsg-zone').checked, nearby: document.getElementById('fsg-nearby').value };
+        dbRef.update({ stopDetails: db.stopDetails }).then(() => { alert("Zapisano!"); closeForms(); });
     }
 
     function openNewsDetails(idx) { const n = db.news[idx]; document.getElementById('nd-title').innerText = n.title; document.getElementById('nd-date').innerText = n.date; document.getElementById('nd-body').innerText = n.body; show('news-details'); }
@@ -510,7 +508,11 @@
     
     function openVars(num, backTo, backIdx) { 
         show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Warianty linii ${num}</div>`; 
-        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) { const eta = getETA(l, 0); v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><b><span class="dir-abbr">${getDirAbbr(l.dir)}</span> DO: ${l.dir}</b><span class="eta-tag" style="margin-left:10px;">${eta!==null?formatETA(eta):'---'}</span></div></div>`; } }); 
+        db.lines.forEach((l, i) => { if(String(l.num) === String(num)) { 
+            const eta = getETA(l, 0); 
+            const typeClass = l.type === 'tram' ? 'tram' : 'bus';
+            v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><div style="display:flex; justify-content:space-between; align-items:center;"><b><span class="line-badge ${typeClass}" style="margin-right:8px; min-width:30px;">${l.num}</span> DO: ${l.dir}</b><span class="eta-tag" style="margin-left:10px;">${eta!==null?formatETA(eta):'---'}</span></div></div>`; 
+        } }); 
         const backBtn = document.getElementById('vars-back-btn'); if(backTo === 'tt') backBtn.onclick = () => renderTimetable(backIdx); else backBtn.onclick = () => show('home');
     }
 
@@ -523,7 +525,11 @@
         show('transfer-view'); const cont = document.getElementById('transfer-view-content'); cont.innerHTML = `<div class="group-label">Linia ${lineNum} z przystanku ${stopName}</div>`;
         let found = []; db.lines.forEach((l, i) => { if(String(l.num) === String(lineNum)) { const sIdx = l.stops ? l.stops.findIndex(st => st.name === stopName) : -1; if(sIdx !== -1) found.push({ line: l, lIdx: i, sIdx: sIdx, eta: getETA(l, sIdx) }); } });
         found.sort((a,b) => (a.eta === null ? 1 : (b.eta === null ? -1 : a.eta - b.eta)));
-        found.forEach(f => { const etaLabel = f.eta === 0 ? '<span class="eta-now">>>></span>' : f.eta !== null ? formatETA(f.eta) : "---"; cont.innerHTML += `<div class="app-card" onclick="renderTimetable(${f.lIdx}, ${f.sIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="dir-abbr">${getDirAbbr(f.line.dir)}</span> <b>${f.line.dir}</b></div><span class="eta-tag">${etaLabel}</span></div></div>`; });
+        found.forEach(f => { 
+            const etaLabel = f.eta === 0 ? '<span class="eta-now">>>></span>' : f.eta !== null ? formatETA(f.eta) : "---"; 
+            const tType = f.line.type === 'tram' ? 'tram' : 'bus';
+            cont.innerHTML += `<div class="app-card" onclick="renderTimetable(${f.lIdx}, ${f.sIdx})"><div style="display:flex; justify-content:space-between; align-items:center;"><div><span class="line-badge ${tType}" style="margin-right:8px;">${f.line.num}</span> <b>${f.line.dir}</b></div><span class="eta-tag">${etaLabel}</span></div></div>`; 
+        });
         document.getElementById('transfer-view-back').onclick = () => renderTimetable(backLineIdx, -1);
     }
 </script>

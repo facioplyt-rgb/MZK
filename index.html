@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V84</title>
+    <title>MZK GORZÓW PRO V86</title>
     
     <meta name="theme-color" content="#0b0f19">
     <link rel="icon" type="image/jpg" href="https://i.ibb.co/mF64vfc/1000011209.jpg">
@@ -92,7 +92,7 @@
         <button onclick="show('news')" class="main-btn" style="background:#333">Wróć</button>
     </div>
     <div id="s-contact" class="section"><div id="contact-display" class="app-card" style="display:block; white-space:pre-wrap; color:var(--text-sec); line-height:1.5;"></div></div>
-    <div id="s-vars" class="section"><div id="vars-list"></div><button onclick="show('home')" class="main-btn" style="background:#333">Wróć</button></div>
+    <div id="s-vars" class="section"><div id="vars-list"></div><button id="vars-back-btn" class="main-btn" style="background:#333">Wróć</button></div>
     <div id="s-tt" class="section">
         <div id="tt-day-sel" style="display:none; gap:5px; margin-bottom:15px;">
             <button class="day-btn active" id="btn-working" onclick="setDay('working')">Robocze</button>
@@ -177,6 +177,7 @@
     const dbRef = firebase.database().ref('mzk_v12_pro');
     let db = { lines: [], stopDetails: {}, news: [], lineCategories: [], newsCategories: [], contact: "", customAbbrs: {} };
     let curLineIdx = -1, curNewsIdx = -1, curDay = 'working', curStopIdx = -1, allStops = [];
+    let lastOpenedStopName = "";
 
     function cleanKey(n) { return n ? n.trim().replace(/[.#$[\]]/g, "") : "unknown"; }
     
@@ -264,10 +265,18 @@
                 render(); 
             }
         });
+        
+        // AUTOMATYCZNE ODŚWIEŻANIE CO 10 SEKUND
+        setInterval(() => {
+            const activeSec = document.querySelector('.section.active-sec')?.id;
+            if(activeSec === 's-stops') renderStopsList();
+            if(activeSec === 's-stop-lines' && lastOpenedStopName) openStopLines(lastOpenedStopName);
+            if(activeSec === 's-tt') renderTimetable(curLineIdx, curStopIdx);
+            if(activeSec === 's-home') render();
+        }, 10000);
     }
 
     function render() {
-        // Główna lista linii
         const h = document.getElementById('s-home'); h.innerHTML = '';
         (db.lineCategories || []).forEach(cat => {
             const lines = db.lines.filter(l => l.category === cat);
@@ -276,13 +285,12 @@
                 const g = document.createElement('div'); g.className = 'lines-grid';
                 [...new Set(lines.map(l => String(l.num)))].sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
                     const lObj = lines.find(x => String(x.num) === num);
-                    g.innerHTML += `<div class="line-square" style="border-bottom-color:${lObj.type==='bus'?'var(--bus-col)':'var(--tram-col)'}" onclick="openVars('${num}')">${num}</div>`;
+                    g.innerHTML += `<div class="line-square" style="border-bottom-color:${lObj.type==='bus'?'var(--bus-col)':'var(--tram-col)'}" onclick="openVars('${num}', 'home')">${num}</div>`;
                 });
                 h.appendChild(g);
             }
         });
 
-        // Newsy
         const nDiv = document.getElementById('public-news-list'); nDiv.innerHTML = '';
         (db.newsCategories || []).forEach(cat => {
             const news = (db.news || []).filter(n => n.category === cat);
@@ -332,6 +340,7 @@
     }
 
     function openStopLines(name) { 
+        lastOpenedStopName = name;
         show('stop-lines'); 
         const list = document.getElementById('sl-list'); 
         list.innerHTML = `<div class="group-label" style="color:var(--accent)">Odjazdy z: ${name}</div>`; 
@@ -372,7 +381,7 @@
                 const currentLineETA = getETA(l, i);
                 const currentEtaHtml = currentLineETA !== null ? `<span class="eta-tag">${currentLineETA === 0 ? '<span class="eta-now">>>></span>' : formatETA(currentLineETA)}</span>` : `<span class="eta-tag" style="background:rgba(255,255,255,0.05); color:var(--text-sec)">---</span>`;
                 const transfers = getLinesForStop(s.name, l.num);
-                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.8;">` + transfers.slice(0,6).map(t => `<span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;">${t.num}<span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
+                const transHtml = transfers.length ? `<div class="line-badges" style="margin-top:5px; opacity:0.8;">` + transfers.slice(0,6).map(t => `<span class="line-badge ${t.type}" style="font-size:0.6rem; padding:2px 4px;" onclick="event.stopPropagation(); openVars('${t.num}', 'tt', ${lIdx})">${t.num}<span class="dir-abbr">${getDirAbbr(t.dir)}</span><span class="transfer-eta">${t.eta===0?'>>>':formatETA(t.eta)}</span></span>`).join('') + `</div>` : "";
                 return `<div class="app-card" onclick="renderTimetable(${lIdx}, ${i})">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <div style="font-weight:bold;">${s.name}</div>
@@ -486,7 +495,28 @@
     function setTab(t) { document.querySelectorAll('.adm-tab').forEach(x => x.style.display='none'); document.getElementById('tab-'+t).style.display='block'; }
     function login() { if(document.getElementById('pass').value==='123') document.getElementById('adm-ui').style.display='block'; }
     function closeForms() { document.querySelectorAll('.overlay-form').forEach(f => f.style.display='none'); }
-    function openVars(num) { show('vars'); const v = document.getElementById('vars-list'); v.innerHTML = `<div class="group-label">Warianty linii ${num}</div>`; db.lines.forEach((l, i) => { if(String(l.num) === String(num)) v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})"><b>DO: ${l.dir}</b></div>`; }); }
+    
+    function openVars(num, backTo, backIdx) { 
+        show('vars'); 
+        const v = document.getElementById('vars-list'); 
+        v.innerHTML = `<div class="group-label">Warianty linii ${num}</div>`; 
+        db.lines.forEach((l, i) => { 
+            if(String(l.num) === String(num)) {
+                const eta = getETA(l, 0);
+                v.innerHTML += `<div class="app-card" onclick="renderTimetable(${i})">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b><span class="dir-abbr">${getDirAbbr(l.dir)}</span> DO: ${l.dir}</b>
+                        <span class="eta-tag" style="margin-left:10px;">${eta!==null?formatETA(eta):'---'}</span>
+                    </div>
+                </div>`; 
+            }
+        }); 
+        
+        const backBtn = document.getElementById('vars-back-btn');
+        if(backTo === 'tt') backBtn.onclick = () => renderTimetable(backIdx);
+        else backBtn.onclick = () => show('home');
+    }
+
     function deleteLine() { if(confirm("Usunąć linię?")) { db.lines.splice(curLineIdx, 1); dbRef.update({ lines: db.lines }).then(closeForms); } }
     function deleteNews() { if(confirm("Usunąć news?")) { db.news.splice(curNewsIdx, 1); dbRef.update({ news: db.news }).then(closeForms); } }
     function saveAllCategories() { const lCats = document.getElementById('edit-cats-input').value.split(',').map(c => c.trim()).filter(c => c); const nCats = document.getElementById('edit-news-cats-input').value.split(',').map(c => c.trim()).filter(c => c); dbRef.update({ lineCategories: lCats, newsCategories: nCats }).then(() => alert("Zapisano kategorie!")); }

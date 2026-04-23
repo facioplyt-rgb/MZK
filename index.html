@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - MODULAR PRO</title>
+    <title>MZK GORZÓW - SYSTEM V2026</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
@@ -11,50 +11,59 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
     <style>
+        /* === SYSTEM WIZUALNY === */
         :root { 
-            --accent: #00ab55; --bg: #05080f; --surf: #121926; 
-            --surf-l: #1c2536; --text: #ffffff; --text-m: #94a3b8;
-            --bus: #00ab55; --tram: #ef4444; --border: rgba(255,255,255,0.08);
+            --accent: #00ab55; 
+            --bg: #05080f; 
+            --surf: #121926; 
+            --surf-l: #1c2536; 
+            --text: #ffffff; 
+            --text-m: #94a3b8;
+            --bus: #00ab55; 
+            --tram: #ef4444; 
+            --border: rgba(255,255,255,0.08);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 90px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; }
 
         /* Nagłówek */
         header { 
-            background: rgba(5, 8, 15, 0.9); backdrop-filter: blur(10px);
+            background: rgba(5, 8, 15, 0.9); backdrop-filter: blur(12px);
             padding: 20px; position: sticky; top: 0; z-index: 1000;
             border-bottom: 1px solid var(--border); text-align: center;
         }
-        header h1 { font-family: 'Outfit', sans-serif; font-size: 1.2rem; color: var(--accent); letter-spacing: 1px; }
+        header h1 { font-family: 'Outfit', sans-serif; font-size: 1.2rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
 
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
 
-        /* System widoków */
+        /* Moduły (Widoki) */
         .module { display: none; }
-        .module.active { display: block; animation: fadeIn 0.3s ease; }
+        .module.active { display: block; animation: slideUp 0.3s ease; }
 
-        /* UI Kit */
-        .card { background: var(--surf); border-radius: 18px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
-        .btn { background: var(--accent); color: #fff; padding: 14px; border: none; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; }
-        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 12px; background: var(--surf-l); color: #fff; border: 1px solid var(--border); }
+        /* UI Kit - Karty, Przyciski, Formularze */
+        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .btn { background: var(--accent); color: #fff; padding: 16px; border: none; border-radius: 14px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        input, select, textarea { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 14px; background: var(--surf-l); color: #fff; border: 1px solid var(--border); font-size: 1rem; }
 
         /* Nawigacja Dolna */
         nav { 
             position: fixed; bottom: 0; width: 100%; background: var(--surf); 
-            display: flex; height: 75px; border-top: 1px solid var(--border); z-index: 2000;
+            display: flex; height: 80px; border-top: 1px solid var(--border); z-index: 2000;
+            padding-bottom: env(safe-area-inset-bottom);
         }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); cursor: pointer; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--accent); }
-        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; }
-        .nav-item span { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; }
+        .nav-item i { font-size: 1.4rem; margin-bottom: 5px; }
+        .nav-item span { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Odznaki linii */
-        .line-badge { width: 45px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; font-family: 'Outfit'; margin-right: 12px; }
-        .bg-bus { background: var(--bus); }
-        .bg-tram { background: var(--tram); }
+        /* Linie - Odznaki */
+        .line-badge { width: 50px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; font-family: 'Outfit'; margin-right: 15px; font-size: 1.1rem; }
+        .bg-bus { background: var(--bus); box-shadow: 0 4px 15px rgba(0,171,85,0.3); }
+        .bg-tram { background: var(--tram); box-shadow: 0 4px 15px rgba(239,68,68,0.3); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -70,20 +79,21 @@
 
     <nav>
         <div class="nav-item active" id="nav-lines" onclick="App.switch('lines')">
-            <i class="fa-solid fa-bus-simple"></i><span>Linie</span>
+            <i class="fa-solid fa-bus"></i><span>Linie</span>
         </div>
         <div class="nav-item" id="nav-news" onclick="App.switch('news')">
             <i class="fa-solid fa-bullhorn"></i><span>News</span>
         </div>
         <div class="nav-item" id="nav-admin" onclick="App.switch('admin')">
-            <i class="fa-solid fa-gears"></i><span>Admin</span>
+            <i class="fa-solid fa-user-shield"></i><span>Admin</span>
         </div>
     </nav>
 
     <script>
-        // === GŁÓWNY SILNIK (App Core) ===
+        // === CORE ENGINE ===
         window.App = {
-            dbKey: localStorage.getItem('mzk_key') || 'mzk_v12_pro',
+            // Klucz bazy danych (pobierany z pamięci lub domyślny)
+            dbKey: localStorage.getItem('mzk_key') || 'mzk_v2026_pro',
             
             init() {
                 const config = {
@@ -92,128 +102,36 @@
                     databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app",
                     projectId: "mzk-by-facio"
                 };
-                firebase.initializeApp(config);
-                console.log("System gotowy. Baza:", this.dbKey);
+                if (!firebase.apps.length) firebase.initializeApp(config);
+                console.log("System V2026 zainicjowany. Baza:", this.dbKey);
             },
 
-            // Funkcja przełączania widoków - zawsze dostępna
+            // Uniwersalna funkcja przełączania widoków
             switch(id) {
+                // Usuwamy aktywność z innych
                 document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
                 
+                // Aktywujemy wybrany
                 const targetView = document.getElementById('view-' + id);
                 if(targetView) targetView.classList.add('active');
                 
                 const targetNav = document.getElementById('nav-' + id);
                 if(targetNav) targetNav.classList.add('active');
 
-                // Wywołaj renderowanie modułu, jeśli istnieje
-                if(id === 'admin') ModAdmin.render();
-                if(id === 'lines') ModLines.render();
+                // Wywołanie odświeżania modułu (jeśli istnieje)
+                if(window['Mod' + id.charAt(0).toUpperCase() + id.slice(1)]) {
+                    window['Mod' + id.charAt(0).toUpperCase() + id.slice(1)].render();
+                }
                 
                 window.scrollTo(0,0);
             }
         };
 
-        window.App.init();
-        // === MODUŁ 2: WIDOK LINII I ROZKŁADÓW ===
-        window.ModLines = {
-            data: [],
+        // Start silnika
+        App.init();
 
-            init() {
-                // Słuchamy zmian w aktualnej bazie
-                firebase.database().ref(App.dbKey + '/lines').on('value', snap => {
-                    this.data = snap.val() || [];
-                    this.render();
-                });
-            },
-
-            // Renderowanie listy linii na ekranie głównym
-            render() {
-                const container = document.getElementById('view-lines');
-                if(!container) return;
-                
-                if(this.data.length === 0) {
-                    container.innerHTML = `
-                        <div class="card" style="text-align:center; opacity:0.5; padding:40px 20px">
-                            <i class="fa-solid fa-bus" style="font-size:3rem; margin-bottom:15px"></i>
-                            <p>Brak linii w bazie <b>${App.dbKey}</b>.<br>Użyj panelu Admina, aby je dodać.</p>
-                        </div>`;
-                    return;
-                }
-
-                container.innerHTML = '';
-                
-                // Grupowanie linii według kategorii (np. Dzienne, Tramwaje)
-                const categories = [...new Set(this.data.map(l => l.cat || 'Inne'))];
-                
-                categories.forEach(cat => {
-                    container.innerHTML += `
-                        <div style="font-family:'Outfit'; font-weight:900; color:var(--accent); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase; margin:25px 5px 10px">
-                            ${cat}
-                        </div>`;
-                    
-                    this.data.filter(l => (l.cat || 'Inne') === cat).forEach((line, idx) => {
-                        const originalIdx = this.data.indexOf(line);
-                        const isTram = line.type === 'tram' || line.cat === 'Tramwaje';
-                        
-                        container.innerHTML += `
-                            <div class="card" style="display:flex; align-items:center; cursor:pointer" onclick="ModLines.showDetails(${originalIdx})">
-                                <div class="line-badge ${isTram ? 'bg-tram' : 'bg-bus'}">${line.num}</div>
-                                <div style="flex:1">
-                                    <div style="font-weight:700; font-size:1rem">${line.dir}</div>
-                                    <div style="font-size:0.7rem; color:var(--text-m)">Przystanków: ${line.stops ? line.stops.length : 0}</div>
-                                </div>
-                                <i class="fa-solid fa-chevron-right" style="opacity:0.3"></i>
-                            </div>`;
-                    });
-                });
-            },
-
-            // Szczegółowy widok trasy po kliknięciu
-            showDetails(idx) {
-                const l = this.data[idx];
-                if(!l) return;
-
-                const container = document.getElementById('view-details');
-                const isTram = l.type === 'tram' || l.cat === 'Tramwaje';
-
-                let stopsHtml = (l.stops && l.stops.length > 0) 
-                    ? l.stops.map(s => `
-                        <div style="display:flex; padding:15px 0; border-bottom:1px solid var(--border); align-items:center">
-                            <div style="width:45px; font-weight:900; color:var(--accent); font-family:'Outfit'; font-size:1.1rem">${s.time}'</div>
-                            <div style="font-weight:600; font-size:0.95rem">${s.name}</div>
-                        </div>`).join('')
-                    : '<p style="padding:20px; opacity:0.5">Ta linia nie ma jeszcze wpisanych przystanków.</p>';
-
-                container.innerHTML = `
-                    <div class="card" style="border-left:5px solid var(--accent); padding:20px">
-                        <div style="display:flex; align-items:center">
-                            <div class="line-badge ${isTram ? 'bg-tram' : 'bg-bus'}" style="width:55px; height:45px; font-size:1.3rem; margin-right:20px">${l.num}</div>
-                            <div>
-                                <div style="font-size:0.6rem; text-transform:uppercase; color:var(--accent); font-weight:900; letter-spacing:1px">Kierunek</div>
-                                <div style="font-size:1.3rem; font-weight:900; font-family:'Outfit'">${l.dir}</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="padding:10px 20px">
-                        <div style="font-size:0.6rem; text-transform:uppercase; opacity:0.4; font-weight:900; margin:10px 0; letter-spacing:1px">Trasa i czas przejazdu</div>
-                        ${stopsHtml}
-                    </div>
-
-                    <button class="btn" style="background:var(--surf-l); border:1px solid var(--border); margin-top:10px" onclick="App.switch('lines')">
-                        <i class="fa-solid fa-arrow-left" style="margin-right:10px"></i> POWRÓT DO LISTY
-                    </button>
-                `;
-                
-                App.switch('details');
-            }
-        };
-
-        // Inicjalizacja przy starcie
-        ModLines.init();
-
+        // [TU BĘDZIEMY DOPISYWAĆ KOLEJNE MODUŁY]
     </script>
 </body>
 </html>

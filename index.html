@@ -116,8 +116,104 @@
         };
 
         window.App.init();
+        // === MODUŁ 2: WIDOK LINII I ROZKŁADÓW ===
+        window.ModLines = {
+            data: [],
 
-        // --- MIEJSCE NA KOLEJNE MODUŁY (Wklejaj poniżej) ---
+            init() {
+                // Słuchamy zmian w aktualnej bazie
+                firebase.database().ref(App.dbKey + '/lines').on('value', snap => {
+                    this.data = snap.val() || [];
+                    this.render();
+                });
+            },
+
+            // Renderowanie listy linii na ekranie głównym
+            render() {
+                const container = document.getElementById('view-lines');
+                if(!container) return;
+                
+                if(this.data.length === 0) {
+                    container.innerHTML = `
+                        <div class="card" style="text-align:center; opacity:0.5; padding:40px 20px">
+                            <i class="fa-solid fa-bus" style="font-size:3rem; margin-bottom:15px"></i>
+                            <p>Brak linii w bazie <b>${App.dbKey}</b>.<br>Użyj panelu Admina, aby je dodać.</p>
+                        </div>`;
+                    return;
+                }
+
+                container.innerHTML = '';
+                
+                // Grupowanie linii według kategorii (np. Dzienne, Tramwaje)
+                const categories = [...new Set(this.data.map(l => l.cat || 'Inne'))];
+                
+                categories.forEach(cat => {
+                    container.innerHTML += `
+                        <div style="font-family:'Outfit'; font-weight:900; color:var(--accent); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase; margin:25px 5px 10px">
+                            ${cat}
+                        </div>`;
+                    
+                    this.data.filter(l => (l.cat || 'Inne') === cat).forEach((line, idx) => {
+                        const originalIdx = this.data.indexOf(line);
+                        const isTram = line.type === 'tram' || line.cat === 'Tramwaje';
+                        
+                        container.innerHTML += `
+                            <div class="card" style="display:flex; align-items:center; cursor:pointer" onclick="ModLines.showDetails(${originalIdx})">
+                                <div class="line-badge ${isTram ? 'bg-tram' : 'bg-bus'}">${line.num}</div>
+                                <div style="flex:1">
+                                    <div style="font-weight:700; font-size:1rem">${line.dir}</div>
+                                    <div style="font-size:0.7rem; color:var(--text-m)">Przystanków: ${line.stops ? line.stops.length : 0}</div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right" style="opacity:0.3"></i>
+                            </div>`;
+                    });
+                });
+            },
+
+            // Szczegółowy widok trasy po kliknięciu
+            showDetails(idx) {
+                const l = this.data[idx];
+                if(!l) return;
+
+                const container = document.getElementById('view-details');
+                const isTram = l.type === 'tram' || l.cat === 'Tramwaje';
+
+                let stopsHtml = (l.stops && l.stops.length > 0) 
+                    ? l.stops.map(s => `
+                        <div style="display:flex; padding:15px 0; border-bottom:1px solid var(--border); align-items:center">
+                            <div style="width:45px; font-weight:900; color:var(--accent); font-family:'Outfit'; font-size:1.1rem">${s.time}'</div>
+                            <div style="font-weight:600; font-size:0.95rem">${s.name}</div>
+                        </div>`).join('')
+                    : '<p style="padding:20px; opacity:0.5">Ta linia nie ma jeszcze wpisanych przystanków.</p>';
+
+                container.innerHTML = `
+                    <div class="card" style="border-left:5px solid var(--accent); padding:20px">
+                        <div style="display:flex; align-items:center">
+                            <div class="line-badge ${isTram ? 'bg-tram' : 'bg-bus'}" style="width:55px; height:45px; font-size:1.3rem; margin-right:20px">${l.num}</div>
+                            <div>
+                                <div style="font-size:0.6rem; text-transform:uppercase; color:var(--accent); font-weight:900; letter-spacing:1px">Kierunek</div>
+                                <div style="font-size:1.3rem; font-weight:900; font-family:'Outfit'">${l.dir}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="padding:10px 20px">
+                        <div style="font-size:0.6rem; text-transform:uppercase; opacity:0.4; font-weight:900; margin:10px 0; letter-spacing:1px">Trasa i czas przejazdu</div>
+                        ${stopsHtml}
+                    </div>
+
+                    <button class="btn" style="background:var(--surf-l); border:1px solid var(--border); margin-top:10px" onclick="App.switch('lines')">
+                        <i class="fa-solid fa-arrow-left" style="margin-right:10px"></i> POWRÓT DO LISTY
+                    </button>
+                `;
+                
+                App.switch('details');
+            }
+        };
+
+        // Inicjalizacja przy starcie
+        ModLines.init();
+
     </script>
 </body>
 </html>

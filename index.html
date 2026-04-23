@@ -317,6 +317,159 @@
     window.onload = () => {
         ModuleLines.init();
     };
+    // === 4. MODUŁ ADMINA (ZARZĄDZANIE I RECOVERY) ===
+    window.ModuleAdmin = {
+        isLogged: false,
+
+        auth() {
+            const pass = document.getElementById('adm-pass').value;
+            if (pass === '123') { // Twoje hasło
+                this.isLogged = true;
+                this.renderPanel();
+            } else {
+                alert("Błędne hasło!");
+            }
+        },
+
+        // Przełączanie bazy (Recovery Mode)
+        updateDBKey() {
+            const newKey = document.getElementById('cfg-db-key').value;
+            if(confirm("Przełączyć na bazę: " + newKey + "?")) {
+                localStorage.setItem('mzk_db_key', newKey);
+                location.reload(); // Odświeżamy, by nawiązać nowe połączenie
+            }
+        },
+
+        renderPanel() {
+            const container = document.getElementById('module-admin');
+            container.innerHTML = `
+                <div class="card" style="border: 2px solid var(--accent)">
+                    <h3 style="font-size: 0.9rem; margin-bottom: 10px; color: var(--accent)">⚙️ KONFIGURACJA CHMURY</h3>
+                    <p style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 10px;">Zmień klucz, aby odzyskać stare dane (np. mzk_v12_pro, mzk_v15)</p>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="cfg-db-key" value="${Core.dbKey}" style="margin-bottom:0">
+                        <button class="btn" style="width: auto; padding: 0 20px;" onclick="ModuleAdmin.updateDBKey()">OK</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom:15px">🆕 DODAJ NOWĄ LINIĘ</h3>
+                    <input type="text" id="f-num" placeholder="Numer linii (np. 124)">
+                    <input type="text" id="f-dir" placeholder="Kierunek (np. Londyńska)">
+                    
+                    <select id="f-cat">
+                        <option value="Dzienne">Autobusy Dzienne</option>
+                        <option value="Tramwaje">Tramwaje</option>
+                        <option value="Nocne">Autobusy Nocne</option>
+                        <option value="Podmiejskie">Linie Podmiejskie</option>
+                    </select>
+
+                    <label style="font-size: 0.7rem; color: var(--accent)">PRZYSTANKI (Format: Nazwa|Minuta, Nazwa|Minuta)</label>
+                    <textarea id="f-stops" rows="4" placeholder="Katedra|0, Arsenał|2, Piaski|5"></textarea>
+                    
+                    <button class="btn" onclick="ModuleAdmin.saveLine()">ZAPISZ LINIĘ W CHMURZE</button>
+                </div>
+
+                <h3 style="margin: 20px 5px 10px; font-size: 0.8rem; opacity: 0.5;">EDYCJA / USUWANIE</h3>
+                <div id="adm-lines-list"></div>
+            `;
+            this.renderAdminLines();
+        },
+
+        renderAdminLines() {
+            const list = document.getElementById('adm-lines-list');
+            if(!list) return;
+            
+            list.innerHTML = ModuleLines.data.map((l, i) => `
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px;">
+                    <div>
+                        <b style="color: var(--accent)">${l.num}</b> 
+                        <span style="font-size: 0.8rem; margin-left: 10px;">${l.dir}</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <i class="fa-solid fa-pen-to-square" style="color: var(--text-muted)" onclick="ModuleAdmin.editLine(${i})"></i>
+                        <i class="fa-solid fa-trash" style="color: var(--tram)" onclick="ModuleAdmin.deleteLine(${i})"></i>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        saveLine() {
+            const num = document.getElementById('f-num').value;
+            const dir = document.getElementById('f-dir').value;
+            const cat = document.getElementById('f-cat').value;
+            const stopsRaw = document.getElementById('f-stops').value;
+
+            if(!num || !dir) return alert("Podaj numer i kierunek!");
+
+            // Parsowanie przystanków
+            const stops = stopsRaw.split(',').filter(s => s.includes('|')).map(s => {
+                const parts = s.split('|');
+                return { name: parts[0].trim(), time: parts[1].trim() };
+            });
+
+            const newLine = {
+                num, dir, cat, stops,
+                type: cat === 'Tramwaje' ? 'tram' : 'bus'
+            };
+
+            // Pobieramy aktualny stan, dodajemy i wysyłamy
+            const updatedLines = [...ModuleLines.data, newLine];
+            
+            db.ref(Core.dbKey).set({
+                lines: updatedLines,
+                categories: ["Dzienne", "Tramwaje", "Nocne", "Podmiejskie"], // Standardowy set
+                lastUpdate: new Date().toISOString()
+            }).then(() => {
+                alert("Linia dodana pomyślnie!");
+                this.renderPanel(); // Odśwież panel
+            });
+        },
+
+        deleteLine(index) {
+            if(confirm("Czy na pewno chcesz usunąć tę linię?")) {
+                const updatedLines = [...ModuleLines.data];
+                updatedLines.splice(index, 1);
+                db.ref(Core.dbKey + "/lines").set(updatedLines);
+            }
+        },
+
+        editLine(index) {
+            const l = ModuleLines.data[index];
+            document.getElementById('f-num').value = l.num;
+            document.getElementById('f-dir').value = l.dir;
+            document.getElementById('f-cat').value = l.cat || 'Dzienne';
+            document.getElementById('f-stops').value = l.stops ? l.stops.map(s => `${s.name}|${s.time}`).join(', ') : '';
+            
+            // Scroll do formularza
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Zmieniamy przycisk na "Aktualizuj"
+            const btn = document.querySelector('#module-admin .btn');
+            btn.innerText = "AKTUALIZUJ ISTNIEJĄCĄ LINIĘ";
+            btn.onclick = () => {
+                this.deleteLine(index); // Usuwamy starą wersję
+                this.saveLine();       // Zapisujemy nową
+            };
+        }
+    };
+    
+    // Dodajemy inicjalizację panelu startowego
+    const originalSwitch = Core.switchModule;
+    Core.switchModule = function(id) {
+        originalSwitch(id);
+        if(id === 'admin' && !ModuleAdmin.isLogged) {
+            document.getElementById('module-admin').innerHTML = `
+                <div class="card" id="adm-auth">
+                    <h2 style="margin-bottom: 20px; text-align: center;">Panel Zarządzania</h2>
+                    <input type="password" id="adm-pass" placeholder="Hasło Administratora">
+                    <button class="btn" onclick="ModuleAdmin.auth()">ZALOGUJ SIĘ</button>
+                    <p style="text-align:center; font-size: 0.7rem; margin-top: 15px; opacity: 0.4;">Wersja Systemu: V200 MODULAR</p>
+                </div>
+            `;
+        }
+    };
+
 </script>
 </body>
 </html>

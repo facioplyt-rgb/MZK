@@ -130,8 +130,143 @@
 
         // Start silnika
         App.init();
+        // === MODUŁ 2: ADMIN (Zarządzanie & Recovery) ===
+        window.ModAdmin = {
+            isLogged: false,
 
-        // [TU BĘDZIEMY DOPISYWAĆ KOLEJNE MODUŁY]
+            // Logowanie - proste hasło
+            login() {
+                const pass = document.getElementById('adm-pass').value;
+                if(pass === '123') {
+                    this.isLogged = true;
+                    this.render();
+                } else {
+                    alert("Błędne hasło!");
+                }
+            },
+
+            // Funkcja Recovery - zmiana klucza bazy danych
+            updateKey() {
+                const newKey = document.getElementById('cfg-key').value;
+                if(confirm("Przełączyć na bazę: " + newKey + "?")) {
+                    localStorage.setItem('mzk_key', newKey);
+                    location.reload(); // Odświeżamy połączenie
+                }
+            },
+
+            // Główny widok panelu
+            render() {
+                const container = document.getElementById('view-admin');
+                if(!container) return;
+
+                // Jeśli nie zalogowany - pokaż ekran logowania
+                if(!this.isLogged) {
+                    container.innerHTML = `
+                        <div class="card" style="text-align:center">
+                            <i class="fa-solid fa-shield-halved" style="font-size:3rem; color:var(--accent); margin-bottom:20px"></i>
+                            <h2 style="margin-bottom:25px; font-family:'Outfit'">Panel Sterowania</h2>
+                            <input type="password" id="adm-pass" placeholder="Hasło administratora">
+                            <button class="btn" onclick="ModAdmin.login()">ZALOGUJ SIĘ</button>
+                        </div>`;
+                    return;
+                }
+
+                // Panel po zalogowaniu
+                container.innerHTML = `
+                    <div class="card" style="border: 1px solid var(--accent)">
+                        <label style="font-size:0.7rem; color:var(--accent); font-weight:900; letter-spacing:1px">KLUCZ BAZY (RECOVERY)</label>
+                        <div style="display:flex; gap:10px; margin-top:8px">
+                            <input type="text" id="cfg-key" value="${App.dbKey}" style="margin:0">
+                            <button class="btn" style="width:auto; padding:0 20px" onclick="ModAdmin.updateKey()">ZMIEŃ</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin-bottom:15px; font-family:'Outfit'">DODAJ NOWĄ LINIĘ</h3>
+                        <input type="text" id="f-num" placeholder="Numer linii (np. 124)">
+                        <input type="text" id="f-dir" placeholder="Kierunek (np. Londyńska)">
+                        
+                        <select id="f-cat">
+                            <option value="Dzienne">Autobusy Dzienne</option>
+                            <option value="Tramwaje">Tramwaje</option>
+                            <option value="Nocne">Autobusy Nocne</option>
+                        </select>
+
+                        <label style="font-size:0.65rem; opacity:0.5">PRZYSTANKI (Format: Nazwa|Minuta, ...)</label>
+                        <textarea id="f-stops" rows="4" placeholder="Katedra|0, Arsenał|2, Piaski|5"></textarea>
+                        
+                        <button class="btn" onclick="ModAdmin.saveLine()">WYŚLIJ DO CHMURY</button>
+                    </div>
+
+                    <div id="adm-list-lines">
+                        <p style="text-align:center; opacity:0.5; font-size:0.8rem">Ładowanie listy linii...</p>
+                    </div>
+                `;
+                this.loadList();
+            },
+
+            // Zapisywanie linii do Firebase
+            saveLine() {
+                const num = document.getElementById('f-num').value;
+                const dir = document.getElementById('f-dir').value;
+                const cat = document.getElementById('f-cat').value;
+                const stopsRaw = document.getElementById('f-stops').value;
+
+                if(!num || !dir) return alert("Podaj numer i kierunek!");
+
+                // Parsowanie przystanków z formatu Nazwa|Minuta
+                const stops = stopsRaw.split(',').filter(s => s.includes('|')).map(s => {
+                    const parts = s.split('|');
+                    return { name: parts[0].trim(), time: parts[1].trim() };
+                });
+
+                const newLine = {
+                    num, dir, cat, stops,
+                    type: cat === 'Tramwaje' ? 'tram' : 'bus'
+                };
+
+                firebase.database().ref(App.dbKey + '/lines').once('value').then(snap => {
+                    let lines = snap.val() || [];
+                    lines.push(newLine);
+                    firebase.database().ref(App.dbKey + '/lines').set(lines).then(() => {
+                        alert("Linia dodana!");
+                        this.render();
+                    });
+                });
+            },
+
+            // Wyświetlanie listy do usuwania w panelu
+            loadList() {
+                firebase.database().ref(App.dbKey + '/lines').on('value', snap => {
+                    const lines = snap.val() || [];
+                    const listDiv = document.getElementById('adm-list-lines');
+                    if(!listDiv) return;
+
+                    listDiv.innerHTML = '<h4 style="margin:20px 5px 10px; font-size:0.7rem; opacity:0.5; text-transform:uppercase">Zarządzaj liniami</h4>';
+                    
+                    lines.forEach((l, i) => {
+                        listDiv.innerHTML += `
+                            <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 18px">
+                                <div><b style="color:var(--accent)">${l.num}</b> <span style="margin-left:8px">${l.dir}</span></div>
+                                <i class="fa-solid fa-trash-can" style="color:var(--tram); cursor:pointer" onclick="ModAdmin.deleteLine(${i})"></i>
+                            </div>`;
+                    });
+                });
+            },
+
+            // Usuwanie linii
+            deleteLine(index) {
+                if(confirm("Usunąć tę linię?")) {
+                    firebase.database().ref(App.dbKey + '/lines').once('value').then(snap => {
+                        let lines = snap.val() || [];
+                        lines.splice(index, 1);
+                        firebase.database().ref(App.dbKey + '/lines').set(lines);
+                    });
+                }
+            }
+        };
+
+        
     </script>
 </body>
 </html>

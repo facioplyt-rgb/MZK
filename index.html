@@ -3,88 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - MASTER RECOVERY</title>
+    <title>MZK GORZÓW MODULAR</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #00ab55; --bg: #05080f; --surf: #121926; --text: #fff; --bus: #00ab55; --tram: #ef4444; }
+        :root { --accent: #00ab55; --bg: #0b0f19; --surf: #161c24; --text: #fff; --bus: #00ab55; --tram: #ff4842; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
         body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
         
-        header { padding: 25px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); background: rgba(5,8,15,0.9); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; }
-        header h1 { font-weight: 900; letter-spacing: 2px; color: var(--accent); font-size: 1.2rem; }
-
+        /* Moduły layoutowe */
+        header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); sticky; top: 0; background: var(--bg); z-index: 1000; }
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s; }
+        .section { display: none; } .active-sec { display: block; }
         
-        .line-badge { min-width: 50px; height: 40px; background: var(--bus); display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; font-size: 1.1rem; margin-right: 15px; }
-        
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--surf); display: flex; height: 80px; border-top: 1px solid rgba(255,255,255,0.1); z-index: 2000; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; opacity: 0.5; transition: 0.3s; cursor: pointer; }
+        /* Stylistyka Kafli (z Twoich screenów) */
+        .card { background: var(--surf); border-radius: 18px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .line-badge { width: 45px; height: 35px; background: var(--bus); display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; margin-right: 15px; }
+
+        /* Nawigacja */
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--surf); display: flex; height: 80px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; opacity: 0.5; transition: 0.3s; }
         .nav-item.active { opacity: 1; color: var(--accent); }
-        .nav-item i { font-size: 1.5rem; margin-bottom: 5px; }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 4px; }
 
-        .section { display: none; animation: slideUp 0.4s ease; }
-        .active-sec { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        input, textarea, select { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 15px; background: #1c2536; color: #fff; border: 1px solid rgba(255,255,255,0.1); font-size: 1rem; }
-        .btn { background: var(--accent); color: #fff; padding: 16px; border: none; border-radius: 15px; width: 100%; font-weight: 800; cursor: pointer; box-shadow: 0 5px 15px rgba(0,171,85,0.3); }
-        
-        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; background: rgba(255,255,255,0.1); margin-top: 10px; display: inline-block; }
+        /* Admin / Formularze */
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; background: #222; color: #fff; border: 1px solid #333; }
+        .btn { background: var(--accent); color: #fff; padding: 12px; border: none; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<header><h1>MZK GORZÓW</h1></header>
+<header><h1 id="header-title">MZK GORZÓW</h1></header>
 
 <div class="container">
-    <div id="s-home" class="section active-sec">
-        <div id="data-render">
-            <div class="card">Łączenie z serwerem danych...</div>
+    <div id="m-lines" class="section active-sec">
+        <div id="render-lines">Szukanie linii w chmurze...</div>
+    </div>
+
+    <div id="m-stops" class="section">
+        <input type="text" placeholder="Szukaj przystanku..." oninput="ModuleStops.search(this.value)">
+        <div id="render-stops"></div>
+    </div>
+
+    <div id="m-news" class="section">
+        <div id="render-news">Brak komunikatów.</div>
+    </div>
+
+    <div id="m-admin" class="section">
+        <div class="card" id="adm-auth">
+            <input type="password" id="adm-pass" placeholder="Hasło (123)">
+            <button class="btn" onclick="ModuleAdmin.auth()">Zaloguj</button>
+        </div>
+        <div id="adm-content" style="display:none">
+            <div class="card">
+                <small style="color:var(--accent)">Konfiguracja Modułów (Recovery):</small>
+                <div style="margin-top:10px">
+                    <label>Baza Linii:</label> <input type="text" id="cfg-lines" value="mzk_v12_pro" onchange="ModuleAdmin.updateKeys()">
+                    <label>Baza Newsów:</label> <input type="text" id="cfg-news" value="mzk_news" onchange="ModuleAdmin.updateKeys()">
+                </div>
+            </div>
+            <div id="adm-forms">
+                </div>
         </div>
     </div>
 
-    <div id="s-admin" class="section">
-        <div id="adm-auth" class="card">
-            <h3>Autoryzacja</h3>
-            <input type="password" id="adm-pass" placeholder="Hasło">
-            <button class="btn" onclick="tryLogin()">WEJDŹ</button>
-        </div>
-
-        <div id="adm-panel" style="display:none">
-            <div class="card" style="border: 2px solid var(--accent)">
-                <h4 style="margin-bottom:10px">USTAWIENIA BAZY (RECOVERY)</h4>
-                <p style="font-size:0.8rem; margin-bottom:10px; opacity:0.7">Jeśli nie widzisz swoich linii, zmień nazwę poniżej:</p>
-                <input type="text" id="db-key-field" value="mzk_v12_pro" onchange="switchDB(this.value)">
-                <div style="display:flex; gap:5px; flex-wrap:wrap">
-                    <button class="btn" style="padding:5px; font-size:0.7rem; background:#444" onclick="switchDB('mzk_v12_pro')">v12_pro</button>
-                    <button class="btn" style="padding:5px; font-size:0.7rem; background:#444" onclick="switchDB('mzk_v12')">v12</button>
-                    <button class="btn" style="padding:5px; font-size:0.7rem; background:#444" onclick="switchDB('mzk_integrated_v15')">v15</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h4>Dodaj/Edytuj Linię</h4>
-                <input type="text" id="f-num" placeholder="Nr (np. 124)">
-                <input type="text" id="f-dir" placeholder="Kierunek">
-                <select id="f-cat"></select>
-                <textarea id="f-stops" rows="3" placeholder="Przystanek|Czas, Przystanek|Czas"></textarea>
-                <button class="btn" onclick="saveLine()">ZAPISZ DO TEJ BAZY</button>
-            </div>
-            <div id="adm-list"></div>
-        </div>
+    <div id="m-details" class="section">
+        <div id="render-details"></div>
+        <button class="btn" onclick="UI.show('lines')" style="margin-top:20px; background:#333">Powrót</button>
     </div>
 </div>
 
 <nav>
-    <div class="nav-item active" id="n-home" onclick="show('home')"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
-    <div class="nav-item" id="n-admin" onclick="show('admin')"><i class="fa-solid fa-screwdriver-wrench"></i><span>Odzyskiwanie</span></div>
+    <div class="nav-item active" id="n-lines" onclick="UI.show('lines')"><i class="fa fa-bus"></i><span>Linie</span></div>
+    <div class="nav-item" id="n-stops" onclick="UI.show('stops')"><i class="fa fa-map-pin"></i><span>Przystanki</span></div>
+    <div class="nav-item" id="n-news" onclick="UI.show('news')"><i class="fa fa-bullhorn"></i><span>News</span></div>
+    <div class="nav-item" id="n-admin" onclick="UI.show('admin')"><i class="fa fa-gears"></i><span>Opcje</span></div>
 </nav>
 
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
 <script>
+    // 1. INICJALIZACJA SYSTEMU
     const firebaseConfig = { 
         apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", 
         authDomain: "mzk-by-facio.firebaseapp.com", 
@@ -93,109 +93,105 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    let state = { lines: [], categories: ["Dzienne", "Tramwaje", "Nocne"], news: [] };
-    let currentKey = localStorage.getItem('mzk_key') || "mzk_v12_pro"; // Zapamiętuje wybór
-    document.getElementById('db-key-field').value = currentKey;
-
-    function connect() {
-        firebase.database().ref(currentKey).on('value', (snap) => {
-            const data = snap.val();
-            if(data) {
-                state = data;
-                render();
-            } else {
-                document.getElementById('data-render').innerHTML = `
-                    <div class="card" style="text-align:center">
-                        <i class="fa-solid fa-circle-exclamation" style="font-size:2rem; color:var(--tram)"></i>
-                        <p style="margin-top:10px">Brak danych w gałęzi <b>${currentKey}</b></p>
-                        <p style="font-size:0.8rem; opacity:0.6">Wejdź w "Odzyskiwanie" i zmień klucz.</p>
-                    </div>`;
-            }
-        });
-    }
-
-    function switchDB(newKey) {
-        currentKey = newKey;
-        localStorage.setItem('mzk_key', newKey);
-        location.reload(); // Najbezpieczniejsze przeładowanie przy zmianie bazy
-    }
-
-    function render() {
-        const target = document.getElementById('data-render');
-        target.innerHTML = '';
-
-        if(!state.lines || state.lines.length === 0) {
-            target.innerHTML = `<div class="card">Baza połączona (${currentKey}), ale brak linii.</div>`;
-            return;
+    // 2. MODUŁ UI (Zarządzanie widokiem)
+    const UI = {
+        show(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
+            document.getElementById('m-'+id).classList.add('active-sec');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('n-'+id)?.classList.add('active');
+            window.scrollTo(0,0);
         }
+    };
 
-        const cats = state.categories || ["Ogólne"];
-        cats.forEach(c => {
-            const lns = state.lines.filter(l => l.cat === c);
-            if(lns.length > 0) {
-                target.innerHTML += `<div style="font-weight:900; color:var(--accent); margin:10px 5px; font-size:0.8rem; letter-spacing:1px">${c.toUpperCase()}</div>`;
-                lns.forEach(l => {
-                    target.innerHTML += `
-                    <div class="card" style="display:flex; align-items:center">
-                        <div class="line-badge">${l.num}</div>
-                        <div>
-                            <div style="font-weight:800">${l.dir}</div>
-                            <div class="status-pill">${l.stops ? l.stops.length : 0} przystanków</div>
-                        </div>
-                    </div>`;
+    // 3. MODUŁ LINII (Core Data)
+    const ModuleLines = {
+        key: localStorage.getItem('cfg_lines') || 'mzk_v12_pro',
+        data: [],
+        init() {
+            firebase.database().ref(this.key).on('value', (snap) => {
+                const d = snap.val();
+                if(d) {
+                    this.data = d.lines || [];
+                    this.render();
+                }
+            });
+        },
+        render() {
+            const target = document.getElementById('render-lines');
+            target.innerHTML = this.data.map((l, i) => `
+                <div class="card" style="display:flex; align-items:center" onclick="ModuleLines.details(${i})">
+                    <div class="line-badge" style="background:${l.type==='tram'?'var(--tram)':'var(--bus)'}">${l.num}</div>
+                    <div><b>${l.dir}</b><br><small style="opacity:0.5">${l.cat || ''}</small></div>
+                </div>
+            `).join('');
+        },
+        details(idx) {
+            const l = this.data[idx];
+            UI.show('details');
+            document.getElementById('render-details').innerHTML = `
+                <div class="card">
+                    <h2>Linia ${l.num}</h2>
+                    <p style="color:var(--accent); margin-bottom:20px">${l.dir}</p>
+                    ${l.stops ? l.stops.map(s => `<div style="display:flex; padding:8px 0; border-bottom:1px solid #222">
+                        <span style="color:var(--accent); width:40px; font-weight:900">${s.time}'</span>
+                        <span>${s.name}</span>
+                    </div>`).join('') : 'Brak przystanków'}
+                </div>`;
+        }
+    };
+
+    // 4. MODUŁ NEWSÓW (Independent)
+    const ModuleNews = {
+        key: localStorage.getItem('cfg_news') || 'mzk_news',
+        init() {
+            firebase.database().ref(this.key).on('value', (snap) => {
+                const d = snap.val();
+                if(d) document.getElementById('render-news').innerHTML = Object.values(d).reverse().map(n => `
+                    <div class="card"><h3 style="color:var(--accent)">${n.title}</h3><p>${n.body}</p></div>
+                `).join('');
+            });
+        }
+    };
+
+    // 5. MODUŁ PRZYSTANKÓW (Search Logic)
+    const ModuleStops = {
+        search(q) {
+            if(q.length < 2) return;
+            const results = [];
+            ModuleLines.data.forEach(l => {
+                if(l.stops) l.stops.forEach(s => {
+                    if(s.name.toLowerCase().includes(q.toLowerCase())) 
+                        results.push({line: l.num, stop: s.name});
                 });
+            });
+            document.getElementById('render-stops').innerHTML = results.map(r => `
+                <div class="card"><b>${r.stop}</b><br><small>Linia: ${r.line}</small></div>
+            `).join('');
+        }
+    };
+
+    // 6. MODUŁ ADMINA (Control Center)
+    const ModuleAdmin = {
+        auth() {
+            if(document.getElementById('adm-pass').value === '123') {
+                document.getElementById('adm-auth').style.display = 'none';
+                document.getElementById('adm-content').style.display = 'block';
+                document.getElementById('cfg-lines').value = ModuleLines.key;
+                document.getElementById('cfg-news').value = ModuleNews.key;
             }
-        });
-
-        // Admin list
-        document.getElementById('f-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('adm-list').innerHTML = state.lines.map((l, i) => `
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center">
-                <span><b>${l.num}</b> ${l.dir}</span>
-                <i class="fa-solid fa-trash" style="color:var(--tram)" onclick="deleteLine(${i})"></i>
-            </div>`).join('');
-    }
-
-    function saveLine() {
-        const stops = document.getElementById('f-stops').value.split(',').filter(x => x.includes('|')).map(s => {
-            const p = s.split('|');
-            return { name: p[0].trim(), time: p[1].trim() };
-        });
-
-        const l = {
-            num: document.getElementById('f-num').value,
-            dir: document.getElementById('f-dir').value,
-            cat: document.getElementById('f-cat').value,
-            stops: stops
-        };
-
-        if(!state.lines) state.lines = [];
-        state.lines.push(l);
-        firebase.database().ref(currentKey).set(state).then(() => alert("Dodano do " + currentKey));
-    }
-
-    function deleteLine(i) {
-        if(confirm("Usunąć?")) {
-            state.lines.splice(i,1);
-            firebase.database().ref(currentKey).set(state);
+        },
+        updateKeys() {
+            localStorage.setItem('cfg_lines', document.getElementById('cfg-lines').value);
+            localStorage.setItem('cfg_news', document.getElementById('cfg-news').value);
+            location.reload();
         }
-    }
+    };
 
-    function tryLogin() {
-        if(document.getElementById('adm-pass').value === '123') {
-            document.getElementById('adm-auth').style.display = 'none';
-            document.getElementById('adm-panel').style.display = 'block';
-        }
-    }
+    // START
+    ModuleLines.init();
+    ModuleNews.init();
 
-    function show(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-        document.getElementById('s-'+id).classList.add('active-sec');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('n-'+id).classList.add('active');
-    }
-
-    connect();
 </script>
 </body>
 </html>

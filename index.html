@@ -3,195 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW MODULAR</title>
+    <title>MZK GORZÓW - SYSTEM MODUŁOWY</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
     <style>
-        :root { --accent: #00ab55; --bg: #0b0f19; --surf: #161c24; --text: #fff; --bus: #00ab55; --tram: #ff4842; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
-        body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
-        
-        /* Moduły layoutowe */
-        header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); sticky; top: 0; background: var(--bg); z-index: 1000; }
-        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-        .section { display: none; } .active-sec { display: block; }
-        
-        /* Stylistyka Kafli (z Twoich screenów) */
-        .card { background: var(--surf); border-radius: 18px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .line-badge { width: 45px; height: 35px; background: var(--bus); display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; margin-right: 15px; }
+        /* === SYSTEM ZMIENNYCH === */
+        :root { 
+            --accent: #00ab55; 
+            --accent-hover: #008f47;
+            --bg: #05080f; 
+            --surface: #121926; 
+            --surface-light: #1c2536; 
+            --text-main: #ffffff; 
+            --text-muted: #94a3b8; 
+            --bus: #00ab55; 
+            --tram: #ef4444; 
+            --border: rgba(255, 255, 255, 0.05);
+            --shadow: 0 8px 24px -4px rgba(0,0,0,0.5);
+        }
 
-        /* Nawigacja */
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--surf); display: flex; height: 80px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; opacity: 0.5; transition: 0.3s; }
-        .nav-item.active { opacity: 1; color: var(--accent); }
-        .nav-item i { font-size: 1.5rem; margin-bottom: 4px; }
+        /* === RESET I BAZA === */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            padding-bottom: 90px; 
+            overflow-x: hidden; 
+        }
 
-        /* Admin / Formularze */
-        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 12px; background: #222; color: #fff; border: 1px solid #333; }
-        .btn { background: var(--accent); color: #fff; padding: 12px; border: none; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
+        /* === NAGŁÓWEK (HEADER) === */
+        header { 
+            background: rgba(5, 8, 15, 0.85); 
+            backdrop-filter: blur(12px);
+            padding: 20px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+            border-bottom: 1px solid var(--border); 
+            text-align: center;
+        }
+        header h1 { 
+            font-family: 'Outfit', sans-serif; 
+            font-size: 1.3rem; 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            color: var(--accent); 
+        }
+
+        /* === GŁÓWNY KONTENER === */
+        .container { 
+            max-width: 650px; 
+            margin: 0 auto; 
+            padding: 16px; 
+        }
+
+        /* === KARTY I ELEMENTY UI === */
+        .card { 
+            background: var(--surface); 
+            border-radius: 20px; 
+            padding: 18px; 
+            margin-bottom: 15px; 
+            border: 1px solid var(--border); 
+            box-shadow: var(--shadow); 
+            transition: transform 0.2s, box-shadow 0.2s; 
+        }
+        .card:active { transform: scale(0.98); }
+
+        .line-badge { 
+            min-width: 52px; 
+            height: 42px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            border-radius: 12px; 
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900; 
+            font-size: 1.15rem; 
+            color: #fff; 
+            margin-right: 15px; 
+        }
+        .bg-bus { background: var(--bus); box-shadow: 0 4px 12px rgba(0,171,85,0.3); }
+        .bg-tram { background: var(--tram); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+
+        /* === FORMULARZE I PRZYCISKI === */
+        input, select, textarea { 
+            width: 100%; 
+            padding: 16px; 
+            margin-bottom: 12px; 
+            border-radius: 14px; 
+            background: var(--surface-light); 
+            color: var(--text-main); 
+            border: 1px solid var(--border); 
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+        input:focus, textarea:focus { border-color: var(--accent); }
+        
+        .btn { 
+            background: var(--accent); 
+            color: #fff; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 14px; 
+            width: 100%; 
+            font-weight: 600; 
+            font-size: 1rem;
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        .btn:hover { background: var(--accent-hover); }
+        .btn-danger { background: var(--tram); }
+
+        /* === NAWIGACJA DOLNA === */
+        nav { 
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            background: var(--surface); 
+            display: flex; 
+            height: 80px; 
+            border-top: 1px solid var(--border); 
+            z-index: 2000; 
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            transition: 0.3s; 
+        }
+        .nav-item.active { color: var(--accent); }
+        .nav-item i { font-size: 1.4rem; margin-bottom: 6px; }
+        .nav-item span { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* === LOGIKA WYŚWIETLANIA MODUŁÓW === */
+        .module { display: none; animation: fadeIn 0.3s ease-out; }
+        .module.active { display: block; }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
     </style>
 </head>
 <body>
 
-<header><h1 id="header-title">MZK GORZÓW</h1></header>
+    <header><h1>MZK GORZÓW</h1></header>
 
-<div class="container">
-    <div id="m-lines" class="section active-sec">
-        <div id="render-lines">Szukanie linii w chmurze...</div>
-    </div>
-
-    <div id="m-stops" class="section">
-        <input type="text" placeholder="Szukaj przystanku..." oninput="ModuleStops.search(this.value)">
-        <div id="render-stops"></div>
-    </div>
-
-    <div id="m-news" class="section">
-        <div id="render-news">Brak komunikatów.</div>
-    </div>
-
-    <div id="m-admin" class="section">
-        <div class="card" id="adm-auth">
-            <input type="password" id="adm-pass" placeholder="Hasło (123)">
-            <button class="btn" onclick="ModuleAdmin.auth()">Zaloguj</button>
-        </div>
-        <div id="adm-content" style="display:none">
-            <div class="card">
-                <small style="color:var(--accent)">Konfiguracja Modułów (Recovery):</small>
-                <div style="margin-top:10px">
-                    <label>Baza Linii:</label> <input type="text" id="cfg-lines" value="mzk_v12_pro" onchange="ModuleAdmin.updateKeys()">
-                    <label>Baza Newsów:</label> <input type="text" id="cfg-news" value="mzk_news" onchange="ModuleAdmin.updateKeys()">
-                </div>
+    <div class="container">
+        
+        <div id="module-lines" class="module active">
             </div>
-            <div id="adm-forms">
-                </div>
+
+        <div id="module-stops" class="module">
+            </div>
+
+        <div id="module-news" class="module">
+            </div>
+
+        <div id="module-admin" class="module">
+            </div>
+
+        <div id="module-details" class="module">
+            </div>
+
+    </div>
+
+    <nav>
+        <div class="nav-item active" id="nav-lines" onclick="Core.switchModule('lines')">
+            <i class="fa-solid fa-bus"></i><span>Linie</span>
         </div>
-    </div>
+        <div class="nav-item" id="nav-stops" onclick="Core.switchModule('stops')">
+            <i class="fa-solid fa-location-dot"></i><span>Przystanki</span>
+        </div>
+        <div class="nav-item" id="nav-news" onclick="Core.switchModule('news')">
+            <i class="fa-solid fa-newspaper"></i><span>Komunikaty</span>
+        </div>
+        <div class="nav-item" id="nav-admin" onclick="Core.switchModule('admin')">
+            <i class="fa-solid fa-shield-halved"></i><span>Admin</span>
+        </div>
+    </nav>
 
-    <div id="m-details" class="section">
-        <div id="render-details"></div>
-        <button class="btn" onclick="UI.show('lines')" style="margin-top:20px; background:#333">Powrót</button>
-    </div>
-</div>
+    <script>
+        // Tutaj będziemy wklejać logikę modułów.
+    </script>
 
-<nav>
-    <div class="nav-item active" id="n-lines" onclick="UI.show('lines')"><i class="fa fa-bus"></i><span>Linie</span></div>
-    <div class="nav-item" id="n-stops" onclick="UI.show('stops')"><i class="fa fa-map-pin"></i><span>Przystanki</span></div>
-    <div class="nav-item" id="n-news" onclick="UI.show('news')"><i class="fa fa-bullhorn"></i><span>News</span></div>
-    <div class="nav-item" id="n-admin" onclick="UI.show('admin')"><i class="fa fa-gears"></i><span>Opcje</span></div>
-</nav>
-
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
-<script>
-    // 1. INICJALIZACJA SYSTEMU
-    const firebaseConfig = { 
-        apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", 
-        authDomain: "mzk-by-facio.firebaseapp.com", 
-        databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", 
-        projectId: "mzk-by-facio" 
-    };
-    firebase.initializeApp(firebaseConfig);
-
-    // 2. MODUŁ UI (Zarządzanie widokiem)
-    const UI = {
-        show(id) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active-sec'));
-            document.getElementById('m-'+id).classList.add('active-sec');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('n-'+id)?.classList.add('active');
-            window.scrollTo(0,0);
-        }
-    };
-
-    // 3. MODUŁ LINII (Core Data)
-    const ModuleLines = {
-        key: localStorage.getItem('cfg_lines') || 'mzk_v12_pro',
-        data: [],
-        init() {
-            firebase.database().ref(this.key).on('value', (snap) => {
-                const d = snap.val();
-                if(d) {
-                    this.data = d.lines || [];
-                    this.render();
-                }
-            });
-        },
-        render() {
-            const target = document.getElementById('render-lines');
-            target.innerHTML = this.data.map((l, i) => `
-                <div class="card" style="display:flex; align-items:center" onclick="ModuleLines.details(${i})">
-                    <div class="line-badge" style="background:${l.type==='tram'?'var(--tram)':'var(--bus)'}">${l.num}</div>
-                    <div><b>${l.dir}</b><br><small style="opacity:0.5">${l.cat || ''}</small></div>
-                </div>
-            `).join('');
-        },
-        details(idx) {
-            const l = this.data[idx];
-            UI.show('details');
-            document.getElementById('render-details').innerHTML = `
-                <div class="card">
-                    <h2>Linia ${l.num}</h2>
-                    <p style="color:var(--accent); margin-bottom:20px">${l.dir}</p>
-                    ${l.stops ? l.stops.map(s => `<div style="display:flex; padding:8px 0; border-bottom:1px solid #222">
-                        <span style="color:var(--accent); width:40px; font-weight:900">${s.time}'</span>
-                        <span>${s.name}</span>
-                    </div>`).join('') : 'Brak przystanków'}
-                </div>`;
-        }
-    };
-
-    // 4. MODUŁ NEWSÓW (Independent)
-    const ModuleNews = {
-        key: localStorage.getItem('cfg_news') || 'mzk_news',
-        init() {
-            firebase.database().ref(this.key).on('value', (snap) => {
-                const d = snap.val();
-                if(d) document.getElementById('render-news').innerHTML = Object.values(d).reverse().map(n => `
-                    <div class="card"><h3 style="color:var(--accent)">${n.title}</h3><p>${n.body}</p></div>
-                `).join('');
-            });
-        }
-    };
-
-    // 5. MODUŁ PRZYSTANKÓW (Search Logic)
-    const ModuleStops = {
-        search(q) {
-            if(q.length < 2) return;
-            const results = [];
-            ModuleLines.data.forEach(l => {
-                if(l.stops) l.stops.forEach(s => {
-                    if(s.name.toLowerCase().includes(q.toLowerCase())) 
-                        results.push({line: l.num, stop: s.name});
-                });
-            });
-            document.getElementById('render-stops').innerHTML = results.map(r => `
-                <div class="card"><b>${r.stop}</b><br><small>Linia: ${r.line}</small></div>
-            `).join('');
-        }
-    };
-
-    // 6. MODUŁ ADMINA (Control Center)
-    const ModuleAdmin = {
-        auth() {
-            if(document.getElementById('adm-pass').value === '123') {
-                document.getElementById('adm-auth').style.display = 'none';
-                document.getElementById('adm-content').style.display = 'block';
-                document.getElementById('cfg-lines').value = ModuleLines.key;
-                document.getElementById('cfg-news').value = ModuleNews.key;
-            }
-        },
-        updateKeys() {
-            localStorage.setItem('cfg_lines', document.getElementById('cfg-lines').value);
-            localStorage.setItem('cfg_news', document.getElementById('cfg-news').value);
-            location.reload();
-        }
-    };
-
-    // START
-    ModuleLines.init();
-    ModuleNews.init();
-
-</script>
 </body>
 </html>

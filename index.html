@@ -90,9 +90,9 @@
     </nav>
 
     <script>
-        // === CORE ENGINE ===
+      
+                             // === 1. GŁÓWNY SILNIK (App Core) ===
         window.App = {
-            // Klucz bazy danych (pobierany z pamięci lub domyślny)
             dbKey: localStorage.getItem('mzk_key') || 'mzk_v2026_pro',
             
             init() {
@@ -103,269 +103,358 @@
                     projectId: "mzk-by-facio"
                 };
                 if (!firebase.apps.length) firebase.initializeApp(config);
-                console.log("System V2026 zainicjowany. Baza:", this.dbKey);
+                this.db = firebase.database();
+                console.log("System PRO gotowy. Baza:", this.dbKey);
+
+                // Automatyczne nasłuchiwanie na zmiany w bazie dla całego systemu
+                this.db.ref(this.dbKey).on('value', snap => {
+                    const data = snap.val() || {};
+                    window.dbCache = {
+                        lines: data.lines || [],
+                        news: data.news || {}
+                    };
+                    // Odśwież widoki jeśli są aktywne
+                    if(document.getElementById('view-lines').classList.contains('active')) ModLines.render();
+                    if(document.getElementById('view-stops').classList.contains('active')) ModStops.render();
+                    if(document.getElementById('view-news').classList.contains('active')) ModNews.render();
+                    if(document.getElementById('view-admin').classList.contains('active') && ModAdmin.isLogged) ModAdmin.renderPanel();
+                });
             },
 
-            // Uniwersalna funkcja przełączania widoków
             switch(id) {
-                // Usuwamy aktywność z innych
                 document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
                 
-                // Aktywujemy wybrany
                 const targetView = document.getElementById('view-' + id);
                 if(targetView) targetView.classList.add('active');
                 
                 const targetNav = document.getElementById('nav-' + id);
                 if(targetNav) targetNav.classList.add('active');
 
-                // Wywołanie odświeżania modułu (jeśli istnieje)
-                if(window['Mod' + id.charAt(0).toUpperCase() + id.slice(1)]) {
-                    window['Mod' + id.charAt(0).toUpperCase() + id.slice(1)].render();
-                }
+                // Wywołanie renderowania
+                if(id === 'lines') ModLines.render();
+                if(id === 'stops') ModStops.render();
+                if(id === 'news') ModNews.render();
+                if(id === 'admin') ModAdmin.render();
                 
                 window.scrollTo(0,0);
             }
         };
 
-        // Start silnika
-        App.init();
-        // === MODUŁ 2: ADMIN (Zarządzanie & Recovery) ===
-        window.ModAdmin = {
-            isLogged: false,
-
-            // Logowanie - proste hasło
-            login() {
-                const pass = document.getElementById('adm-pass').value;
-                if(pass === '123') {
-                    this.isLogged = true;
-                    this.render();
-                } else {
-                    alert("Błędne hasło!");
-                }
-            },
-
-            // Funkcja Recovery - zmiana klucza bazy danych
-            updateKey() {
-                const newKey = document.getElementById('cfg-key').value;
-                if(confirm("Przełączyć na bazę: " + newKey + "?")) {
-                    localStorage.setItem('mzk_key', newKey);
-                    location.reload(); // Odświeżamy połączenie
-                }
-            },
-
-            // Główny widok panelu
-            render() {
-                const container = document.getElementById('view-admin');
-                if(!container) return;
-
-                // Jeśli nie zalogowany - pokaż ekran logowania
-                if(!this.isLogged) {
-                    container.innerHTML = `
-                        <div class="card" style="text-align:center">
-                            <i class="fa-solid fa-shield-halved" style="font-size:3rem; color:var(--accent); margin-bottom:20px"></i>
-                            <h2 style="margin-bottom:25px; font-family:'Outfit'">Panel Sterowania</h2>
-                            <input type="password" id="adm-pass" placeholder="Hasło administratora">
-                            <button class="btn" onclick="ModAdmin.login()">ZALOGUJ SIĘ</button>
-                        </div>`;
-                    return;
-                }
-
-                // Panel po zalogowaniu
-                container.innerHTML = `
-                    <div class="card" style="border: 1px solid var(--accent)">
-                        <label style="font-size:0.7rem; color:var(--accent); font-weight:900; letter-spacing:1px">KLUCZ BAZY (RECOVERY)</label>
-                        <div style="display:flex; gap:10px; margin-top:8px">
-                            <input type="text" id="cfg-key" value="${App.dbKey}" style="margin:0">
-                            <button class="btn" style="width:auto; padding:0 20px" onclick="ModAdmin.updateKey()">ZMIEŃ</button>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3 style="margin-bottom:15px; font-family:'Outfit'">DODAJ NOWĄ LINIĘ</h3>
-                        <input type="text" id="f-num" placeholder="Numer linii (np. 124)">
-                        <input type="text" id="f-dir" placeholder="Kierunek (np. Londyńska)">
-                        
-                        <select id="f-cat">
-                            <option value="Dzienne">Autobusy Dzienne</option>
-                            <option value="Tramwaje">Tramwaje</option>
-                            <option value="Nocne">Autobusy Nocne</option>
-                        </select>
-
-                        <label style="font-size:0.65rem; opacity:0.5">PRZYSTANKI (Format: Nazwa|Minuta, ...)</label>
-                        <textarea id="f-stops" rows="4" placeholder="Katedra|0, Arsenał|2, Piaski|5"></textarea>
-                        
-                        <button class="btn" onclick="ModAdmin.saveLine()">WYŚLIJ DO CHMURY</button>
-                    </div>
-
-                    <div id="adm-list-lines">
-                        <p style="text-align:center; opacity:0.5; font-size:0.8rem">Ładowanie listy linii...</p>
-                    </div>
-                `;
-                this.loadList();
-            },
-
-            // Zapisywanie linii do Firebase
-            saveLine() {
-                const num = document.getElementById('f-num').value;
-                const dir = document.getElementById('f-dir').value;
-                const cat = document.getElementById('f-cat').value;
-                const stopsRaw = document.getElementById('f-stops').value;
-
-                if(!num || !dir) return alert("Podaj numer i kierunek!");
-
-                // Parsowanie przystanków z formatu Nazwa|Minuta
-                const stops = stopsRaw.split(',').filter(s => s.includes('|')).map(s => {
-                    const parts = s.split('|');
-                    return { name: parts[0].trim(), time: parts[1].trim() };
-                });
-
-                const newLine = {
-                    num, dir, cat, stops,
-                    type: cat === 'Tramwaje' ? 'tram' : 'bus'
-                };
-
-                firebase.database().ref(App.dbKey + '/lines').once('value').then(snap => {
-                    let lines = snap.val() || [];
-                    lines.push(newLine);
-                    firebase.database().ref(App.dbKey + '/lines').set(lines).then(() => {
-                        alert("Linia dodana!");
-                        this.render();
-                    });
-                });
-            },
-
-            // Wyświetlanie listy do usuwania w panelu
-            loadList() {
-                firebase.database().ref(App.dbKey + '/lines').on('value', snap => {
-                    const lines = snap.val() || [];
-                    const listDiv = document.getElementById('adm-list-lines');
-                    if(!listDiv) return;
-
-                    listDiv.innerHTML = '<h4 style="margin:20px 5px 10px; font-size:0.7rem; opacity:0.5; text-transform:uppercase">Zarządzaj liniami</h4>';
-                    
-                    lines.forEach((l, i) => {
-                        listDiv.innerHTML += `
-                            <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 18px">
-                                <div><b style="color:var(--accent)">${l.num}</b> <span style="margin-left:8px">${l.dir}</span></div>
-                                <i class="fa-solid fa-trash-can" style="color:var(--tram); cursor:pointer" onclick="ModAdmin.deleteLine(${i})"></i>
-                            </div>`;
-                    });
-                });
-            },
-
-            // Usuwanie linii
-            deleteLine(index) {
-                if(confirm("Usunąć tę linię?")) {
-                    firebase.database().ref(App.dbKey + '/lines').once('value').then(snap => {
-                        let lines = snap.val() || [];
-                        lines.splice(index, 1);
-                        firebase.database().ref(App.dbKey + '/lines').set(lines);
-                    });
-                }
-            }
-        };
-
-                // === MODUŁ 3: LINIE (Widok Pasażera) ===
+        // === 2. MODUŁ LINII ===
         window.ModLines = {
-            data: [],
+            searchQuery: '',
 
-            // Start modułu - podpięcie pod Firebase
-            init() {
-                firebase.database().ref(App.dbKey + '/lines').on('value', snap => {
-                    this.data = snap.val() || [];
-                    this.render();
-                });
-            },
-
-            // Główna lista linii
             render() {
                 const container = document.getElementById('view-lines');
                 if(!container) return;
-                
-                if(this.data.length === 0) {
-                    container.innerHTML = `
-                        <div class="card" style="text-align:center; padding:50px 20px; opacity:0.6">
-                            <i class="fa-solid fa-map-location-dot" style="font-size:3rem; margin-bottom:15px"></i>
-                            <p>Baza <b>${App.dbKey}</b> jest pusta.<br>Dodaj linie w panelu Admina.</p>
-                        </div>`;
+                let lines = window.dbCache?.lines || [];
+
+                if(this.searchQuery) {
+                    const q = this.searchQuery.toLowerCase();
+                    lines = lines.filter(l => l.num.toLowerCase().includes(q) || l.dir.toLowerCase().includes(q));
+                }
+
+                let html = `
+                    <div style="position:sticky; top:65px; z-index:100; padding:10px 0; background:var(--bg)">
+                        <input type="text" placeholder="Szukaj linii lub kierunku..." onkeyup="ModLines.search(this.value)" style="margin:0; box-shadow:0 5px 15px rgba(0,0,0,0.5)">
+                    </div>
+                `;
+
+                if(lines.length === 0) {
+                    html += `<div class="card" style="text-align:center; opacity:0.5; margin-top:20px">Brak wyników.</div>`;
+                    container.innerHTML = html;
                     return;
                 }
 
-                container.innerHTML = '';
-                
-                // Grupowanie linii według kategorii (Dzienne, Tramwaje itp.)
-                const categories = [...new Set(this.data.map(l => l.cat || 'Inne'))];
-                
+                const categories = [...new Set(lines.map(l => l.cat || 'Inne'))];
                 categories.forEach(cat => {
-                    container.innerHTML += `
-                        <div style="font-family:'Outfit'; font-weight:900; color:var(--accent); font-size:0.75rem; letter-spacing:1.5px; text-transform:uppercase; margin:25px 5px 12px">
-                            ${cat}
-                        </div>`;
-                    
-                    this.data.filter(l => (l.cat || 'Inne') === cat).forEach((line, idx) => {
-                        const originalIdx = this.data.indexOf(line);
+                    html += `<div style="font-family:'Outfit'; font-weight:900; color:var(--accent); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase; margin:20px 5px 10px">${cat}</div>`;
+                    lines.filter(l => (l.cat || 'Inne') === cat).forEach(line => {
+                        const idx = window.dbCache.lines.indexOf(line); // Oryginalny index do klikania
                         const isTram = line.type === 'tram' || line.cat === 'Tramwaje';
-                        
-                        container.innerHTML += `
-                            <div class="card" style="display:flex; align-items:center; cursor:pointer" onclick="ModLines.showDetails(${originalIdx})">
+                        html += `
+                            <div class="card" style="display:flex; align-items:center; cursor:pointer" onclick="ModLines.showDetails(${idx})">
                                 <div class="line-badge ${isTram ? 'bg-tram' : 'bg-bus'}">${line.num}</div>
                                 <div style="flex:1">
-                                    <div style="font-weight:700; font-size:1.05rem; letter-spacing:-0.3px">${line.dir}</div>
-                                    <div style="font-size:0.75rem; color:var(--text-m); margin-top:2px">
-                                        <i class="fa-solid fa-clock" style="font-size:0.6rem; margin-right:3px"></i> 
-                                        Trasa: ${line.stops ? line.stops.length : 0} przystanków
-                                    </div>
+                                    <div style="font-weight:700; font-size:1.05rem">${line.dir}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-m)">Trasa: ${line.stops ? line.stops.length : 0} przystanków</div>
                                 </div>
-                                <i class="fa-solid fa-angle-right" style="opacity:0.2; font-size:1.2rem"></i>
+                                <i class="fa-solid fa-angle-right" style="opacity:0.2"></i>
                             </div>`;
                     });
                 });
+                container.innerHTML = html;
             },
 
-            // Szczegóły konkretnej linii (Rozkład)
-            showDetails(idx) {
-                const l = this.data[idx];
-                if(!l) return;
+            search(val) { this.searchQuery = val; this.render(); },
 
+            showDetails(idx) {
+                const l = window.dbCache.lines[idx];
                 const container = document.getElementById('view-details');
                 const isTram = l.type === 'tram' || l.cat === 'Tramwaje';
 
                 let stopsHtml = (l.stops && l.stops.length > 0) 
                     ? l.stops.map(s => `
-                        <div style="display:flex; padding:16px 0; border-bottom:1px solid var(--border); align-items:center">
-                            <div style="width:50px; font-weight:900; color:var(--accent); font-family:'Outfit'; font-size:1.1rem">${s.time}'</div>
-                            <div style="font-weight:600; font-size:0.95rem; color:var(--text)">${s.name}</div>
+                        <div style="display:flex; padding:12px 0; border-bottom:1px solid var(--border); align-items:center">
+                            <div style="width:50px; font-weight:900; color:var(--accent); font-family:'Outfit'">${s.time}'</div>
+                            <div style="font-weight:600">${s.name}</div>
                         </div>`).join('')
-                    : '<p style="padding:30px; opacity:0.5; text-align:center">Brak przystanków dla tej linii.</p>';
+                    : '<p style="padding:20px; opacity:0.5">Brak przystanków.</p>';
 
                 container.innerHTML = `
-                    <div class="card" style="border-left:6px solid var(--accent); padding:25px 20px; margin-bottom:20px">
-                        <div style="display:flex; align-items:center">
-                            <div class="line-badge ${isTram ? 'bg-tram' : 'bg-bus'}" style="width:60px; height:50px; font-size:1.4rem; margin-right:20px">${l.num}</div>
-                            <div>
-                                <div style="font-size:0.65rem; text-transform:uppercase; color:var(--accent); font-weight:900; letter-spacing:1px; margin-bottom:2px">Kierunek docelowy</div>
-                                <div style="font-size:1.4rem; font-weight:900; font-family:'Outfit'; line-height:1.1">${l.dir}</div>
-                            </div>
+                    <div class="card" style="border-left:5px solid var(--accent); display:flex; align-items:center">
+                        <div class="line-badge ${isTram ? 'bg-tram' : 'bg-bus'}" style="width:60px; height:50px; font-size:1.4rem; margin-right:15px">${l.num}</div>
+                        <div>
+                            <div style="font-size:0.65rem; color:var(--accent); font-weight:900; text-transform:uppercase">Kierunek</div>
+                            <div style="font-size:1.3rem; font-weight:900; font-family:'Outfit'">${l.dir}</div>
                         </div>
                     </div>
-                    
-                    <div class="card" style="padding:5px 20px">
-                        <div style="font-size:0.65rem; text-transform:uppercase; opacity:0.4; font-weight:900; margin:15px 0; letter-spacing:1px">Czas i przystanek</div>
-                        ${stopsHtml}
-                    </div>
-
-                    <button class="btn" style="background:var(--surf-l); border:1px solid var(--border); margin-top:15px; margin-bottom:30px" onclick="App.switch('lines')">
-                        <i class="fa-solid fa-chevron-left" style="margin-right:10px"></i> POWRÓT DO LISTY
-                    </button>
+                    <div class="card"><div style="font-size:0.65rem; text-transform:uppercase; opacity:0.5; font-weight:900; margin-bottom:10px">Czas i przystanek</div>${stopsHtml}</div>
+                    <button class="btn" style="background:var(--surf-l); margin-bottom:20px" onclick="App.switch('lines')">POWRÓT</button>
                 `;
-                
                 App.switch('details');
             }
         };
 
-        // Automatyczny start pobierania danych
-        ModLines.init();
+        // === 3. MODUŁ PRZYSTANKÓW ===
+        window.ModStops = {
+            searchQuery: '',
+            
+            render() {
+                const container = document.getElementById('view-stops');
+                if(!container) return;
+                const lines = window.dbCache?.lines || [];
+                
+                // Zbieranie wszystkich unikalnych przystanków z bazy
+                let allStops = new Set();
+                lines.forEach(l => {
+                    if(l.stops) l.stops.forEach(s => allStops.add(s.name));
+                });
+                let stopsArr = Array.from(allStops).sort();
+
+                if(this.searchQuery) {
+                    const q = this.searchQuery.toLowerCase();
+                    stopsArr = stopsArr.filter(s => s.toLowerCase().includes(q));
+                }
+
+                let html = `
+                    <div style="position:sticky; top:65px; z-index:100; padding:10px 0; background:var(--bg)">
+                        <input type="text" placeholder="Szukaj przystanku..." onkeyup="ModStops.search(this.value)" style="margin:0">
+                    </div>
+                `;
+
+                if(stopsArr.length === 0) {
+                    container.innerHTML = html + `<div class="card" style="text-align:center; opacity:0.5; margin-top:20px">Brak przystanków.</div>`;
+                    return;
+                }
+
+                stopsArr.forEach(stopName => {
+                    html += `
+                        <div class="card" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer" onclick="ModStops.showBoard('${stopName}')">
+                            <div style="font-weight:600; font-size:1.1rem"><i class="fa-solid fa-map-pin" style="color:var(--accent); margin-right:10px"></i> ${stopName}</div>
+                            <i class="fa-solid fa-angle-right" style="opacity:0.2"></i>
+                        </div>`;
+                });
+                container.innerHTML = html;
+            },
+
+            search(val) { this.searchQuery = val; this.render(); },
+
+            showBoard(stopName) {
+                const container = document.getElementById('view-details');
+                const lines = window.dbCache?.lines || [];
+                
+                let departures = [];
+                lines.forEach(l => {
+                    if(l.stops) {
+                        const stop = l.stops.find(s => s.name === stopName);
+                        if(stop) departures.push({ num: l.num, dir: l.dir, type: l.type, cat: l.cat, time: stop.time });
+                    }
+                });
+
+                let depsHtml = departures.map(d => {
+                    const isTram = d.type === 'tram' || d.cat === 'Tramwaje';
+                    return `
+                    <div style="display:flex; padding:15px 0; border-bottom:1px solid var(--border); align-items:center">
+                        <div class="line-badge ${isTram ? 'bg-tram' : 'bg-bus'}" style="width:45px; height:30px; font-size:0.9rem; margin-right:15px">${d.num}</div>
+                        <div style="flex:1; font-weight:600">${d.dir}</div>
+                        <div style="font-weight:900; color:var(--accent)">+${d.time} min</div>
+                    </div>`;
+                }).join('');
+
+                container.innerHTML = `
+                    <div class="card" style="border-left:5px solid var(--accent)">
+                        <div style="font-size:0.65rem; color:var(--accent); font-weight:900; text-transform:uppercase">Tablica odjazdów</div>
+                        <div style="font-size:1.4rem; font-weight:900; font-family:'Outfit'">${stopName}</div>
+                    </div>
+                    <div class="card">${depsHtml || '<p>Brak odjazdów</p>'}</div>
+                    <button class="btn" style="background:var(--surf-l); margin-bottom:20px" onclick="App.switch('stops')">POWRÓT</button>
+                `;
+                App.switch('details');
+            }
+        };
+
+        // === 4. MODUŁ NEWSÓW ===
+        window.ModNews = {
+            render() {
+                const container = document.getElementById('view-news');
+                if(!container) return;
+                const news = window.dbCache?.news || {};
+                const keys = Object.keys(news).reverse(); // Najnowsze na górze
+
+                if(keys.length === 0) {
+                    container.innerHTML = `<div class="card" style="text-align:center; opacity:0.5; margin-top:20px"><i class="fa-solid fa-check-circle" style="font-size:2rem; margin-bottom:10px; color:var(--accent)"></i><br>Brak utrudnień.</div>`;
+                    return;
+                }
+
+                container.innerHTML = keys.map(k => {
+                    const n = news[k];
+                    return `
+                    <div class="card" style="border-top:3px solid var(--tram)">
+                        <div style="font-size:0.7rem; color:var(--text-m); margin-bottom:5px"><i class="fa-regular fa-clock"></i> ${n.date}</div>
+                        <h3 style="font-family:'Outfit'; margin-bottom:10px; font-size:1.1rem">${n.title}</h3>
+                        <p style="font-size:0.9rem; line-height:1.5; color:var(--text-m)">${n.content}</p>
+                    </div>`;
+                }).join('');
+            }
+        };
+
+        // === 5. SUPER ADMIN ===
+        window.ModAdmin = {
+            isLogged: false,
+            editIndex: null,
+
+            render() {
+                const container = document.getElementById('view-admin');
+                if(!container) return;
+                if(!this.isLogged) {
+                    container.innerHTML = `
+                        <div class="card" style="text-align:center; padding:40px 20px">
+                            <i class="fa-solid fa-fingerprint" style="font-size:3rem; color:var(--accent); margin-bottom:20px"></i>
+                            <h2 style="margin-bottom:20px; font-family:'Outfit'">Autoryzacja</h2>
+                            <input type="password" id="adm-pass" placeholder="Hasło (123)">
+                            <button class="btn" onclick="ModAdmin.login()">WEJDŹ</button>
+                        </div>`;
+                    return;
+                }
+                this.renderPanel();
+            },
+
+            login() {
+                if(document.getElementById('adm-pass').value === '123') { this.isLogged = true; this.renderPanel(); } 
+                else alert("Błędne hasło!");
+            },
+
+            renderPanel() {
+                const container = document.getElementById('view-admin');
+                container.innerHTML = `
+                    <div class="card" style="border:1px solid var(--accent)">
+                        <label style="font-size:0.7rem; color:var(--accent); font-weight:900">RECOVERY - KLUCZ BAZY</label>
+                        <div style="display:flex; gap:10px; margin-top:5px">
+                            <input type="text" id="cfg-key" value="${App.dbKey}" style="margin:0">
+                            <button class="btn" style="width:auto; padding:0 15px" onclick="ModAdmin.changeKey()">OK</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 id="f-title" style="margin-bottom:15px; font-family:'Outfit'">DODAJ / EDYTUJ LINIĘ</h3>
+                        <div style="display:flex; gap:10px">
+                            <input type="text" id="f-num" placeholder="Nr" style="flex:1">
+                            <select id="f-cat" style="flex:2">
+                                <option value="Dzienne">Autobus</option>
+                                <option value="Tramwaje">Tramwaj</option>
+                                <option value="Nocne">Nocny</option>
+                            </select>
+                        </div>
+                        <input type="text" id="f-dir" placeholder="Kierunek">
+                        <textarea id="f-stops" rows="3" placeholder="Przystanek|Minuta, ..."></textarea>
+                        <button class="btn" onclick="ModAdmin.saveLine()">ZAPISZ LINIĘ</button>
+                        <button class="btn" id="btn-cancel" style="display:none; background:#444; margin-top:10px" onclick="ModAdmin.cancelEdit()">ANULUJ</button>
+                    </div>
+
+                    <div class="card" style="background:var(--surf-l)">
+                        <h3 style="margin-bottom:15px; font-family:'Outfit'">DODAJ KOMUNIKAT</h3>
+                        <input type="text" id="n-title" placeholder="Tytuł ostrzeżenia">
+                        <textarea id="n-content" rows="2" placeholder="Treść..."></textarea>
+                        <button class="btn" style="background:var(--tram)" onclick="ModAdmin.saveNews()">PUBLIKUJ NEWS</button>
+                    </div>
+
+                    <div id="adm-list-lines"></div>
+                    <div id="adm-list-news"></div>
+                `;
+                this.renderLists();
+            },
+
+            changeKey() {
+                const k = document.getElementById('cfg-key').value;
+                if(confirm("Zmienić bazę na: " + k + "?")) { localStorage.setItem('mzk_key', k); location.reload(); }
+            },
+
+            saveLine() {
+                const num = document.getElementById('f-num').value, dir = document.getElementById('f-dir').value, cat = document.getElementById('f-cat').value;
+                if(!num || !dir) return alert("Brak danych!");
+                const stops = document.getElementById('f-stops').value.split(',').filter(s=>s.includes('|')).map(s=>{ const p=s.split('|'); return {name:p[0].trim(), time:p[1].trim()}; });
+                
+                let lines = window.dbCache?.lines || [];
+                const data = { num, dir, cat, stops, type: cat==='Tramwaje'?'tram':'bus' };
+                
+                if(this.editIndex !== null) lines[this.editIndex] = data; else lines.push(data);
+                
+                App.db.ref(App.dbKey + '/lines').set(lines).then(() => { alert("Zapisano!"); this.cancelEdit(); });
+            },
+
+            editLine(i) {
+                this.editIndex = i;
+                const l = window.dbCache.lines[i];
+                document.getElementById('f-num').value = l.num; document.getElementById('f-dir').value = l.dir; document.getElementById('f-cat').value = l.cat || 'Dzienne';
+                document.getElementById('f-stops').value = l.stops ? l.stops.map(s => `${s.name}|${s.time}`).join(', ') : '';
+                document.getElementById('f-title').innerText = "EDYTUJ LINIĘ " + l.num;
+                document.getElementById('btn-cancel').style.display = "block";
+                window.scrollTo(0,0);
+            },
+
+            cancelEdit() { this.editIndex = null; this.renderPanel(); },
+            
+            deleteLine(i) {
+                if(confirm("Na pewno usunąć?")) {
+                    let lines = window.dbCache.lines; lines.splice(i, 1);
+                    App.db.ref(App.dbKey + '/lines').set(lines);
+                }
+            },
+
+            saveNews() {
+                const title = document.getElementById('n-title').value, content = document.getElementById('n-content').value;
+                if(!title) return;
+                App.db.ref(App.dbKey + '/news').push({ title, content, date: new Date().toLocaleString('pl-PL') }).then(()=>alert("Opublikowano!"));
+            },
+
+            deleteNews(key) {
+                if(confirm("Usunąć news?")) App.db.ref(App.dbKey + '/news/' + key).remove();
+            },
+
+            renderLists() {
+                const listLines = document.getElementById('adm-list-lines'), listNews = document.getElementById('adm-list-news');
+                const lines = window.dbCache?.lines || [];
+                const news = window.dbCache?.news || {};
+
+                listLines.innerHTML = '<h4 style="margin:20px 5px 10px; opacity:0.5; font-size:0.7rem">BAZA LINII</h4>' + lines.map((l, i) => `
+                    <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 15px">
+                        <div><b style="color:var(--accent)">${l.num}</b> ${l.dir}</div>
+                        <div><i class="fa-solid fa-pen" style="margin-right:15px; color:var(--text-m)" onclick="ModAdmin.editLine(${i})"></i><i class="fa-solid fa-trash" style="color:var(--tram)" onclick="ModAdmin.deleteLine(${i})"></i></div>
+                    </div>`).join('');
+
+                listNews.innerHTML = '<h4 style="margin:20px 5px 10px; opacity:0.5; font-size:0.7rem">KOMUNIKATY</h4>' + Object.keys(news).map(k => `
+                    <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 15px; border-left:3px solid var(--tram)">
+                        <div style="font-size:0.9rem">${news[k].title}</div>
+                        <i class="fa-solid fa-trash" style="color:var(--tram)" onclick="ModAdmin.deleteNews('${k}')"></i>
+                    </div>`).join('');
+            }
+        };
+
+        // === START APLIKACJI ===
+        App.init();
+        App.switch('lines'); // Od razu pokaż linie na start
 
     </script>
 </body>

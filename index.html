@@ -1380,3 +1380,142 @@ window.ModDashboard = {
         container.insertAdjacentHTML('afterbegin', dashHtml);
     }
 };
+// === MODUŁ 11: ADVANCED ADMIN & CLOUD CONTROL (mzk_v12_pro) ===
+window.ModAdminAdvanced = {
+    activeTab: 'lines',
+
+    render() {
+        const container = document.getElementById('view-admin');
+        if (!ModAdmin.isLogged) { ModAdmin.render(); return; }
+
+        let html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="font-weight:900;">Cloud <span style="color:var(--accent)">Control</span></h2>
+                <button onclick="ModAdmin.isLogged=false; App.switch('lines')" class="btn" style="width:auto; padding:8px 15px; background:var(--tram); font-size:0.7rem;">WYLOGUJ</button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:20px; background:var(--surf); padding:5px; border-radius:12px;">
+                <button onclick="ModAdminAdvanced.setTab('lines')" style="flex:1; padding:10px; border-radius:8px; border:none; font-weight:800; background:${this.activeTab==='lines'?'var(--accent)':'transparent'}; color:${this.activeTab==='lines'?'#000':'#fff'}">LINIE</button>
+                <button onclick="ModAdminAdvanced.setTab('news')" style="flex:1; padding:10px; border-radius:8px; border:none; font-weight:800; background:${this.activeTab==='news'?'var(--accent)':'transparent'}; color:${this.activeTab==='news'?'#000':'#fff'}">NEWSY</button>
+            </div>
+        `;
+
+        if (this.activeTab === 'lines') {
+            html += this.renderLinesManager();
+        } else {
+            html += this.renderNewsManager();
+        }
+
+        container.innerHTML = html;
+    },
+
+    setTab(tab) {
+        this.activeTab = tab;
+        this.render();
+    },
+
+    renderLinesManager() {
+        let h = `<div class="card" style="background:var(--accent); color:#000; font-weight:900; text-align:center; cursor:pointer; margin-bottom:20px;" onclick="ModAdminAdvanced.openLineEditor()">+ DODAJ NOWĄ LINIĘ</div>`;
+        
+        window.dbCache.lines.forEach((line, idx) => {
+            h += `
+                <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
+                    <div>
+                        <span style="font-weight:900; color:var(--accent);">${line.num}</span> 
+                        <span style="font-weight:600; margin-left:10px; font-size:0.9rem;">${line.dir}</span>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="ModAdminAdvanced.openLineEditor(${idx})" style="background:none; border:none; color:var(--text-m); cursor:pointer;"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="ModAdminAdvanced.deleteLine(${idx})" style="background:none; border:none; color:var(--tram); cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+        return h;
+    },
+
+    renderNewsManager() {
+        let h = `<div class="card" style="background:var(--accent); color:#000; font-weight:900; text-align:center; cursor:pointer; margin-bottom:20px;" onclick="ModAdminAdvanced.openNewsEditor()">+ NOWY KOMUNIKAT</div>`;
+        const news = window.dbCache.news || {};
+        Object.keys(news).reverse().forEach(id => {
+            h += `
+                <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 18px;">
+                    <div style="flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-weight:600; font-size:0.9rem;">
+                        ${news[id].title}
+                    </div>
+                    <button onclick="ModAdminAdvanced.deleteNews('${id}')" style="background:none; border:none; color:var(--tram); cursor:pointer; margin-left:15px;"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+        });
+        return h;
+    },
+
+    // --- LOGIKA EDYCJI ---
+
+    openLineEditor(idx = null) {
+        const line = idx !== null ? window.dbCache.lines[idx] : { num: '', dir: '', cat: 'Autobusy', baseTimes: [], stops: [] };
+        const stopsStr = line.stops.map(s => `${s.name}|${s.time}`).join(', ');
+        const timesStr = line.baseTimes.join(', ');
+
+        let modalHtml = `
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+                <button onclick="ModAdminAdvanced.render()" class="btn" style="width:50px; padding:12px; background:var(--surf-l); color:#fff;"><i class="fa-solid fa-arrow-left"></i></button>
+                <h2 style="font-weight:900;">${idx !== null ? 'Edytuj' : 'Dodaj'} Linię</h2>
+            </div>
+            <div class="card">
+                <input type="text" id="edit-l-num" placeholder="Numer" value="${line.num}" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; background:var(--surf-l); border:1px solid var(--border); color:#fff;">
+                <input type="text" id="edit-l-dir" placeholder="Kierunek" value="${line.dir}" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; background:var(--surf-l); border:1px solid var(--border); color:#fff;">
+                <input type="text" id="edit-l-cat" placeholder="Kategoria" value="${line.cat}" style="width:100%; padding:12px; margin-bottom:10px; border-radius:10px; background:var(--surf-l); border:1px solid var(--border); color:#fff;">
+                
+                <p style="font-size:0.7rem; font-weight:800; color:var(--accent); margin:10px 0 5px;">GODZINY (PĘTLA):</p>
+                <textarea id="edit-l-times" rows="3" style="width:100%; padding:12px; border-radius:10px; background:var(--surf-l); border:1px solid var(--border); color:#fff;">${timesStr}</textarea>
+                
+                <p style="font-size:0.7rem; font-weight:800; color:var(--accent); margin:10px 0 5px;">TRASA (Nazwa|minuty):</p>
+                <textarea id="edit-l-stops" rows="5" style="width:100%; padding:12px; border-radius:10px; background:var(--surf-l); border:1px solid var(--border); color:#fff;">${stopsStr}</textarea>
+                
+                <button class="btn" style="margin-top:20px;" onclick="ModAdminAdvanced.saveLine(${idx})">ZAPISZ W CHMURZE</button>
+            </div>
+        `;
+        document.getElementById('view-admin').innerHTML = modalHtml;
+    },
+
+    saveLine(idx) {
+        const num = document.getElementById('edit-l-num').value;
+        const dir = document.getElementById('edit-l-dir').value;
+        const cat = document.getElementById('edit-l-cat').value;
+        const times = document.getElementById('edit-l-times').value.split(',').map(s => s.trim());
+        const stops = document.getElementById('edit-l-stops').value.split(',').map(s => {
+            const [name, time] = s.split('|');
+            return { name: name.trim(), time: parseInt(time) || 0 };
+        });
+
+        const lineData = { num, dir, cat, type: cat.toLowerCase().includes('tram') ? 'tram' : 'bus', baseTimes: times, stops };
+
+        let currentLines = [...window.dbCache.lines];
+        if (idx !== null) currentLines[idx] = lineData;
+        else currentLines.push(lineData);
+
+        App.db.ref('mzk_v12_pro/lines').set(currentLines).then(() => {
+            ModAlerts.notify("Baza zaktualizowana!", "success");
+            this.render();
+        });
+    },
+
+    deleteLine(idx) {
+        if (!confirm("Usunąć tę linię bezpowrotnie?")) return;
+        let currentLines = [...window.dbCache.lines];
+        currentLines.splice(idx, 1);
+        App.db.ref('mzk_v12_pro/lines').set(currentLines).then(() => this.render());
+    },
+
+    deleteNews(id) {
+        if (!confirm("Usunąć ten komunikat?")) return;
+        App.db.ref(`mzk_v12_pro/news/${id}`).remove().then(() => this.render());
+    }
+};
+
+// Podmiana starego renderu Admina na nowy Advanced
+ModAdmin.render = () => ModAdminAdvanced.render();
+</script>
+</body>
+</html>

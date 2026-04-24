@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW - SYSTEM V2026</title>
+    <title>MZK GORZÓW PRO SYSTEM</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@700;900&display=swap" rel="stylesheet">
@@ -11,59 +12,56 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
     <style>
-        /* === SYSTEM WIZUALNY === */
         :root { 
-            --accent: #00ab55; 
-            --bg: #05080f; 
-            --surf: #121926; 
-            --surf-l: #1c2536; 
-            --text: #ffffff; 
-            --text-m: #94a3b8;
-            --bus: #00ab55; 
-            --tram: #ef4444; 
-            --border: rgba(255,255,255,0.08);
+            --accent: #00ab55; --bg: #0a0f18; --surf: #161f2c; --surf-l: #232d3d; 
+            --text: #ffffff; --text-m: #94a3b8; --bus: #00ab55; --tram: #ef4444; 
+            --border: rgba(255,255,255,0.06);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding-bottom: 100px; overflow-x: hidden; }
 
-        /* Nagłówek */
         header { 
-            background: rgba(5, 8, 15, 0.9); backdrop-filter: blur(12px);
+            background: rgba(10, 15, 24, 0.8); backdrop-filter: blur(15px);
             padding: 20px; position: sticky; top: 0; z-index: 1000;
             border-bottom: 1px solid var(--border); text-align: center;
         }
-        header h1 { font-family: 'Outfit', sans-serif; font-size: 1.2rem; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+        header h1 { font-family: 'Outfit', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 3px; }
 
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+        .module { display: none; animation: fadeIn 0.4s ease forwards; }
+        .module.active { display: block; }
 
-        /* Moduły (Widoki) */
-        .module { display: none; }
-        .module.active { display: block; animation: slideUp 0.3s ease; }
+        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); transition: 0.3s; }
+        .btn { background: var(--accent); color: #fff; padding: 16px; border: none; border-radius: 15px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn:active { transform: scale(0.97); }
+        
+        input, select, textarea { 
+            width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; 
+            background: var(--surf-l); color: #fff; border: 1px solid var(--border); font-size: 1rem; 
+        }
 
-        /* UI Kit - Karty, Przyciski, Formularze */
-        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .btn { background: var(--accent); color: #fff; padding: 16px; border: none; border-radius: 14px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn:active { transform: scale(0.98); }
-        input, select, textarea { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 14px; background: var(--surf-l); color: #fff; border: 1px solid var(--border); font-size: 1rem; }
-
-        /* Nawigacja Dolna */
+        /* Dolna nawigacja */
         nav { 
             position: fixed; bottom: 0; width: 100%; background: var(--surf); 
-            display: flex; height: 80px; border-top: 1px solid var(--border); z-index: 2000;
+            display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000;
             padding-bottom: env(safe-area-inset-bottom);
         }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); cursor: pointer; transition: 0.3s; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); cursor: pointer; }
         .nav-item.active { color: var(--accent); }
-        .nav-item i { font-size: 1.4rem; margin-bottom: 5px; }
-        .nav-item span { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 4px; }
+        .nav-item span { font-size: 0.6rem; font-weight: 900; text-transform: uppercase; }
 
-        /* Linie - Odznaki */
-        .line-badge { width: 50px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; font-family: 'Outfit'; margin-right: 15px; font-size: 1.1rem; }
-        .bg-bus { background: var(--bus); box-shadow: 0 4px 15px rgba(0,171,85,0.3); }
-        .bg-tram { background: var(--tram); box-shadow: 0 4px 15px rgba(239,68,68,0.3); }
+        /* Badge linii */
+        .line-badge { width: 45px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; font-family: 'Outfit'; margin-right: 15px; }
+        .bg-bus { background: var(--bus); box-shadow: 0 4px 12px rgba(0,171,85,0.3); }
+        .bg-tram { background: var(--tram); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
 
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .search-bar { position: sticky; top: 75px; z-index: 900; background: var(--bg); padding: 10px 0; }
+        .cat-title { font-family: 'Outfit'; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin: 25px 5px 10px; }
+        .stop-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -72,6 +70,7 @@
 
     <div class="container">
         <div id="view-lines" class="module active"></div>
+        <div id="view-stops" class="module"></div>
         <div id="view-news" class="module"></div>
         <div id="view-admin" class="module"></div>
         <div id="view-details" class="module"></div>
@@ -81,20 +80,21 @@
         <div class="nav-item active" id="nav-lines" onclick="App.switch('lines')">
             <i class="fa-solid fa-bus"></i><span>Linie</span>
         </div>
+        <div class="nav-item" id="nav-stops" onclick="App.switch('stops')">
+            <i class="fa-solid fa-map-location-dot"></i><span>Przystanki</span>
+        </div>
         <div class="nav-item" id="nav-news" onclick="App.switch('news')">
-            <i class="fa-solid fa-bullhorn"></i><span>News</span>
+            <i class="fa-solid fa-bullhorn"></i><span>Komunikaty</span>
         </div>
         <div class="nav-item" id="nav-admin" onclick="App.switch('admin')">
-            <i class="fa-solid fa-user-shield"></i><span>Admin</span>
+            <i class="fa-solid fa-user-gear"></i><span>Panel</span>
         </div>
     </nav>
 
     <script>
-      
-           // === KONFIGURACJA I SILNIK GŁÓWNY ===
+        // === CORE SYSTEM ===
         window.App = {
             dbKey: localStorage.getItem('mzk_key') || 'mzk_v2026_pro',
-            
             init() {
                 const config = {
                     apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M",
@@ -104,94 +104,114 @@
                 };
                 if (!firebase.apps.length) firebase.initializeApp(config);
                 this.db = firebase.database();
-
-                // Synchronizacja danych w czasie rzeczywistym
+                
+                // Live Sync
                 this.db.ref(this.dbKey).on('value', snap => {
                     const data = snap.val() || {};
-                    window.dbCache = {
-                        lines: data.lines || [],
-                        news: data.news || {}
-                    };
-                    this.refreshActiveView();
+                    window.dbCache = { lines: data.lines || [], news: data.news || {} };
+                    this.refreshView();
                 });
             },
-
-            refreshActiveView() {
-                const active = document.querySelector('.module.active').id.replace('view-', '');
-                if (active === 'lines') ModLines.render();
-                if (active === 'stops') ModStops.render();
-                if (active === 'news') ModNews.render();
-                if (active === 'admin') ModAdmin.renderPanel();
-            },
-
             switch(id) {
                 document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                document.getElementById('view-' + id)?.classList.add('active');
-                document.getElementById('nav-' + id)?.classList.add('active');
-                this.refreshActiveView();
+                document.getElementById('view-'+id)?.classList.add('active');
+                document.getElementById('nav-'+id)?.classList.add('active');
+                this.refreshView();
                 window.scrollTo(0,0);
+            },
+            refreshView() {
+                const active = document.querySelector('.module.active').id.replace('view-', '');
+                if(active === 'lines') ModLines.render();
+                if(active === 'stops') ModStops.render();
+                if(active === 'news') ModNews.render();
+                if(active === 'admin') ModAdmin.render();
             }
         };
 
-        // === MODUŁ 1: LINIE (Pasażer) ===
+        // === MODUŁ LINII (Warianty) ===
         window.ModLines = {
-            searchQuery: '',
+            searchQ: '',
             render() {
                 const container = document.getElementById('view-lines');
                 let lines = window.dbCache?.lines || [];
-                if(this.searchQuery) {
-                    const q = this.searchQuery.toLowerCase();
-                    lines = lines.filter(l => l.num.toLowerCase().includes(q) || l.dir.toLowerCase().includes(q));
-                }
+                if(this.searchQ) lines = lines.filter(l => l.num.includes(this.searchQ) || l.dir.toLowerCase().includes(this.searchQ.toLowerCase()));
 
-                let html = `<input type="text" placeholder="Szukaj numeru lub kierunku..." onkeyup="ModLines.search(this.value)" value="${this.searchQuery}" class="search-bar">`;
+                let html = `<div class="search-bar"><input type="text" placeholder="Szukaj linii..." onkeyup="ModLines.search(this.value)" value="${this.searchQ}"></div>`;
                 
-                const cats = [...new Set(lines.map(l => l.cat || 'Inne'))];
+                const uniqueNums = [...new Set(lines.map(l => l.num))];
+                const cats = [...new Set(lines.map(l => l.cat || 'Autobusy'))];
+
                 cats.forEach(cat => {
-                    html += `<div class="cat-label">${cat}</div>`;
-                    lines.filter(l => (l.cat || 'Inne') === cat).forEach(l => {
-                        const idx = window.dbCache.lines.indexOf(l);
-                        html += `
-                        <div class="card" onclick="ModLines.showDetails(${idx})" style="display:flex; align-items:center">
-                            <div class="line-badge ${l.type === 'tram' ? 'bg-tram' : 'bg-bus'}">${l.num}</div>
-                            <div style="flex:1"><b>${l.dir}</b><div style="font-size:0.7rem; opacity:0.6">Liczba przystanków: ${l.stops?.length || 0}</div></div>
-                            <i class="fa-solid fa-chevron-right" style="opacity:0.2"></i>
-                        </div>`;
-                    });
+                    const catNums = uniqueNums.filter(n => lines.find(l => l.num === n).cat === cat);
+                    if(catNums.length > 0) {
+                        html += `<div class="cat-title">${cat}</div>`;
+                        catNums.forEach(num => {
+                            const variants = lines.filter(l => l.num === num);
+                            const isTram = variants[0].type === 'tram';
+                            html += `
+                            <div class="card" onclick="ModLines.handleLine('${num}')" style="display:flex; align-items:center">
+                                <div class="line-badge ${isTram?'bg-tram':'bg-bus'}">${num}</div>
+                                <div style="flex:1"><b>Linia ${num}</b><br><small style="opacity:0.6">${variants.length > 1 ? variants.length+' warianty trasy' : variants[0].dir}</small></div>
+                                <i class="fa-solid fa-chevron-right" style="opacity:0.2"></i>
+                            </div>`;
+                        });
+                    }
                 });
                 container.innerHTML = html;
             },
-            search(v) { this.searchQuery = v; this.render(); },
+            search(v) { this.searchQ = v; this.render(); },
+            handleLine(num) {
+                const vars = window.dbCache.lines.filter(l => l.num === num);
+                if(vars.length === 1) this.showDetails(window.dbCache.lines.indexOf(vars[0]));
+                else this.showVariantPicker(num, vars);
+            },
+            showVariantPicker(num, vars) {
+                document.getElementById('view-details').innerHTML = `
+                    <div style="padding:10px">
+                        <h2 style="font-family:'Outfit'; margin-bottom:20px">Wybierz kierunek linii ${num}</h2>
+                        ${vars.map(v => `
+                            <div class="card" onclick="ModLines.showDetails(${window.dbCache.lines.indexOf(v)})">
+                                <small style="text-transform:uppercase; color:var(--accent); font-weight:900; font-size:0.6rem">Kierunek</small>
+                                <div style="font-weight:700; font-size:1.1rem">${v.dir}</div>
+                            </div>
+                        `).join('')}
+                        <button class="btn" style="background:var(--surf-l)" onclick="App.switch('lines')">POWRÓT</button>
+                    </div>`;
+                App.switch('details');
+            },
             showDetails(i) {
                 const l = window.dbCache.lines[i];
-                const stops = l.stops?.map(s => `<div class="stop-row"><span>${s.time}'</span><b>${s.name}</b></div>`).join('') || 'Brak trasy';
                 document.getElementById('view-details').innerHTML = `
-                    <div class="card" style="border-left:5px solid var(--accent)"><h2>Linia ${l.num}</h2><p>${l.dir}</p></div>
-                    <div class="card">${stops}</div>
-                    <button class="btn" onclick="App.switch('lines')">POWRÓT</button>`;
+                    <div class="card" style="border-left:5px solid var(--accent)">
+                        <div style="display:flex; align-items:center">
+                            <div class="line-badge ${l.type==='tram'?'bg-tram':'bg-bus'}">${l.num}</div>
+                            <div><small style="font-weight:900; color:var(--accent)">KIERUNEK</small><br><b style="font-size:1.2rem">${l.dir}</b></div>
+                        </div>
+                    </div>
+                    <div class="card">${l.stops.map(s=>`<div class="stop-row"><span style="width:40px; color:var(--accent); font-weight:900">${s.time}'</span><b>${s.name}</b></div>`).join('')}</div>
+                    <button class="btn" onclick="App.switch('lines')">POWRÓT DO LISTY</button>`;
                 App.switch('details');
             }
         };
 
-        // === MODUŁ 2: PRZYSTANKI (Wyszukiwarka + Tablica) ===
+        // === MODUŁ PRZYSTANKÓW (Tablica Odjazdów) ===
         window.ModStops = {
-            searchQuery: '',
+            searchQ: '',
             render() {
                 const container = document.getElementById('view-stops');
-                let allStops = new Set();
-                window.dbCache?.lines.forEach(l => l.stops?.forEach(s => allStops.add(s.name)));
-                let stopsArr = Array.from(allStops).sort();
+                let stops = new Set();
+                window.dbCache.lines.forEach(l => l.stops?.forEach(s => stops.add(s.name)));
+                let arr = Array.from(stops).sort();
+                if(this.searchQ) arr = arr.filter(s => s.toLowerCase().includes(this.searchQ.toLowerCase()));
 
-                if(this.searchQuery) stopsArr = stopsArr.filter(s => s.toLowerCase().includes(this.searchQuery.toLowerCase()));
-
-                let html = `<input type="text" placeholder="Wpisz nazwę przystanku..." onkeyup="ModStops.search(this.value)" value="${this.searchQuery}" class="search-bar">`;
-                stopsArr.forEach(s => {
-                    html += `<div class="card" onclick="ModStops.showBoard('${s}')"><i class="fa-solid fa-location-dot" style="color:var(--accent); margin-right:10px"></i>${s}</div>`;
+                let html = `<div class="search-bar"><input type="text" placeholder="Wyszukaj przystanek..." onkeyup="ModStops.search(this.value)" value="${this.searchQ}"></div>`;
+                arr.forEach(s => {
+                    html += `<div class="card" onclick="ModStops.showBoard('${s}')"><i class="fa-solid fa-location-dot" style="color:var(--accent); margin-right:15px"></i>${s}</div>`;
                 });
-                container.innerHTML = html || '<p style="text-align:center; padding:20px">Nie znaleziono przystanku.</p>';
+                container.innerHTML = html;
             },
-            search(v) { this.searchQuery = v; this.render(); },
+            search(v) { this.searchQ = v; this.render(); },
             showBoard(name) {
                 let deps = [];
                 window.dbCache.lines.forEach(l => {
@@ -199,129 +219,117 @@
                     if(s) deps.push({ num: l.num, dir: l.dir, time: s.time, type: l.type });
                 });
                 deps.sort((a,b) => a.time - b.time);
-
-                const html = deps.map(d => `
-                    <div class="stop-row">
-                        <div class="line-badge ${d.type==='tram'?'bg-tram':'bg-bus'}" style="width:40px; height:30px; font-size:0.8rem">${d.num}</div>
-                        <div style="flex:1; margin-left:10px">${d.dir}</div>
-                        <b style="color:var(--accent)">+${d.time} min</b>
-                    </div>`).join('');
-
                 document.getElementById('view-details').innerHTML = `
-                    <div class="card"><h3>Odjazdy z: ${name}</h3></div>
-                    <div class="card">${html || 'Brak odjazdów'}</div>
+                    <div class="card"><h3>Odjazdy: ${name}</h3></div>
+                    <div class="card">${deps.map(d=>`
+                        <div class="stop-row">
+                            <div class="line-badge ${d.type==='tram'?'bg-tram':'bg-bus'}" style="width:35px; height:25px; font-size:0.7rem">${d.num}</div>
+                            <div style="flex:1">${d.dir}</div><b style="color:var(--accent)">+${d.time} min</b>
+                        </div>`).join('') || 'Brak odjazdów'}</div>
                     <button class="btn" onclick="App.switch('stops')">POWRÓT</button>`;
                 App.switch('details');
             }
         };
 
-        // === MODUŁ 3: NEWSY ===
+        // === MODUŁ NEWSÓW ===
         window.ModNews = {
             render() {
-                const news = window.dbCache?.news || {};
+                const news = window.dbCache.news;
                 const keys = Object.keys(news).reverse();
                 document.getElementById('view-news').innerHTML = keys.map(k => `
                     <div class="card" style="border-top:4px solid var(--tram)">
-                        <div style="font-size:0.7rem; opacity:0.5">${news[k].date}</div>
-                        <h3>${news[k].title}</h3>
-                        <p style="margin-top:10px; opacity:0.8">${news[k].content}</p>
-                    </div>`).join('') || '<div class="card">Brak komunikatów</div>';
+                        <small style="opacity:0.5">${news[k].date}</small>
+                        <h3 style="margin-top:5px">${news[k].title}</h3>
+                        <p style="margin-top:10px; opacity:0.8; font-size:0.9rem">${news[k].content}</p>
+                    </div>
+                `).join('') || '<div class="card" style="text-align:center; opacity:0.5">Brak aktualnych komunikatów.</div>';
             }
         };
 
-        // === MODUŁ 4: SUPER ADMIN (Edycja wszystkiego) ===
+        // === MODUŁ ADMINA (Pełna Edycja) ===
         window.ModAdmin = {
-            isLogged: false, editIdx: null, editNewsKey: null,
-            
-            render() { if(!this.isLogged) this.showLogin(); else this.renderPanel(); },
-            showLogin() {
-                document.getElementById('view-admin').innerHTML = `<div class="card" style="text-align:center"><h2>Admin</h2><input type="password" id="p" placeholder="Hasło"><button class="btn" onclick="ModAdmin.login()">ZALOGUJ</button></div>`;
-            },
-            login() { if(document.getElementById('p').value === '123') { this.isLogged = true; this.renderPanel(); } },
-            
-            renderPanel() {
+            isLogged: false, editLIdx: null, editNKey: null,
+            render() {
                 const container = document.getElementById('view-admin');
+                if(!this.isLogged) {
+                    container.innerHTML = `<div class="card" style="text-align:center"><h2>Panel Sterowania</h2><br><input type="password" id="ap" placeholder="Hasło"><button class="btn" onclick="ModAdmin.login()">WEJDŹ</button></div>`;
+                    return;
+                }
                 container.innerHTML = `
+                    <div class="card" style="border:1px solid var(--accent)">
+                        <small style="color:var(--accent); font-weight:900">RECOVERY - KLUCZ BAZY</small>
+                        <div style="display:flex; gap:10px; margin-top:5px">
+                            <input type="text" id="ak" value="${App.dbKey}" style="margin:0">
+                            <button class="btn" style="width:auto; padding:0 15px" onclick="ModAdmin.setKey()">OK</button>
+                        </div>
+                    </div>
                     <div class="card">
-                        <h3 id="ltitle">DODAJ LINIĘ</h3>
-                        <input id="l-num" placeholder="Nr"> <input id="l-dir" placeholder="Kierunek">
-                        <select id="l-cat"><option value="Dzienne">Autobus</option><option value="Tramwaje">Tramwaj</option></select>
-                        <textarea id="l-stops" placeholder="Przystanek|Minuta, ..."></textarea>
+                        <h3 id="lt">${this.editLIdx!==null?'EDYTUJ LINIĘ':'DODAJ LINIĘ'}</h3>
+                        <input id="ln" placeholder="Numer"> <input id="ld" placeholder="Kierunek">
+                        <select id="lc"><option value="Dzienne">Autobus</option><option value="Tramwaje">Tramwaj</option></select>
+                        <textarea id="ls" placeholder="Przystanek|Minuta, ... (oddzielone przecinkiem)"></textarea>
                         <button class="btn" onclick="ModAdmin.saveLine()">ZAPISZ LINIĘ</button>
+                        ${this.editLIdx!==null?'<button class="btn" onclick="ModAdmin.cancel()" style="background:#444; margin-top:10px">ANULUJ</button>':''}
                     </div>
                     <div class="card" style="background:#1a2533">
-                        <h3 id="ntitle">DODAJ NEWS</h3>
-                        <input id="n-t" placeholder="Tytuł">
-                        <textarea id="n-c" placeholder="Treść..."></textarea>
-                        <button class="btn" style="background:var(--tram)" onclick="ModAdmin.saveNews()">PUBLIKUJ NEWS</button>
+                        <h3 id="nt">${this.editNKey?'EDYTUJ NEWS':'NOWY NEWS'}</h3>
+                        <input id="ntt" placeholder="Tytuł newsa">
+                        <textarea id="ntc" placeholder="Treść newsa..."></textarea>
+                        <button class="btn" style="background:var(--tram)" onclick="ModAdmin.saveNews()">PUBLIKUJ</button>
+                        ${this.editNKey?'<button class="btn" onclick="ModAdmin.cancel()" style="background:#444; margin-top:10px">ANULUJ</button>':''}
                     </div>
-                    <div id="adm-lists"></div>`;
+                    <div id="al"></div>`;
                 this.renderLists();
             },
-
+            login() { if(document.getElementById('ap').value === '123') { this.isLogged = true; this.render(); } },
+            setKey() { localStorage.setItem('mzk_key', document.getElementById('ak').value); location.reload(); },
+            saveLine() {
+                const n = document.getElementById('ln').value, d = document.getElementById('ld').value, s = document.getElementById('ls').value;
+                if(!n || !d || !s) return alert("Wypełnij wszystko!");
+                const stops = s.split(',').filter(x=>x.includes('|')).map(x=>{const p=x.split('|'); return {name:p[0].trim(), time:p[1].trim()}});
+                let lines = window.dbCache.lines;
+                const data = { num:n, dir:d, stops:stops, cat:document.getElementById('lc').value, type:document.getElementById('lc').value==='Tramwaje'?'tram':'bus' };
+                if(this.editLIdx!==null) lines[this.editLIdx] = data; else lines.push(data);
+                App.db.ref(App.dbKey+'/lines').set(lines).then(()=>this.cancel());
+            },
+            editLine(i) {
+                this.editLIdx = i; const l = window.dbCache.lines[i];
+                this.render();
+                document.getElementById('ln').value = l.num; document.getElementById('ld').value = l.dir; document.getElementById('lc').value = l.cat;
+                document.getElementById('ls').value = l.stops.map(x=>`${x.name}|${x.time}`).join(', ');
+                window.scrollTo(0,0);
+            },
+            saveNews() {
+                const t = document.getElementById('ntt').value, c = document.getElementById('ntc').value;
+                const data = { title:t, content:c, date: new Date().toLocaleString() };
+                if(this.editNKey) App.db.ref(App.dbKey+'/news/'+this.editNKey).set(data).then(()=>this.cancel());
+                else App.db.ref(App.dbKey+'/news').push(data).then(()=>this.cancel());
+            },
+            editNews(k) {
+                this.editNKey = k; const n = window.dbCache.news[k];
+                this.render();
+                document.getElementById('ntt').value = n.title; document.getElementById('ntc').value = n.content;
+                window.scrollTo(0,0);
+            },
+            cancel() { this.editLIdx = null; this.editNKey = null; this.render(); },
+            delLine(i) { if(confirm("Usunąć?")) { let l = window.dbCache.lines; l.splice(i,1); App.db.ref(App.dbKey+'/lines').set(l); } },
+            delNews(k) { if(confirm("Usunąć news?")) App.db.ref(App.dbKey+'/news/'+k).remove(); },
             renderLists() {
-                const lHtml = (window.dbCache?.lines || []).map((l,i) => `
-                    <div class="card" style="display:flex; justify-content:space-between">
+                const lHtml = window.dbCache.lines.map((l,i)=>`
+                    <div class="card" style="display:flex; justify-content:space-between; padding:12px">
                         <span><b>${l.num}</b> ${l.dir}</span>
                         <div><i class="fa-solid fa-pen" onclick="ModAdmin.editLine(${i})" style="margin-right:15px"></i><i class="fa-solid fa-trash" onclick="ModAdmin.delLine(${i})" style="color:var(--tram)"></i></div>
                     </div>`).join('');
-                
-                const nHtml = Object.keys(window.dbCache?.news || {}).map(k => `
-                    <div class="card" style="display:flex; justify-content:space-between; border-left:3px solid var(--tram)">
+                const nHtml = Object.keys(window.dbCache.news).map(k=>`
+                    <div class="card" style="display:flex; justify-content:space-between; padding:12px; border-left:3px solid var(--tram)">
                         <span>${window.dbCache.news[k].title}</span>
                         <div><i class="fa-solid fa-pen" onclick="ModAdmin.editNews('${k}')" style="margin-right:15px"></i><i class="fa-solid fa-trash" onclick="ModAdmin.delNews('${k}')" style="color:var(--tram)"></i></div>
                     </div>`).join('');
-                
-                document.getElementById('adm-lists').innerHTML = `<h4 class="cat-label">LINIE</h4>${lHtml}<h4 class="cat-label">NEWSY</h4>${nHtml}`;
-            },
-
-            saveLine() {
-                const num = document.getElementById('l-num').value, dir = document.getElementById('l-dir').value;
-                const stops = document.getElementById('l-stops').value.split(',').filter(s=>s.includes('|')).map(s=>{const p=s.split('|'); return {name:p[0].trim(), time:p[1].trim()}});
-                let lines = window.dbCache.lines;
-                const data = { num, dir, stops, cat: document.getElementById('l-cat').value, type: document.getElementById('l-cat').value==='Tramwaje'?'tram':'bus' };
-                if(this.editIdx !== null) lines[this.editIdx] = data; else lines.push(data);
-                App.db.ref(App.dbKey + '/lines').set(lines).then(() => { this.editIdx = null; this.renderPanel(); });
-            },
-
-            editLine(i) {
-                this.editIdx = i; const l = window.dbCache.lines[i];
-                document.getElementById('l-num').value = l.num; document.getElementById('l-dir').value = l.dir;
-                document.getElementById('l-stops').value = l.stops.map(s=>`${s.name}|${s.time}`).join(', ');
-                document.getElementById('ltitle').innerText = "EDYCJA LINII";
-            },
-
-            saveNews() {
-                const title = document.getElementById('n-t').value, content = document.getElementById('n-c').value;
-                const data = { title, content, date: new Date().toLocaleString() };
-                if(this.editNewsKey) App.db.ref(App.dbKey + '/news/' + this.editNewsKey).set(data);
-                else App.db.ref(App.dbKey + '/news').push(data);
-                this.editNewsKey = null; this.renderPanel();
-            },
-
-            editNews(k) {
-                this.editNewsKey = k; const n = window.dbCache.news[k];
-                document.getElementById('n-t').value = n.title; document.getElementById('n-c').value = n.content;
-                document.getElementById('ntitle').innerText = "EDYCJA NEWSA";
-            },
-
-            delLine(i) { if(confirm("Usunąć?")) { let l = window.dbCache.lines; l.splice(i,1); App.db.ref(App.dbKey + '/lines').set(l); } },
-            delNews(k) { if(confirm("Usunąć news?")) App.db.ref(App.dbKey + '/news/' + k).remove(); }
+                document.getElementById('al').innerHTML = `<div class="cat-title">LINIE W BAZIE</div>${lHtml}<div class="cat-title">NEWSY W BAZIE</div>${nHtml}`;
+            }
         };
 
-        // Style uzupełniające
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .search-bar { margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid var(--accent); }
-            .cat-label { font-size: 0.7rem; font-weight: 900; color: var(--accent); text-transform: uppercase; margin: 20px 0 10px 5px; letter-spacing: 1px; }
-            .stop-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-            .stop-row:last-child { border: none; }
-        `;
-        document.head.appendChild(style);
-
         App.init();
-
-
     </script>
 </body>
 </html>

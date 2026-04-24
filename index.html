@@ -440,8 +440,135 @@ window.ModAdmin = {
         document.getElementById('admin-lines-list').innerHTML = h;
     }
 };
+// === MODUŁ 5: ADMIN PRO (PRZYWRÓCONE FUNKCJE + EDYCJA) ===
 
-// FINISH
+window.ModAdmin = {
+    isLogged: false,
+    render() {
+        if(!this.isLogged) {
+            document.getElementById('view-admin').innerHTML = `
+                <div class="card" style="text-align:center; margin-top:20px">
+                    <h2 style="margin-bottom:20px">Panel Zarządzania</h2>
+                    <input type="password" id="adm-pass" placeholder="Hasło (123)">
+                    <button class="btn" onclick="ModAdmin.login()">Zaloguj się</button>
+                </div>`;
+            return;
+        }
+        document.getElementById('view-admin').innerHTML = `
+            <div class="card" style="border-left:5px solid var(--accent)">
+                <h3>Kreator Linii i Rozkładu</h3>
+                <input id="l-num" placeholder="Numer (np. 124)">
+                <input id="l-dir" placeholder="Kierunek (np. Londyńska)">
+                <input id="l-cat" placeholder="Kategoria (np. Autobusy / Podmiejskie)">
+                
+                <p style="font-size:0.7rem; color:var(--accent); margin-bottom:5px"><b>GODZINY Z PĘTLI (przecinek):</b></p>
+                <textarea id="l-times" placeholder="08:00, 08:20, 08:40..." rows="3"></textarea>
+                
+                <p style="font-size:0.7rem; color:var(--accent); margin-bottom:5px"><b>PRZYSTANKI (Nazwa|minuty przejazdu):</b></p>
+                <textarea id="l-stops" placeholder="Pętla Wieprzyce|0, Piaski|5, Centrum|12" rows="5"></textarea>
+                
+                <button class="btn" onclick="ModAdmin.saveLine()">Zapisz Linię i Rozkład</button>
+            </div>
+
+            <div class="card" style="background:#1a2533; border-left:5px solid var(--tram)">
+                <h3>Nowy Komunikat</h3>
+                <input id="n-title" placeholder="Tytuł newsa">
+                <select id="n-cat">
+                    <option value="Ogólne">Ogólne</option>
+                    <option value="Utrudnienia">Utrudnienia</option>
+                    <option value="Remonty">Remonty</option>
+                </select>
+                <textarea id="n-content" placeholder="Treść wiadomości..."></textarea>
+                <button class="btn" style="background:var(--tram); color:#fff" onclick="ModAdmin.saveNews()">Opublikuj News</button>
+            </div>
+
+            <div id="admin-lines-list"></div>
+            <div id="admin-news-list"></div>`;
+        this.listAll();
+    },
+
+    login() {
+        if(document.getElementById('adm-pass').value === '123') {
+            this.isLogged = true; this.render();
+        } else alert("Hasło to 123");
+    },
+
+    saveLine() {
+        const n = document.getElementById('l-num').value,
+              d = document.getElementById('l-dir').value,
+              c = document.getElementById('l-cat').value || 'Autobusy',
+              t = document.getElementById('l-times').value,
+              s = document.getElementById('l-stops').value;
+
+        if(!n || !d || !t || !s) return alert("Brakuje danych!");
+
+        const baseTimes = t.split(',').map(x => x.trim()).filter(x => x);
+        const stops = s.split(',').map(x => {
+            const p = x.split('|');
+            return { name: p[0].trim(), time: parseInt(p[1]) || 0 };
+        });
+
+        let lines = window.dbCache.lines;
+        lines.push({ num: n, dir: d, cat: c, type: c.toLowerCase().includes('tram')?'tram':'bus', baseTimes: baseTimes, stops: stops });
+        
+        App.db.ref(App.dbKey + '/lines').set(lines).then(() => {
+            alert("Dodano!"); this.render();
+        });
+    },
+
+    saveNews() {
+        const title = document.getElementById('n-title').value,
+              content = document.getElementById('n-content').value,
+              cat = document.getElementById('n-cat').value;
+        if(!title || !content) return alert("Wpisz treść!");
+
+        App.db.ref(App.dbKey + '/news').push({
+            title, content, cat,
+            date: new Date().toLocaleString('pl-PL', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })
+        }).then(() => { alert("News dodany!"); this.render(); });
+    },
+
+    deleteLine(idx) {
+        if(confirm("Usunąć linię?")) {
+            let l = window.dbCache.lines;
+            l.splice(idx, 1);
+            App.db.ref(App.dbKey + '/lines').set(l).then(() => this.render());
+        }
+    },
+
+    deleteNews(key) {
+        if(confirm("Usunąć newsa?")) {
+            App.db.ref(App.dbKey + '/news/' + key).remove().then(() => this.render());
+        }
+    },
+
+    listAll() {
+        // Lista Linii
+        let hLines = `<h4 style="margin:20px 0; opacity:0.5">ZARZĄDZAJ LINIAMI:</h4>`;
+        window.dbCache.lines.forEach((l, i) => {
+            hLines += `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center">
+                <span><b>${l.num}</b> ${l.dir} <small>(${l.cat})</small></span>
+                <i class="fa-solid fa-trash" onclick="ModAdmin.deleteLine(${i})" style="color:var(--tram)"></i>
+            </div>`;
+        });
+        document.getElementById('admin-lines-list').innerHTML = hLines;
+
+        // Lista Newsów
+        let hNews = `<h4 style="margin:20px 0; opacity:0.5">ZARZĄDZAJ NEWSAMI:</h4>`;
+        Object.keys(window.dbCache.news).forEach(k => {
+            const n = window.dbCache.news[k];
+            hNews += `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; background:#1a2533">
+                <span style="font-size:0.8rem"><b>${n.title}</b></span>
+                <i class="fa-solid fa-circle-xmark" onclick="ModAdmin.deleteNews('${k}')" style="color:var(--tram)"></i>
+            </div>`;
+        });
+        document.getElementById('admin-news-list').innerHTML = hNews;
+    }
+};
+
+// ZAKOŃCZENIE PLIKU
 </script>
 </body>
 </html>

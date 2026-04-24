@@ -708,6 +708,417 @@ UI.currentView = 'favs';
 UI.render();
 
 // =====================================================================
-    </script>
+
+   // =====================================================================
+// 🧩 SUPER MODUŁ 7: LIVE ENGINE & NOTIFICATIONS
+// =====================================================================
+
+// --- 1. STYLE DLA SYSTEMU LIVE ---
+const styleLive = document.createElement('style');
+styleLive.innerHTML = `
+    .live-status { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #64748b; margin-top: 10px; justify-content: center; }
+    .pulse-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; position: relative; }
+    .pulse-dot::after { 
+        content: ''; width: 100%; height: 100%; background: #22c55e; border-radius: 50%; 
+        position: absolute; animation: pulse 2s infinite; opacity: 0.5; 
+    }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(3); opacity: 0; } }
+    
+    .notif-bar { background: #0f172a; color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+    .notif-bar button { background: #334155; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+`;
+document.head.appendChild(styleLive);
+
+// --- 2. MANAGER POWIADOMIEŃ ---
+const MZK_Live = {
+    lastNotified: {}, // Zapobiega wielokrotnemu powiadamianiu o tym samym kursie
+    notificationsEnabled: false,
+
+    init: function() {
+        // Sprawdzamy czy przeglądarka wspiera powiadomienia
+        if ("Notification" in window) {
+            if (Notification.permission === "granted") this.notificationsEnabled = true;
+        }
+    },
+
+    requestPermission: function() {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                this.notificationsEnabled = true;
+                UI.render();
+            }
+        });
+    },
+
+    // Sprawdza czy któryś z ulubionych autobusów nadjeżdża
+    checkProximity: function() {
+        if (!this.notificationsEnabled) return;
+
+        Favs.data.stops.forEach(stopId => {
+            const stop = MZK_App.Data.raw.stops[stopId];
+            if (!stop) return;
+
+            stop.lines.forEach(lineId => {
+                const data = MZK_App.Data.getLineForStop(lineId, stopId);
+                if (data && data.departures.length > 0) {
+                    const nextBus = data.departures[0];
+                    
+                    // Powiadomienie: jeśli bus za 1-2 minuty i jeszcze nie powiadomiono o tym kursie dzisiaj
+                    const notifKey = `${stopId}_${lineId}_${nextBus.time}`;
+                    if (nextBus.wait <= 2 && nextBus.wait > 0 && !this.lastNotified[notifKey]) {
+                        this.sendAlert(lineId, stop.name, nextBus.wait);
+                        this.lastNotified[notifKey] = true;
+                    }
+                }
+            });
+        });
+    },
+
+    sendAlert: function(line, stop, wait) {
+        const title = `🚌 Nadjeżdża Linia ${line}!`;
+        const options = {
+            body: `Twój autobus będzie na przystanku ${stop} za ok. ${wait} min.`,
+            icon: 'https://cdn-icons-png.flaticon.com/512/721/721064.png'
+        };
+        new Notification(title, options);
+    }
+};
+
+// --- 3. AKTUALIZACJA UI (DODANIE STOPKI LIVE I POWIADOMIEŃ) ---
+const baseUIRender = UI.render;
+UI.render = function() {
+    // Wywołujemy oryginalny render
+    baseUIRender.call(this);
+    
+    const container = document.getElementById('sub-container');
+    if (!container) return;
+
+    // Dodajemy pasek włączenia powiadomień jeśli nie są aktywne
+    if (!MZK_Live.notificationsEnabled && "Notification" in window) {
+        const notifBar = document.createElement('div');
+        notifBar.className = 'notif-bar';
+        notifBar.style.display = 'flex';
+        notifBar.innerHTML = `
+            <span>Włącz powiadomienia o odjazdach (1-2 min)</span>
+            <button onclick="MZK_Live.requestPermission()">Włącz</button>
+        `;
+        container.prepend(notifBar);
+    }
+
+    // Dodajemy stopkę LIVE
+    const liveDiv = document.createElement('div');
+    liveDiv.className = 'live-status';
+    liveDiv.innerHTML = `
+        <div class="pulse-dot"></div>
+        <span>System LIVE aktywny (aktualizacja: ${new Date().toLocaleTimeString()})</span>
+    `;
+    container.appendChild(liveDiv);
+};
+
+// --- 4. GLOBALNY INTERWAŁ (AKTUALIZACJA CO 30 SEKUND) ---
+MZK_Live.init();
+
+setInterval(() => {
+    console.log("🔄 Globalny cykl odświeżania LIVE...");
+    
+    // 1. Przelicz czasy w UI
+    UI.render();
+    
+    // 2. Sprawdź czy wysłać powiadomienie
+    MZK_Live.checkProximity();
+    
+}, 30000); // 30 sekund
+
+// =====================================================================
+// =====================================================================
+// 🧩 SUPER MODUŁ 8: USTAWIENIA, DARK MODE & SZYBKI PODGLĄD
+// =====================================================================
+
+// --- 1. STYLE DLA TRYBU CIEMNEGO I USTAWIEŃ ---
+const styleSettings = document.createElement('style');
+styleSettings.innerHTML = `
+    /* Zmienne dla trybu ciemnego */
+    body.dark-mode { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --primary: #3b82f6; }
+    body.dark-mode .nav-bar { background: #1e293b; }
+    body.dark-mode .nav-btn { background: #334155; color: #94a3b8; }
+    body.dark-mode .select-group select { background: #334155; color: white; border-color: #475569; }
+    body.dark-mode .btn-back { background: #334155; color: white; }
+
+    .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #e2e8f0; }
+    .btn-danger { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    
+    .quick-glance { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    .quick-glance h4 { margin: 0 0 10px 0; font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; }
+`;
+document.head.appendChild(styleSettings);
+
+// --- 2. LOGIKA USTAWIEŃ ---
+const Settings = {
+    darkMode: localStorage.getItem('mzk_dark_mode') === 'true',
+
+    init: function() {
+        if (this.darkMode) document.body.classList.add('dark-mode');
+    },
+
+    toggleDarkMode: function() {
+        this.darkMode = !this.darkMode;
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('mzk_dark_mode', this.darkMode);
+    },
+
+    resetAllData: function() {
+        if (confirm("Czy na pewno chcesz usunąć wszystkie ulubione i ustawienia?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+};
+Settings.init();
+
+// --- 3. ROZBUDOWA UI O SZYBKI PODGLĄD I WIDOK USTAWIEŃ ---
+const finalUIRender = UI.render;
+UI.render = function() {
+    const app = document.getElementById('app');
+    app.innerHTML = `
+        <div class="container">
+            <div id="quick-glance-area"></div>
+            <div class="nav-bar">
+                <button class="nav-btn ${this.currentView === 'favs' ? 'active' : ''}" onclick="UI.switchView('favs')">❤️</button>
+                <button class="nav-btn ${this.currentView === 'stops' ? 'active' : ''}" onclick="UI.switchView('stops')">🚏</button>
+                <button class="nav-btn ${this.currentView === 'travel' ? 'active' : ''}" onclick="UI.switchView('travel')">🧭</button>
+                <button class="nav-btn ${this.currentView === 'settings' ? 'active' : ''}" onclick="UI.switchView('settings')">⚙️</button>
+            </div>
+            <div id="sub-container"></div>
+        </div>
+    `;
+    
+    if (this.currentView === 'favs') this.viewQuickGlance();
+    
+    const container = document.getElementById('sub-container');
+    if (this.currentView === 'settings') this.viewSettings(container);
+    else if (this.currentView === 'favs') this.viewFavs(container);
+    else if (this.currentView === 'stops') this.viewStops(container);
+    else if (this.currentView === 'board') this.viewBoard(container, this.activeStopId);
+    else if (this.currentView === 'lines') this.viewLines(container);
+    else if (this.currentView === 'travel') this.viewTravel(container);
+};
+
+// Funkcja Szybkiego Podglądu (Top 3 odjazdy z ulubionych)
+UI.viewQuickGlance = function() {
+    const area = document.getElementById('quick-glance-area');
+    if (Favs.data.stops.length === 0) return;
+
+    let allFavDepartures = [];
+    Favs.data.stops.forEach(stopId => {
+        const stop = MZK_App.Data.raw.stops[stopId];
+        stop?.lines.forEach(lineId => {
+            const data = MZK_App.Data.getLineForStop(lineId, stopId);
+            data?.departures.forEach(dep => {
+                allFavDepartures.push({ line: lineId, stop: stop.name, wait: dep.wait });
+            });
+        });
+    });
+
+    allFavDepartures.sort((a,b) => a.wait - b.wait);
+    const top3 = allFavDepartures.slice(0, 3);
+
+    if (top3.length > 0) {
+        area.innerHTML = `
+            <div class="quick-glance">
+                <h4>🚀 Najbliższe z ulubionych</h4>
+                ${top3.map(bus => `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <span><strong>${bus.line}</strong> → ${bus.stop}</span>
+                        <span><strong>${bus.wait} min</strong></span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+};
+
+UI.viewSettings = function(container) {
+    container.innerHTML = `
+        <h2>⚙️ Ustawienia</h2>
+        <div class="card">
+            <div class="settings-row">
+                <span>Tryb Ciemny</span>
+                <button class="nav-btn" onclick="Settings.toggleDarkMode()">Przełącz</button>
+            </div>
+            <div class="settings-row">
+                <span>Powiadomienia</span>
+                <span>${MZK_Live.notificationsEnabled ? '✅ Aktywne' : '❌ Wyłączone'}</span>
+            </div>
+            <div class="settings-row" style="border:none">
+                <span>Pamięć aplikacji</span>
+                <button class="btn-danger" onclick="Settings.resetAllData()">Usuń dane</button>
+            </div>
+        </div>
+        <p style="text-align:center; font-size:0.8rem; color:#94a3b8;">MZK Pro v1.2<br>Silnik: mzk_v12_pro</p>
+    `;
+};
+
+UI.render();
+// =====================================================================
+// =====================================================================
+// 🧩 SUPER MODUŁ 9: PANEL ADMINA (ZARZĄDZANIE BAZĄ)
+// =====================================================================
+
+// --- 1. STYLE DLA ADMINA ---
+const styleAdmin = document.createElement('style');
+styleAdmin.innerHTML = `
+    .admin-form { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+    .admin-form input, .admin-form textarea { padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; }
+    .btn-save { background: #059669; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .admin-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .stat-box { background: #f1f5f9; padding: 15px; border-radius: 10px; text-align: center; }
+    .stat-box span { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+    .danger-zone { margin-top: 30px; border-top: 2px dashed #ef4444; padding-top: 20px; }
+`;
+document.head.appendChild(styleAdmin);
+
+// --- 2. LOGIKA ADMINA ---
+const Admin = {
+    isAuthenticated: false,
+    pass: "mzk2026", // Twoje hasło do panelu
+
+    login: function() {
+        const input = prompt("Podaj hasło administratora:");
+        if (input === this.pass) {
+            this.isAuthenticated = true;
+            UI.render();
+        } else {
+            alert("Błędne hasło!");
+        }
+    },
+
+    // Dodawanie nowej linii do Firebase
+    saveLine: function() {
+        const id = document.getElementById('new-line-id').value;
+        const dir = document.getElementById('new-line-dir').value;
+        const times = document.getElementById('new-line-times').value.split(',');
+        
+        if(!id || !dir || times.length === 0) return alert("Wypełnij wszystkie pola!");
+
+        db.ref(`${DB_KEY}/lines/${id}`).set({
+            name: "Linia " + id,
+            direction: dir,
+            baseTimes: times.map(t => t.trim()),
+            stops: [ { id: "p1", offset: 0 } ] // Domyślny startowy przystanek
+        }).then(() => {
+            alert("Linia dodana!");
+            UI.render();
+        });
+    },
+
+    addNews: function() {
+        const text = document.getElementById('news-text').value;
+        const id = Date.now();
+        if(!text) return;
+
+        db.ref(`${DB_KEY}/news/${id}`).set({
+            content: text,
+            date: new Date().toLocaleDateString()
+        }).then(() => {
+            alert("Komunikat wysłany!");
+            UI.render();
+        });
+    }
+};
+
+// --- 3. AKTUALIZACJA UI O WIDOK ADMINA ---
+const adminUIRender = UI.render;
+UI.render = function() {
+    adminUIRender.call(this); // Wywołaj bazowy render
+    
+    if (this.currentView === 'admin') {
+        const container = document.getElementById('sub-container');
+        this.viewAdmin(container);
+    }
+};
+
+// Rozszerzenie nawigacji w UI.render (dodaj przycisk klucza obok ustawień)
+// Zastąp fragment z nav-bar w poprzednim kodzie tym poniżej, by mieć ikonę:
+// <button class="nav-btn ${this.currentView === 'admin' ? 'active' : ''}" onclick="UI.switchView('admin')">🔑</button>
+
+UI.viewAdmin = function(container) {
+    if (!Admin.isAuthenticated) {
+        container.innerHTML = `
+            <div style="text-align:center; padding: 50px 20px;">
+                <h2>Panel Chroniony</h2>
+                <p>Musisz się zalogować, aby edytować dane MZK.</p>
+                <button class="btn-plan" onclick="Admin.login()">Zaloguj się</button>
+            </div>`;
+        return;
+    }
+
+    const lineCount = Object.keys(MZK_App.Data.raw.lines).length;
+    const stopCount = Object.keys(MZK_App.Data.raw.stops).length;
+
+    container.innerHTML = `
+        <h2>🔑 Panel Administratora</h2>
+        
+        <div class="admin-stats">
+            <div class="stat-box"><span>${lineCount}</span>Linie</div>
+            <div class="stat-box"><span>${stopCount}</span>Przystanki</div>
+        </div>
+
+        <div class="card">
+            <h3>📢 Dodaj Komunikat (News)</h3>
+            <div class="admin-form">
+                <textarea id="news-text" placeholder="Treść komunikatu..."></textarea>
+                <button class="btn-save" onclick="Admin.addNews()">Opublikuj News</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3>🚌 Szybkie dodawanie linii</h3>
+            <div class="admin-form">
+                <input type="text" id="new-line-id" placeholder="Numer linii (np. 10)">
+                <input type="text" id="new-line-dir" placeholder="Kierunek (np. Osiedle Wolność)">
+                <input type="text" id="new-line-times" placeholder="Godziny (np. 08:00, 08:30, 09:00)">
+                <button class="btn-save" style="background:#2563eb" onclick="Admin.saveLine()">Zapisz Linię</button>
+            </div>
+        </div>
+
+        <div class="danger-zone">
+            <button class="btn-danger" onclick="Admin.isAuthenticated=false; UI.render();">Wyloguj i zablokuj panel</button>
+        </div>
+    `;
+};
+
+// Dodajemy przycisk Admina do nawigacji (ostateczna wersja nav-baru)
+UI.render = function() {
+    const app = document.getElementById('app');
+    app.innerHTML = `
+        <div class="container">
+            <div id="quick-glance-area"></div>
+            <div class="nav-bar">
+                <button class="nav-btn ${this.currentView === 'favs' ? 'active' : ''}" onclick="UI.switchView('favs')">❤️</button>
+                <button class="nav-btn ${this.currentView === 'stops' ? 'active' : ''}" onclick="UI.switchView('stops')">🚏</button>
+                <button class="nav-btn ${this.currentView === 'travel' ? 'active' : ''}" onclick="UI.switchView('travel')">🧭</button>
+                <button class="nav-btn ${this.currentView === 'settings' ? 'active' : ''}" onclick="UI.switchView('settings')">⚙️</button>
+                <button class="nav-btn ${this.currentView === 'admin' ? 'active' : ''}" onclick="UI.switchView('admin')">🔑</button>
+            </div>
+            <div id="sub-container"></div>
+        </div>
+    `;
+    
+    if (this.currentView === 'favs') this.viewQuickGlance();
+    
+    const container = document.getElementById('sub-container');
+    if (this.currentView === 'settings') this.viewSettings(container);
+    else if (this.currentView === 'favs') this.viewFavs(container);
+    else if (this.currentView === 'stops') this.viewStops(container);
+    else if (this.currentView === 'board') this.viewBoard(container, this.activeStopId);
+    else if (this.currentView === 'lines') this.viewLines(container);
+    else if (this.currentView === 'travel') this.viewTravel(container);
+    else if (this.currentView === 'lineDetail') this.viewLineDetail(container, this.activeLineId);
+    else if (this.currentView === 'admin') this.viewAdmin(container);
+};
+
+UI.render();
+// =====================================================================
+ </script>
 </body>
 </html>

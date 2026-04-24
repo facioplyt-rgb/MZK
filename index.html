@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW OS V4</title>
+    <title>MZK GORZÓW PRO V5</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -19,499 +19,53 @@
         body { background: var(--bg); color: var(--text); padding-bottom: 100px; overflow-x: hidden; }
 
         header { 
-            background: rgba(8, 12, 20, 0.9); backdrop-filter: blur(15px);
+            background: rgba(8, 12, 20, 0.95); backdrop-filter: blur(15px);
             padding: 18px 20px; position: sticky; top: 0; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
         }
         
-        #drawer {
-            position: fixed; top: 0; left: -100%; width: 300px; height: 100%;
-            background: var(--surf); z-index: 3000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 40px 25px; box-shadow: 25px 0 60px rgba(0,0,0,0.6);
-        }
-        #drawer.open { left: 0; }
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2900; display:none; backdrop-filter: blur(4px); }
-
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-        .module { display: none; animation: slideUp 0.4s ease-out; }
+        .module { display: none; animation: fadeIn 0.4s ease; }
         .module.active { display: block; }
 
-        .cat-label { font-size: 0.7rem; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin: 25px 5px 10px; display: flex; align-items: center; gap: 10px; }
-        .cat-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-
-        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid var(--border); transition: 0.3s; cursor: pointer; }
-        .card:active { transform: scale(0.97); background: var(--surf-l); }
-        
+        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid var(--border); }
         .btn { background: var(--grad); color: #000; padding: 16px; border: none; border-radius: 14px; width: 100%; font-weight: 800; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        
         input, select, textarea { width: 100%; padding: 16px; border-radius: 12px; background: var(--surf-l); color: #fff; border: 1px solid var(--border); margin-bottom: 12px; font-size: 1rem; }
 
-        .line-badge { width: 50px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; font-size: 1.1rem; flex-shrink: 0; }
-        .bg-bus { background: var(--bus); color: #000; }
-        .bg-tram { background: var(--tram); color: #fff; }
+        /* Styl Tabeli Rozkładu */
+        .timetable-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; margin-top: 10px; }
+        .time-item { background: var(--surf-l); padding: 5px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 0.85rem; border: 1px solid var(--border); }
+        .hour-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .hour-label { width: 40px; font-weight: 900; color: var(--accent); font-size: 1.2rem; }
+        .minute-list { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; margin-left: 15px; }
 
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: rgba(18, 26, 41, 0.95); backdrop-filter: blur(15px); display: flex; height: 80px; border-top: 1px solid var(--border); z-index: 2000; }
-        .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+        .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); font-size: 0.65rem; font-weight: 800; }
         .nav-tab.active { color: var(--accent); }
         .nav-tab i { font-size: 1.4rem; margin-bottom: 5px; }
 
-        .stop-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
-        .time-pill { background: var(--surf-l); padding: 5px 12px; border-radius: 8px; font-weight: 900; color: var(--accent); font-size: 0.95rem; min-width: 65px; text-align: center; margin-right: 15px; border: 1px solid var(--border); }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
     <header>
-        <i class="fa-solid fa-bars-staggered" onclick="App.drawer(true)"></i>
-        <h1 style="font-size: 1.1rem; font-weight: 900; letter-spacing: 2px;">MZK <span style="color:var(--accent)">GORZÓW</span></h1>
-        <i class="fa-solid fa-shield-halved" onclick="App.switch('admin')" style="opacity: 0.5"></i>
+        <h1 style="font-size: 1.1rem; font-weight: 900;">MZK <span style="color:var(--accent)">GORZÓW</span></h1>
+        <i class="fa-solid fa-user-gear" onclick="App.switch('admin')"></i>
     </header>
-
-    <div id="drawer">
-        <h2 style="color: var(--accent); font-weight: 900; margin-bottom: 30px;">MENU</h2>
-        <div onclick="App.switch('lines'); App.drawer(false)" style="padding: 18px 0; font-weight: 600;"><i class="fa-solid fa-bus"></i> &nbsp; Linie</div>
-        <div onclick="App.switch('stops'); App.drawer(false)" style="padding: 18px 0; font-weight: 600;"><i class="fa-solid fa-map-pin"></i> &nbsp; Przystanki</div>
-        <div onclick="App.switch('news'); App.drawer(false)" style="padding: 18px 0; font-weight: 600;"><i class="fa-solid fa-bullhorn"></i> &nbsp; Komunikaty</div>
-    </div>
-    <div class="overlay" onclick="App.drawer(false)"></div>
 
     <div class="container">
         <div id="view-lines" class="module active"></div>
-        <div id="view-stops" class="module"><div id="stops-container"></div></div>
+        <div id="view-stops" class="module"></div>
         <div id="view-news" class="module"></div>
-        <div id="view-admin" class="module"></div>
         <div id="view-details" class="module"></div>
+        <div id="view-admin" class="module"></div>
     </div>
 
     <div class="nav-bar">
         <div class="nav-tab active" id="nav-lines" onclick="App.switch('lines')"><i class="fa-solid fa-route"></i><span>Linie</span></div>
         <div class="nav-tab" id="nav-stops" onclick="App.switch('stops')"><i class="fa-solid fa-location-dot"></i><span>Przystanki</span></div>
-        <div class="nav-tab" id="nav-news" onclick="App.switch('news')"><i class="fa-solid fa-message"></i><span>Info</span></div>
+        <div class="nav-tab" id="nav-news" onclick="App.switch('news')"><i class="fa-solid fa-bullhorn"></i><span>Info</span></div>
     </div>
 
     <script>
-
-// === MODUŁ 2: CORE & NEWS ===
-window.App = {
-    dbKey: localStorage.getItem('mzk_key') || 'mzk_v2026_pro',
-    init() {
-        const config = {
-            apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M",
-            authDomain: "mzk-by-facio.firebaseapp.com",
-            databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "mzk-by-facio"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(config);
-        this.db = firebase.database();
-        this.sync();
-    },
-    sync() {
-        this.db.ref(this.dbKey).on('value', snap => {
-            const data = snap.val() || {};
-            window.dbCache = { lines: data.lines || [], news: data.news || {} };
-            this.refresh();
-        });
-    },
-    switch(id) {
-        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-        document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
-        document.getElementById('view-'+id)?.classList.add('active');
-        document.getElementById('nav-'+id)?.classList.add('active');
-        this.refresh();
-        window.scrollTo(0,0);
-    },
-    refresh() {
-        const active = document.querySelector('.module.active').id.replace('view-', '');
-        if(active === 'lines') ModLines.render();
-        if(active === 'stops') ModStops.render();
-        if(active === 'news') ModNews.render();
-        if(active === 'admin') ModAdmin.render();
-    },
-    drawer(show) {
-        document.getElementById('drawer').classList.toggle('open', show);
-        document.querySelector('.overlay').style.display = show ? 'block' : 'none';
-    },
-    calcTime(min) {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() + parseInt(min));
-        return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-};
-
-window.ModNews = {
-    render() {
-        const news = window.dbCache.news;
-        const keys = Object.keys(news).reverse();
-        let h = `<h2 style="margin-bottom:20px; padding:0 5px">Komunikaty</h2>`;
-        keys.forEach(k => {
-            h += `<div class="card" onclick="ModNews.show('${k}')" style="border-left:4px solid var(--tram)">
-                <small style="opacity:0.5; font-weight:800">${news[k].date}</small>
-                <h3 style="color:var(--tram); margin:5px 0">${news[k].title}</h3>
-                <p style="font-size:0.85rem; opacity:0.7; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${news[k].content}</p>
-            </div>`;
-        });
-        document.getElementById('view-news').innerHTML = h || '<div class="card">Brak wiadomości</div>';
-    },
-    show(k) {
-        const n = window.dbCache.news[k];
-        document.getElementById('view-details').innerHTML = `
-            <div class="card" style="border-bottom:4px solid var(--tram)">
-                <small style="opacity:0.5">${n.date}</small>
-                <h2 style="color:var(--tram); margin:10px 0">${n.title}</h2>
-                <div style="line-height:1.7; white-space:pre-wrap; font-size:1.05rem">${n.content}</div>
-            </div>
-            <button class="btn" onclick="App.switch('news')">Wróć do listy</button>`;
-        App.switch('details');
-    }
-};
-App.init();
-// === MODUŁ 3: LINIE & PRZYSTANKI ===
-window.ModLines = {
-    q: '',
-    render() {
-        let lines = window.dbCache.lines;
-        if(this.q) lines = lines.filter(l => l.num.includes(this.q) || l.dir.toLowerCase().includes(this.q.toLowerCase()));
-        let h = `<input type="text" placeholder="Szukaj linii..." onkeyup="ModLines.search(this.value)" value="${this.q}">`;
-        
-        const cats = [...new Set(lines.map(l => l.cat || 'Autobusy'))].sort();
-        cats.forEach(cat => {
-            const catLines = lines.filter(l => (l.cat || 'Autobusy') === cat);
-            const nums = [...new Set(catLines.map(l => l.num))].sort((a,b) => parseInt(a)-parseInt(b));
-            if(nums.length > 0) {
-                h += `<div class="cat-label">${cat}</div>`;
-                nums.forEach(num => {
-                    const vars = lines.filter(l => l.num === num);
-                    const dirs = vars.map(v => v.dir).join(' • ');
-                    h += `
-                    <div class="card" onclick="ModLines.handle('${num}')" style="display:flex; align-items:center; gap:15px">
-                        <div class="line-badge ${vars[0].type==='tram'?'bg-tram':'bg-bus'}">${num}</div>
-                        <div style="flex:1"><b>Linia ${num}</b><div style="font-size:0.7rem; opacity:0.6">${dirs}</div></div>
-                        <i class="fa-solid fa-angle-right" style="opacity:0.2"></i>
-                    </div>`;
-                });
-            }
-        });
-        document.getElementById('view-lines').innerHTML = h;
-    },
-    search(v) { this.q = v; this.render(); },
-    handle(num) {
-        const vars = window.dbCache.lines.filter(l => l.num === num);
-        if(vars.length === 1) this.show(window.dbCache.lines.indexOf(vars[0]));
-        else {
-            let h = `<h2 style="margin-bottom:20px">Kierunki linii ${num}</h2>`;
-            vars.forEach(v => {
-                h += `<div class="card" onclick="ModLines.show(${window.dbCache.lines.indexOf(v)})" style="border-left:4px solid var(--accent)"><b>${v.dir}</b></div>`;
-            });
-            h += `<button class="btn" style="background:var(--surf-l); color:#fff" onclick="App.switch('lines')">Powrót</button>`;
-            document.getElementById('view-details').innerHTML = h; App.switch('details');
-        }
-    },
-    show(i) {
-        const l = window.dbCache.lines[i];
-        document.getElementById('view-details').innerHTML = `
-            <div class="card" style="border-left:5px solid var(--accent)"><h3>${l.num} → ${l.dir}</h3></div>
-            <div class="card">${l.stops.map(s=>`<div class="stop-row"><div class="time-pill">${App.calcTime(s.time)}</div><b>${s.name}</b></div>`).join('')}</div>
-            <button class="btn" onclick="App.switch('lines')">Wróć do listy</button>`;
-        App.switch('details');
-    }
-};
-
-window.ModStops = {
-    render() {
-        let stops = new Set();
-        window.dbCache.lines.forEach(l => l.stops?.forEach(s => stops.add(s.name)));
-        let arr = Array.from(stops).sort();
-        let h = `<h2 style="margin-bottom:15px">Przystanki</h2><input type="text" placeholder="Szukaj przystanku..." onkeyup="ModStops.filter(this.value)">`;
-        arr.forEach(s => {
-            h += `<div class="card stop-item" onclick="ModStops.board('${s}')"><i class="fa-solid fa-location-dot" style="margin-right:12px; color:var(--accent)"></i><span style="font-weight:600">${s}</span></div>`;
-        });
-        document.getElementById('stops-container').innerHTML = h;
-    },
-    filter(v) {
-        const q = v.toLowerCase();
-        document.querySelectorAll('.stop-item').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? 'flex' : 'none');
-    },
-    board(name) {
-        let deps = [];
-        window.dbCache.lines.forEach(l => {
-            const s = l.stops?.find(st => st.name === name);
-            if(s) deps.push({ num: l.num, dir: l.dir, time: s.time, type: l.type });
-        });
-        deps.sort((a,b) => parseInt(a.time) - parseInt(b.time));
-        let h = `<div class="card" style="background:var(--grad); color:#000"><h2>${name}</h2></div><div class="cat-label">Tablica odjazdów</div><div class="card">`;
-        deps.forEach(d => {
-            h += `<div class="stop-row">
-                <div class="time-pill" style="background:#000; color:var(--accent)">${App.calcTime(d.time)}</div>
-                <div class="line-badge ${d.type==='tram'?'bg-tram':'bg-bus'}" style="width:35px; height:25px; font-size:0.7rem; margin-right:10px">${d.num}</div>
-                <div style="flex:1; font-weight:600; font-size:0.9rem">${d.dir}</div>
-            </div>`;
-        });
-        h += `</div><button class="btn" onclick="App.switch('stops')">Powrót do wyszukiwarki</button>`;
-        document.getElementById('view-details').innerHTML = h; App.switch('details');
-    }
-};
-// === MODUŁ 4: ADMIN (ZARZĄDZANIE) ===
-window.ModAdmin = {
-    isLogged: false,
-    render() {
-        if(!this.isLogged) {
-            document.getElementById('view-admin').innerHTML = `
-                <div class="card" style="text-align:center; margin-top:20px">
-                    <h2 style="margin-bottom:20px">Panel Sterowania</h2>
-                    <input type="password" id="admin-pass" placeholder="Kod dostępu (123)">
-                    <button class="btn" onclick="ModAdmin.login()">Zaloguj się</button>
-                </div>`;
-            return;
-        }
-        document.getElementById('view-admin').innerHTML = `
-            <div class="card" style="border-bottom: 4px solid var(--accent)">
-                <h3 style="margin-bottom:15px">Dodaj nową linię</h3>
-                <input id="lnum" placeholder="Numer (np. 124)">
-                <input id="ldir" placeholder="Kierunek (np. Londyńska)">
-                <select id="lcat">
-                    <option value="Autobusy">Autobusy</option>
-                    <option value="Tramwaje">Tramwaje</option>
-                    <option value="Linie Nocne">Linie Nocne</option>
-                </select>
-                <textarea id="lstops" placeholder="Przystanek|Minuty, Przystanek|Minuty..." rows="4"></textarea>
-                <button class="btn" onclick="ModAdmin.saveLine()">Dodaj linię do bazy</button>
-            </div>
-
-            <div class="card" style="background:#1a2533; border-bottom: 4px solid var(--tram)">
-                <h3 style="margin-bottom:15px">Nowy komunikat</h3>
-                <input id="ntitle" placeholder="Tytuł komunikatu">
-                <textarea id="ncontent" placeholder="Pełna treść wiadomości..." rows="4"></textarea>
-                <button class="btn" style="background:var(--tram); color:#fff" onclick="ModAdmin.saveNews()">Opublikuj wiadomość</button>
-            </div>
-
-            <div id="admin-lines-list"></div>`;
-        this.renderAdminLines();
-    },
-
-    login() {
-        if(document.getElementById('admin-pass').value === '123') {
-            this.isLogged = true;
-            this.render();
-        } else {
-            alert("Błędne hasło!");
-        }
-    },
-
-    saveLine() {
-        const n = document.getElementById('lnum').value;
-        const d = document.getElementById('ldir').value;
-        const s = document.getElementById('lstops').value;
-        const c = document.getElementById('lcat').value;
-        
-        if(!n || !d || !s) return alert("Wypełnij wszystkie pola!");
-
-        const stopsArray = s.split(',').map(item => {
-            const part = item.split('|');
-            return { name: part[0].trim(), time: part[1].trim() };
-        });
-
-        let lines = window.dbCache.lines;
-        lines.push({
-            num: n,
-            dir: d,
-            cat: c,
-            type: c === 'Tramwaje' ? 'tram' : 'bus',
-            stops: stopsArray
-        });
-
-        App.db.ref(App.dbKey + '/lines').set(lines).then(() => {
-            alert("Linia dodana!");
-            this.render();
-        });
-    },
-
-    saveNews() {
-        const t = document.getElementById('ntitle').value;
-        const c = document.getElementById('ncontent').value;
-        if(!t || !c) return alert("Wypełnij newsa!");
-
-        App.db.ref(App.dbKey + '/news').push({
-            title: t,
-            content: c,
-            date: new Date().toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-        }).then(() => {
-            alert("News wysłany!");
-            this.render();
-        });
-    },
-
-    deleteLine(index) {
-        if(confirm("Na pewno usunąć tę linię?")) {
-            let lines = window.dbCache.lines;
-            lines.splice(index, 1);
-            App.db.ref(App.dbKey + '/lines').set(lines).then(() => this.render());
-        }
-    },
-
-    renderAdminLines() {
-        let h = `<h4 style="margin:20px 5px; opacity:0.5">Zarządzaj liniami (${window.dbCache.lines.length})</h4>`;
-        window.dbCache.lines.forEach((l, i) => {
-            h += `
-            <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 20px">
-                <div>
-                    <span style="font-weight:900; color:var(--accent)">${l.num}</span> 
-                    <span style="font-size:0.9rem; margin-left:10px">${l.dir}</span>
-                </div>
-                <i class="fa-solid fa-trash" onclick="ModAdmin.deleteLine(${i})" style="color:var(--tram); cursor:pointer"></i>
-            </div>`;
-        });
-        document.getElementById('admin-lines-list').innerHTML = h;
-    }
-};
-// === MODUŁ 5: ROZSZERZONE FUNKCJE (NEWS CATS & STOP SEARCH) ===
-
-// Rozszerzenie Modułu News o kategorie
-window.ModNews = {
-    ...window.ModNews,
-    render() {
-        const news = window.dbCache.news;
-        const keys = Object.keys(news).reverse();
-        // Pobieramy unikalne kategorie newsów
-        const newsCats = [...new Set(keys.map(k => news[k].cat || 'Ogólne'))];
-        
-        let h = `<h2 style="margin-bottom:20px; padding:0 5px">Komunikaty</h2>`;
-        
-        // Mini filtry kategorii newsów
-        h += `<div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:15px; margin-bottom:15px">
-                <div class="time-pill" onclick="ModNews.filter('')" style="cursor:pointer; background:var(--accent); color:#000">Wszystkie</div>
-                ${newsCats.map(c => `<div class="time-pill" onclick="ModNews.filter('${c}')" style="cursor:pointer">${c}</div>`).join('')}
-              </div><div id="news-list-content">`;
-        
-        keys.forEach(k => {
-            const item = news[k];
-            h += `
-            <div class="card news-card-item" data-cat="${item.cat || 'Ogólne'}" onclick="ModNews.show('${k}')" style="border-left:4px solid ${item.cat === 'Utrudnienia' ? 'var(--tram)' : 'var(--accent)'}">
-                <div style="display:flex; justify-content:space-between">
-                    <small style="opacity:0.5; font-weight:800">${item.date}</small>
-                    <small style="color:var(--accent); font-weight:900; text-transform:uppercase">${item.cat || 'Ogólne'}</small>
-                </div>
-                <h3 style="margin:5px 0">${item.title}</h3>
-                <p style="font-size:0.85rem; opacity:0.7; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${item.content}</p>
-            </div>`;
-        });
-        h += `</div>`;
-        document.getElementById('view-news').innerHTML = h;
-    },
-    filter(cat) {
-        document.querySelectorAll('.news-card-item').forEach(card => {
-            card.style.display = (!cat || card.dataset.cat === cat) ? 'block' : 'none';
-        });
-    }
-};
-
-// Rozszerzenie Modułu Przystanków o podgląd linii
-window.ModStops = {
-    ...window.ModStops,
-    render() {
-        const lines = window.dbCache.lines;
-        let stopsMap = {};
-
-        // Budujemy mapę: Przystanek -> Lista numerów linii
-        lines.forEach(l => {
-            l.stops?.forEach(s => {
-                if(!stopsMap[s.name]) stopsMap[s.name] = new Set();
-                stopsMap[s.name].add(l.num);
-            });
-        });
-
-        let arr = Object.keys(stopsMap).sort();
-        let h = `
-            <h2 style="margin-bottom:10px">Przystanki</h2>
-            <div style="position:relative; margin-bottom:20px">
-                <input type="text" id="stop-search-input" placeholder="Szukaj przystanku lub linii..." onkeyup="ModStops.filter(this.value)" style="padding-left:45px">
-                <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:15px; top:18px; opacity:0.4"></i>
-            </div>
-            <div id="stops-list">`;
-        
-        arr.forEach(s => {
-            const stopLines = Array.from(stopsMap[s]).sort((a,b) => parseInt(a)-parseInt(b));
-            h += `
-            <div class="card stop-item" onclick="ModStops.board('${s}')" style="padding:15px">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px">
-                    <i class="fa-solid fa-location-dot" style="color:var(--accent)"></i>
-                    <span style="font-weight:800; font-size:1.1rem">${s}</span>
-                </div>
-                <div style="display:flex; flex-wrap:wrap; gap:5px">
-                    ${stopLines.map(num => `<span style="font-size:0.6rem; background:var(--surf-l); padding:2px 6px; border-radius:4px; border:1px solid var(--border)">${num}</span>`).join('')}
-                </div>
-            </div>`;
-        });
-        h += `</div>`;
-        document.getElementById('view-stops').innerHTML = h;
-    },
-    filter(v) {
-        const q = v.toLowerCase();
-        document.querySelectorAll('.stop-item').forEach(c => {
-            const text = c.innerText.toLowerCase();
-            c.style.display = text.includes(q) ? 'block' : 'none';
-        });
-    }
-};
-
-// Aktualizacja panelu Admina o nowe pola
-window.ModAdmin = {
-    ...window.ModAdmin,
-    render() {
-        if(!this.isLogged) {
-            document.getElementById('view-admin').innerHTML = `<div class="card" style="text-align:center"><h2>Autoryzacja</h2><br><input type="password" id="p" placeholder="Hasło"><button class="btn" onclick="ModAdmin.login()">Wejdź</button></div>`;
-            return;
-        }
-        document.getElementById('view-admin').innerHTML = `
-            <div class="card">
-                <h3>Zarządzanie Linią</h3>
-                <input id="an" placeholder="Nr linii">
-                <input id="ad" placeholder="Kierunek">
-                <input id="ac" placeholder="Nowa kategoria (np. Podmiejskie)">
-                <small style="opacity:0.5">Lub wybierz istniejącą:</small>
-                <select id="at" onchange="if(this.value) document.getElementById('ac').value=this.value">
-                    <option value="Autobusy">Autobusy</option>
-                    <option value="Tramwaje">Tramwaj</option>
-                    <option value="Nocne">Nocne</option>
-                </select>
-                <textarea id="as" placeholder="Przystanek|Minuty, Przystanek|Minuty..."></textarea>
-                <button class="btn" onclick="ModAdmin.save()">Zapisz Linię</button>
-            </div>
-            <div class="card" style="background:#1a2533">
-                <h3>Nowy Komunikat</h3>
-                <input id="ant" placeholder="Tytuł">
-                <select id="ancat">
-                    <option value="Ogólne">Ogólne</option>
-                    <option value="Utrudnienia">Utrudnienia</option>
-                    <option value="Rozkłady">Rozkłady</option>
-                </select>
-                <textarea id="anc" placeholder="Treść newsa..."></textarea>
-                <button class="btn" style="background:var(--tram)" onclick="ModAdmin.saveNews()">Dodaj news</button>
-            </div>
-            <div id="adm-list"></div>`;
-        this.list();
-    },
-    save() {
-        const n=document.getElementById('an').value, d=document.getElementById('ad').value, s=document.getElementById('as').value;
-        const c=document.getElementById('ac').value || document.getElementById('at').value;
-        if(!n || !d || !s) return alert("Błąd!");
-        const stops = s.split(',').map(x=>{const p=x.split('|'); return {name:p[0].trim(), time:p[1].trim()}});
-        let lines = window.dbCache.lines;
-        lines.push({ num:n, dir:d, stops:stops, cat:c, type:c==='Tramwaje'?'tram':'bus' });
-        App.db.ref(App.dbKey+'/lines').set(lines).then(()=>this.render());
-    },
-    saveNews() {
-        const t=document.getElementById('ant').value, c=document.getElementById('anc').value, cat=document.getElementById('ancat').value;
-        if(!t || !c) return alert("Błąd!");
-        App.db.ref(App.dbKey+'/news').push({ 
-            title:t, 
-            content:c, 
-            cat:cat,
-            date: new Date().toLocaleString() 
-        }).then(()=>this.render());
-    }
-};
-
-// KONIEC SYSTEMU
-</script>
-</body>
-</html>

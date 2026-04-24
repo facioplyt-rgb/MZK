@@ -363,6 +363,154 @@ window.ModAdmin = {
         document.getElementById('admin-lines-list').innerHTML = h;
     }
 };
+// === MODUŁ 5: ROZSZERZONE FUNKCJE (NEWS CATS & STOP SEARCH) ===
+
+// Rozszerzenie Modułu News o kategorie
+window.ModNews = {
+    ...window.ModNews,
+    render() {
+        const news = window.dbCache.news;
+        const keys = Object.keys(news).reverse();
+        // Pobieramy unikalne kategorie newsów
+        const newsCats = [...new Set(keys.map(k => news[k].cat || 'Ogólne'))];
+        
+        let h = `<h2 style="margin-bottom:20px; padding:0 5px">Komunikaty</h2>`;
+        
+        // Mini filtry kategorii newsów
+        h += `<div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:15px; margin-bottom:15px">
+                <div class="time-pill" onclick="ModNews.filter('')" style="cursor:pointer; background:var(--accent); color:#000">Wszystkie</div>
+                ${newsCats.map(c => `<div class="time-pill" onclick="ModNews.filter('${c}')" style="cursor:pointer">${c}</div>`).join('')}
+              </div><div id="news-list-content">`;
+        
+        keys.forEach(k => {
+            const item = news[k];
+            h += `
+            <div class="card news-card-item" data-cat="${item.cat || 'Ogólne'}" onclick="ModNews.show('${k}')" style="border-left:4px solid ${item.cat === 'Utrudnienia' ? 'var(--tram)' : 'var(--accent)'}">
+                <div style="display:flex; justify-content:space-between">
+                    <small style="opacity:0.5; font-weight:800">${item.date}</small>
+                    <small style="color:var(--accent); font-weight:900; text-transform:uppercase">${item.cat || 'Ogólne'}</small>
+                </div>
+                <h3 style="margin:5px 0">${item.title}</h3>
+                <p style="font-size:0.85rem; opacity:0.7; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${item.content}</p>
+            </div>`;
+        });
+        h += `</div>`;
+        document.getElementById('view-news').innerHTML = h;
+    },
+    filter(cat) {
+        document.querySelectorAll('.news-card-item').forEach(card => {
+            card.style.display = (!cat || card.dataset.cat === cat) ? 'block' : 'none';
+        });
+    }
+};
+
+// Rozszerzenie Modułu Przystanków o podgląd linii
+window.ModStops = {
+    ...window.ModStops,
+    render() {
+        const lines = window.dbCache.lines;
+        let stopsMap = {};
+
+        // Budujemy mapę: Przystanek -> Lista numerów linii
+        lines.forEach(l => {
+            l.stops?.forEach(s => {
+                if(!stopsMap[s.name]) stopsMap[s.name] = new Set();
+                stopsMap[s.name].add(l.num);
+            });
+        });
+
+        let arr = Object.keys(stopsMap).sort();
+        let h = `
+            <h2 style="margin-bottom:10px">Przystanki</h2>
+            <div style="position:relative; margin-bottom:20px">
+                <input type="text" id="stop-search-input" placeholder="Szukaj przystanku lub linii..." onkeyup="ModStops.filter(this.value)" style="padding-left:45px">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:15px; top:18px; opacity:0.4"></i>
+            </div>
+            <div id="stops-list">`;
+        
+        arr.forEach(s => {
+            const stopLines = Array.from(stopsMap[s]).sort((a,b) => parseInt(a)-parseInt(b));
+            h += `
+            <div class="card stop-item" onclick="ModStops.board('${s}')" style="padding:15px">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px">
+                    <i class="fa-solid fa-location-dot" style="color:var(--accent)"></i>
+                    <span style="font-weight:800; font-size:1.1rem">${s}</span>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:5px">
+                    ${stopLines.map(num => `<span style="font-size:0.6rem; background:var(--surf-l); padding:2px 6px; border-radius:4px; border:1px solid var(--border)">${num}</span>`).join('')}
+                </div>
+            </div>`;
+        });
+        h += `</div>`;
+        document.getElementById('view-stops').innerHTML = h;
+    },
+    filter(v) {
+        const q = v.toLowerCase();
+        document.querySelectorAll('.stop-item').forEach(c => {
+            const text = c.innerText.toLowerCase();
+            c.style.display = text.includes(q) ? 'block' : 'none';
+        });
+    }
+};
+
+// Aktualizacja panelu Admina o nowe pola
+window.ModAdmin = {
+    ...window.ModAdmin,
+    render() {
+        if(!this.isLogged) {
+            document.getElementById('view-admin').innerHTML = `<div class="card" style="text-align:center"><h2>Autoryzacja</h2><br><input type="password" id="p" placeholder="Hasło"><button class="btn" onclick="ModAdmin.login()">Wejdź</button></div>`;
+            return;
+        }
+        document.getElementById('view-admin').innerHTML = `
+            <div class="card">
+                <h3>Zarządzanie Linią</h3>
+                <input id="an" placeholder="Nr linii">
+                <input id="ad" placeholder="Kierunek">
+                <input id="ac" placeholder="Nowa kategoria (np. Podmiejskie)">
+                <small style="opacity:0.5">Lub wybierz istniejącą:</small>
+                <select id="at" onchange="if(this.value) document.getElementById('ac').value=this.value">
+                    <option value="Autobusy">Autobusy</option>
+                    <option value="Tramwaje">Tramwaj</option>
+                    <option value="Nocne">Nocne</option>
+                </select>
+                <textarea id="as" placeholder="Przystanek|Minuty, Przystanek|Minuty..."></textarea>
+                <button class="btn" onclick="ModAdmin.save()">Zapisz Linię</button>
+            </div>
+            <div class="card" style="background:#1a2533">
+                <h3>Nowy Komunikat</h3>
+                <input id="ant" placeholder="Tytuł">
+                <select id="ancat">
+                    <option value="Ogólne">Ogólne</option>
+                    <option value="Utrudnienia">Utrudnienia</option>
+                    <option value="Rozkłady">Rozkłady</option>
+                </select>
+                <textarea id="anc" placeholder="Treść newsa..."></textarea>
+                <button class="btn" style="background:var(--tram)" onclick="ModAdmin.saveNews()">Dodaj news</button>
+            </div>
+            <div id="adm-list"></div>`;
+        this.list();
+    },
+    save() {
+        const n=document.getElementById('an').value, d=document.getElementById('ad').value, s=document.getElementById('as').value;
+        const c=document.getElementById('ac').value || document.getElementById('at').value;
+        if(!n || !d || !s) return alert("Błąd!");
+        const stops = s.split(',').map(x=>{const p=x.split('|'); return {name:p[0].trim(), time:p[1].trim()}});
+        let lines = window.dbCache.lines;
+        lines.push({ num:n, dir:d, stops:stops, cat:c, type:c==='Tramwaje'?'tram':'bus' });
+        App.db.ref(App.dbKey+'/lines').set(lines).then(()=>this.render());
+    },
+    saveNews() {
+        const t=document.getElementById('ant').value, c=document.getElementById('anc').value, cat=document.getElementById('ancat').value;
+        if(!t || !c) return alert("Błąd!");
+        App.db.ref(App.dbKey+'/news').push({ 
+            title:t, 
+            content:c, 
+            cat:cat,
+            date: new Date().toLocaleString() 
+        }).then(()=>this.render());
+    }
+};
+
 // KONIEC SYSTEMU
 </script>
 </body>

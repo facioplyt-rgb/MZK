@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK GORZÓW PRO V5</title>
+    <title>MZK GORZÓW PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -34,24 +34,25 @@
         input, select, textarea { width: 100%; padding: 16px; border-radius: 12px; background: var(--surf-l); color: #fff; border: 1px solid var(--border); margin-bottom: 12px; font-size: 1rem; }
 
         /* Styl Tabeli Rozkładu */
-        .timetable-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; margin-top: 10px; }
-        .time-item { background: var(--surf-l); padding: 5px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 0.85rem; border: 1px solid var(--border); }
-        .hour-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
-        .hour-label { width: 40px; font-weight: 900; color: var(--accent); font-size: 1.2rem; }
+        .hour-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .hour-label { width: 45px; font-weight: 900; color: var(--accent); font-size: 1.3rem; }
         .minute-list { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; margin-left: 15px; }
+        .time-pill { background: var(--surf-l); padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; border: 1px solid var(--border); }
 
         .nav-bar { position: fixed; bottom: 0; width: 100%; background: rgba(18, 26, 41, 0.95); backdrop-filter: blur(15px); display: flex; height: 80px; border-top: 1px solid var(--border); z-index: 2000; }
         .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); font-size: 0.65rem; font-weight: 800; }
         .nav-tab.active { color: var(--accent); }
         .nav-tab i { font-size: 1.4rem; margin-bottom: 5px; }
 
+        .line-badge { width: 45px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; margin-right: 15px; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
     <header>
-        <h1 style="font-size: 1.1rem; font-weight: 900;">MZK <span style="color:var(--accent)">GORZÓW</span></h1>
-        <i class="fa-solid fa-user-gear" onclick="App.switch('admin')"></i>
+        <h1 style="font-size: 1.1rem; font-weight: 900; letter-spacing: 1px;">MZK <span style="color:var(--accent)">GORZÓW</span></h1>
+        <i class="fa-solid fa-user-shield" onclick="App.switch('admin')" style="opacity: 0.5"></i>
     </header>
 
     <div class="container">
@@ -63,8 +64,8 @@
     </div>
 
     <div class="nav-bar">
-        <div class="nav-tab active" id="nav-lines" onclick="App.switch('lines')"><i class="fa-solid fa-route"></i><span>Linie</span></div>
-        <div class="nav-tab" id="nav-stops" onclick="App.switch('stops')"><i class="fa-solid fa-location-dot"></i><span>Przystanki</span></div>
+        <div class="nav-tab active" id="nav-lines" onclick="App.switch('lines')"><i class="fa-solid fa-bus"></i><span>Linie</span></div>
+        <div class="nav-tab" id="nav-stops" onclick="App.switch('stops')"><i class="fa-solid fa-map-marked-alt"></i><span>Przystanki</span></div>
         <div class="nav-tab" id="nav-news" onclick="App.switch('news')"><i class="fa-solid fa-bullhorn"></i><span>Info</span></div>
     </div>
 

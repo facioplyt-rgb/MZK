@@ -20,7 +20,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; }
 
-        /* HEADER & DRAWER */
         header { 
             background: rgba(8, 12, 20, 0.95); backdrop-filter: blur(10px);
             padding: 15px 20px; position: sticky; top: 0; z-index: 1000;
@@ -35,12 +34,10 @@
         #drawer.open { left: 0; }
         .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2900; display:none; }
 
-        /* MODULES CONTAINER */
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
         .module { display: none; animation: fadeIn 0.3s ease; }
         .module.active { display: block; }
 
-        /* CARDS & UI */
         .card { background: var(--surf); border-radius: 18px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); }
         .btn { background: var(--accent); color: #000; padding: 15px; border: none; border-radius: 12px; width: 100%; font-weight: 800; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
         input, select, textarea { width: 100%; padding: 14px; border-radius: 10px; background: var(--surf-l); color: #fff; border: 1px solid var(--border); margin-bottom: 10px; }
@@ -56,6 +53,8 @@
 
         .stop-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
         .cat-tag { font-size: 0.65rem; color: var(--accent); font-weight: 900; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        
+        .time-box { background: var(--surf-l); padding: 4px 8px; border-radius: 6px; font-weight: 900; color: var(--accent); font-size: 0.9rem; min-width: 55px; text-align: center; margin-right: 15px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -134,10 +133,16 @@
             drawer(show) {
                 document.getElementById('drawer').classList.toggle('open', show);
                 document.querySelector('.overlay').style.display = show ? 'block' : 'none';
+            },
+            // Funkcja do obliczania godziny: Aktualna godzina + minuty
+            calcTime(minutesToAdd) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + parseInt(minutesToAdd));
+                return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
         };
 
-        // === MODUŁ 1: LINIE (Kierunki zamiast wariantów) ===
+        // === MODUŁ 1: LINIE ===
         window.ModLines = {
             q: '',
             render() {
@@ -171,7 +176,7 @@
                 if(vars.length === 1) this.show(window.dbCache.lines.indexOf(vars[0]));
                 else {
                     document.getElementById('view-details').innerHTML = `
-                        <h2 style="margin-bottom:20px">Wybierz kierunek linii ${num}</h2>
+                        <h2 style="margin-bottom:20px">Kierunki linii ${num}</h2>
                         ${vars.map(v => `
                             <div class="card" onclick="ModLines.show(${window.dbCache.lines.indexOf(v)})" style="border-left:4px solid var(--accent)">
                                 <small style="opacity:0.5; text-transform:uppercase; font-size:0.6rem">Kierunek:</small>
@@ -191,7 +196,14 @@
                             <div><small class="cat-tag">KIERUNEK</small><h3>${l.dir}</h3></div>
                         </div>
                     </div>
-                    <div class="card">${l.stops.map(s=>`<div class="stop-row"><span style="width:45px; color:var(--accent); font-weight:900">${s.time}'</span><b>${s.name}</b></div>`).join('')}</div>
+                    <div class="card">
+                        <div style="margin-bottom:10px; font-size:0.7rem; opacity:0.5">ROZKŁAD JAZDY (CZAS PRZYJAZDU):</div>
+                        ${l.stops.map(s=>`
+                            <div class="stop-row">
+                                <div class="time-box">${App.calcTime(s.time)}</div>
+                                <b>${s.name}</b>
+                            </div>`).join('')}
+                    </div>
                     <button class="btn" onclick="App.switch('lines')">Wróć do listy</button>`;
                 App.switch('details');
             }
@@ -226,12 +238,12 @@
                 });
                 deps.sort((a,b) => a.time - b.time);
                 document.getElementById('view-details').innerHTML = `
-                    <div class="card"><h3>${name}</h3><small style="opacity:0.5">Wszystkie odjazdy</small></div>
+                    <div class="card"><h3>${name}</h3><small style="opacity:0.5">Tablica Odjazdów (Czas Realny)</small></div>
                     <div class="card">${deps.map(d=>`
                         <div class="stop-row">
-                            <div class="line-badge ${d.type==='tram'?'bg-tram':'bg-bus'}" style="width:35px; height:25px; font-size:0.7rem">${d.num}</div>
-                            <div style="flex:1; margin-left:12px">${d.dir}</div>
-                            <b style="color:var(--accent)">+${d.time} min</b>
+                            <div class="time-box">${App.calcTime(d.time)}</div>
+                            <div class="line-badge ${d.type==='tram'?'bg-tram':'bg-bus'}" style="width:35px; height:25px; font-size:0.7rem; margin-right:10px">${d.num}</div>
+                            <div style="flex:1">${d.dir}</div>
                         </div>`).join('') || 'Brak kursów'}</div>
                     <button class="btn" onclick="App.switch('stops')">Wróć</button>`;
                 App.switch('details');
@@ -252,7 +264,7 @@
             }
         };
 
-        // === MODUŁ 4: ADMIN (Full Control) ===
+        // === MODUŁ 4: ADMIN ===
         window.ModAdmin = {
             isLogged: false, editIdx: null, editNKey: null,
             render() {
@@ -266,16 +278,11 @@
                     return;
                 }
                 document.getElementById('view-admin').innerHTML = `
-                    <div class="card" style="border:1px solid var(--accent)">
-                        <small class="cat-tag">Recovery Mode</small>
-                        <input id="dbk" value="${App.dbKey}" style="margin:0; width:70%">
-                        <button onclick="ModAdmin.setKey()" style="width:25%; padding:10px; border-radius:10px; background:var(--accent)">OK</button>
-                    </div>
                     <div class="card">
                         <h3 id="adm-title">${this.editIdx!==null?'Edycja Linii':'Nowa Linia'}</h3>
                         <input id="an" placeholder="Nr"> <input id="ad" placeholder="Kierunek">
                         <select id="at"><option value="Dzienne">Autobus</option><option value="Tramwaje">Tramwaj</option></select>
-                        <textarea id="as" placeholder="Przystanek|Minuta, Przystanek|Minuta..."></textarea>
+                        <textarea id="as" placeholder="Przystanek|MinutyOdTeraz, Przystanek|MinutyOdTeraz..."></textarea>
                         <button class="btn" onclick="ModAdmin.saveLine()">ZAPISZ LINIĘ</button>
                         ${this.editIdx!==null?'<button class="btn" style="background:#444" onclick="ModAdmin.cancel()">Anuluj</button>':''}
                     </div>
@@ -289,7 +296,6 @@
                 this.renderList();
             },
             login() { if(document.getElementById('admin-p').value === '123') { this.isLogged = true; this.render(); } },
-            setKey() { localStorage.setItem('mzk_key', document.getElementById('dbk').value); location.reload(); },
             saveLine() {
                 const n = document.getElementById('an').value, d = document.getElementById('ad').value, s = document.getElementById('as').value;
                 if(!n || !d || !s) return;

@@ -70,3 +70,378 @@
     </div>
 
     <script>
+window.App = {
+    dbKey: 'mzk_v5_final',
+    init() {
+        const config = {
+            apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M",
+            authDomain: "mzk-by-facio.firebaseapp.com",
+            databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "mzk-by-facio"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        this.db = firebase.database();
+        this.sync();
+    },
+    sync() {
+        this.db.ref(this.dbKey).on('value', snap => {
+            const data = snap.val() || {};
+            window.dbCache = { lines: data.lines || [], news: data.news || {} };
+            this.refresh();
+        });
+    },
+    switch(id) {
+        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
+        document.getElementById('view-'+id)?.classList.add('active');
+        document.getElementById('nav-'+id)?.classList.add('active');
+        this.refresh();
+        window.scrollTo(0,0);
+    },
+    refresh() {
+        const active = document.querySelector('.module.active').id.replace('view-', '');
+        if(active === 'lines') ModLines.render();
+        if(active === 'stops') ModStops.render();
+        if(active === 'news') ModNews.render();
+        if(active === 'admin') ModAdmin.render();
+    },
+    // Obliczanie godziny odjazdu: Pętla + Minuty Przejazdu
+    calculateTime(baseTime, shiftMin) {
+        let [h, m] = baseTime.split(':').map(Number);
+        let d = new Date();
+        d.setHours(h, m + parseInt(shiftMin), 0);
+        return d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    }
+};
+App.init();
+
+window.ModLines = {
+    render() {
+        let lines = window.dbCache.lines;
+        let h = `<h2 style="margin-bottom:20px">Linie i Rozkłady</h2>`;
+        // Grupowanie po kategoriach
+        const cats = [...new Set(lines.map(l => l.cat || 'Autobusy'))];
+        cats.forEach(cat => {
+            h += `<div style="font-size:0.7rem; font-weight:900; color:var(--accent); text-transform:uppercase; margin:20px 0 10px; letter-spacing:1px">${cat}</div>`;
+            lines.filter(l => (l.cat||'Autobusy') === cat).forEach((l, idx) => {
+                const realIdx = lines.indexOf(l);
+                h += `
+                <div class="card" onclick="ModLines.showDetails(${realIdx})" style="display:flex; align-items:center">
+                    <div class="line-badge ${l.type==='tram'?'bg-tram':'bg-bus'}">${l.num}</div>
+                    <div><b style="font-size:1.1rem">${l.dir}</b></div>
+                </div>`;
+            });
+        });
+        document.getElementById('view-lines').innerHTML = h;
+    },
+    showDetails(idx) {
+        const l = window.dbCache.lines[idx];
+        let h = `<button class="btn" onclick="App.switch('lines')" style="margin-bottom:15px; background:var(--surf-l); color:#fff">← POWRÓT</button>
+                 <div class="card" style="border-bottom:4px solid var(--accent)">
+                    <small style="opacity:0.5; font-weight:800">LINIA ${l.num}</small>
+                    <h2>${l.dir}</h2>
+                 </div>
+                 <div class="card" style="padding:10px">`;
+        l.stops.forEach(s => {
+            h += `
+            <div onclick="ModLines.showTable(${idx}, ${l.stops.indexOf(s)})" style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; cursor:pointer">
+                <span><i class="fa-solid fa-location-dot" style="margin-right:10px; color:var(--accent)"></i> ${s.name}</span>
+                <i class="fa-solid fa-clock" style="opacity:0.3"></i>
+            </div>`;
+        });
+        h += `</div>`;
+        document.getElementById('view-details').innerHTML = h;
+        App.switch('details');
+    },
+    showTable(lineIdx, stopIdx) {
+        const l = window.dbCache.lines[lineIdx];
+        const stop = l.stops[stopIdx];
+        // Generuj wszystkie odjazdy dla tego przystanku
+        const allDepartures = l.baseTimes.map(bt => App.calculateTime(bt, stop.time));
+        
+        let hoursMap = {};
+        allDepartures.forEach(t => {
+            let [h, m] = t.split(':');
+            if(!hoursMap[h]) hoursMap[h] = [];
+            hoursMap[h].push(m);
+        });
+
+        let h = `<button class="btn" onclick="ModLines.showDetails(${lineIdx})" style="margin-bottom:15px; background:var(--surf-l); color:#fff">← PRZYSTANKI</button>
+            <div class="card" style="background:var(--grad); color:#000">
+                <small style="font-weight:900">PRZYSTANEK:</small>
+                <h2 style="font-weight:900">${stop.name}</h2>
+                <div style="margin-top:5px; font-weight:600; opacity:0.8">Linia ${l.num} • Kierunek: ${l.dir}</div>
+            </div>
+            <div class="card">`;
+        
+        Object.keys(hoursMap).sort().forEach(hr => {
+            h += `
+            <div class="hour-row">
+                <div class="hour-label">${hr}</div>
+                <div class="minute-list">
+                    ${hoursMap[hr].map(min => `<div class="time-pill">${min}</div>`).join('')}
+                </div>
+            </div>`;
+        });
+        h += `</div>`;
+        document.getElementById('view-details').innerHTML = h;
+    }
+};
+// === MODUŁ 4: PRZYSTANKI & NEWSY ===
+
+window.ModStops = {
+    render() {
+        const lines = window.dbCache.lines;
+        let stopsMap = {};
+
+        // Budujemy mapę przystanków i przypisanych do nich linii
+        lines.forEach(l => {
+            l.stops?.forEach(s => {
+                if(!stopsMap[s.name]) stopsMap[s.name] = { name: s.name, lines: new Set() };
+                stopsMap[s.name].lines.add(l.num);
+            });
+        });
+
+        let sortedStops = Object.values(stopsMap).sort((a,b) => a.name.localeCompare(b.name));
+        
+        let h = `
+            <h2 style="margin-bottom:15px">Szukaj Przystanku</h2>
+            <div style="position:relative; margin-bottom:20px">
+                <input type="text" placeholder="Wpisz nazwę lub numer linii..." onkeyup="ModStops.filter(this.value)" style="padding-left:45px">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:15px; top:18px; opacity:0.3"></i>
+            </div>
+            <div id="stops-list-container">`;
+        
+        sortedStops.forEach(s => {
+            const linesArr = Array.from(s.lines).sort((a,b) => parseInt(a)-parseInt(b));
+            h += `
+            <div class="card stop-search-item" onclick="ModStops.showBoard('${s.name}')">
+                <div style="font-weight:800; font-size:1.1rem; margin-bottom:8px">
+                    <i class="fa-solid fa-location-dot" style="color:var(--accent); margin-right:8px"></i>${s.name}
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:5px">
+                    ${linesArr.map(n => `<span style="font-size:0.65rem; background:var(--surf-l); padding:2px 8px; border-radius:5px; border:1px solid var(--border); font-weight:700; color:var(--text-m)">${n}</span>`).join('')}
+                </div>
+            </div>`;
+        });
+        h += `</div>`;
+        document.getElementById('view-stops').innerHTML = h;
+    },
+
+    filter(v) {
+        const q = v.toLowerCase();
+        document.querySelectorAll('.stop-search-item').forEach(el => {
+            el.style.display = el.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+        });
+    },
+
+    showBoard(name) {
+        // Tablica najbliższych odjazdów (Real-time Board)
+        let departures = [];
+        window.dbCache.lines.forEach(l => {
+            const stopInfo = l.stops.find(s => s.name === name);
+            if(stopInfo) {
+                l.baseTimes.forEach(bt => {
+                    const time = App.calculateTime(bt, stopInfo.time);
+                    departures.push({ num: l.num, dir: l.dir, time: time, type: l.type });
+                });
+            }
+        });
+
+        // Sortujemy odjazdy według godziny (najbliższe najpierw)
+        departures.sort((a,b) => a.time.localeCompare(b.time));
+
+        let h = `<button class="btn" onclick="App.switch('stops')" style="margin-bottom:15px; background:var(--surf-l); color:#fff">← POWRÓT</button>
+            <div class="card" style="background:var(--accent); color:#000">
+                <small style="font-weight:900">TABLICA PRZYSTANKOWA:</small>
+                <h2 style="font-weight:900">${name}</h2>
+            </div>
+            <div class="card">`;
+        
+        departures.forEach(d => {
+            h += `
+            <div class="hour-row">
+                <div class="hour-label" style="color:var(--text)">${d.time}</div>
+                <div class="line-badge ${d.type==='tram'?'bg-tram':'bg-bus'}" style="width:35px; height:25px; font-size:0.7rem; margin:0 15px">${d.num}</div>
+                <div style="flex:1; font-weight:600; font-size:0.9rem; opacity:0.8">${d.dir}</div>
+            </div>`;
+        });
+
+        h += `</div>`;
+        document.getElementById('view-details').innerHTML = h;
+        App.switch('details');
+    }
+};
+
+window.ModNews = {
+    render() {
+        const news = window.dbCache.news;
+        const keys = Object.keys(news).reverse();
+        const cats = [...new Set(keys.map(k => news[k].cat || 'Ogólne'))];
+
+        let h = `<h2 style="margin-bottom:20px">Komunikaty</h2>`;
+        // Filtry kategorii
+        h += `<div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:15px">
+                <div class="time-pill" onclick="ModNews.filter('')" style="cursor:pointer; background:var(--accent); color:#000">Wszystkie</div>
+                ${cats.map(c => `<div class="time-pill" onclick="ModNews.filter('${c}')" style="cursor:pointer">${c}</div>`).join('')}
+              </div><div id="news-list-container">`;
+
+        keys.forEach(k => {
+            const item = news[k];
+            h += `
+            <div class="card news-item" data-cat="${item.cat || 'Ogólne'}" onclick="ModNews.show('${k}')" style="border-left:4px solid ${item.cat==='Utrudnienia'?'var(--tram)':'var(--accent)'}">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <small style="opacity:0.5; font-weight:800">${item.date}</small>
+                    <small style="color:var(--accent); font-weight:900">${item.cat || 'OGÓLNE'}</small>
+                </div>
+                <h3 style="margin:8px 0; color:var(--text)">${item.title}</h3>
+                <p style="font-size:0.85rem; opacity:0.6; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${item.content}</p>
+            </div>`;
+        });
+        h += `</div>`;
+        document.getElementById('view-news').innerHTML = h;
+    },
+
+    filter(cat) {
+        document.querySelectorAll('.news-item').forEach(el => {
+            el.style.display = (!cat || el.dataset.cat === cat) ? 'block' : 'none';
+        });
+    },
+
+    show(k) {
+        const item = window.dbCache.news[k];
+        document.getElementById('view-details').innerHTML = `
+            <div class="card">
+                <small style="opacity:0.5; font-weight:800">${item.date} | ${item.cat || 'OGÓLNE'}</small>
+                <h2 style="margin:10px 0; color:var(--accent)">${item.title}</h2>
+                <div style="line-height:1.7; white-space:pre-wrap; font-size:1rem; color:var(--text-m)">${item.content}</div>
+            </div>
+            <button class="btn" onclick="App.switch('news')">POWRÓT DO NEWSÓW</button>`;
+        App.switch('details');
+    }
+};
+// === MODUŁ 5: PANEL ADMINA (ZARZĄDZANIE ROZKŁADEM) ===
+
+window.ModAdmin = {
+    isLogged: false,
+    render() {
+        if(!this.isLogged) {
+            document.getElementById('view-admin').innerHTML = `
+                <div class="card" style="text-align:center; margin-top:20px">
+                    <h2>Panel Administratora</h2><br>
+                    <input type="password" id="adm-pass" placeholder="Hasło (123)">
+                    <button class="btn" onclick="ModAdmin.login()">Zaloguj się</button>
+                </div>`;
+            return;
+        }
+        document.getElementById('view-admin').innerHTML = `
+            <div class="card" style="border-bottom: 4px solid var(--accent)">
+                <h3>Kreator Linii i Rozkładu</h3>
+                <input id="l-num" placeholder="Numer linii (np. 124)">
+                <input id="l-dir" placeholder="Kierunek (np. Osiedle Staszica)">
+                <input id="l-cat" placeholder="Kategoria (np. Autobusy)">
+                
+                <p style="font-size:0.7rem; color:var(--accent); margin-bottom:5px"><b>GODZINY Z PĘTLI:</b> (oddziel przecinkiem)</p>
+                <textarea id="l-times" placeholder="08:00, 08:20, 08:45, 09:10..." rows="3"></textarea>
+                
+                <p style="font-size:0.7rem; color:var(--accent); margin-bottom:5px"><b>PRZYSTANKI I CZASY:</b> (Nazwa|minuty)</p>
+                <textarea id="l-stops" placeholder="Pętla|0, Przystanek 2|5, Przystanek 3|12" rows="5"></textarea>
+                
+                <button class="btn" onclick="ModAdmin.saveLine()">Zapisz Linię i Wygeneruj Rozkład</button>
+            </div>
+
+            <div class="card" style="background:#1a2533; border-bottom: 4px solid var(--tram)">
+                <h3>Dodaj Komunikat</h3>
+                <input id="n-title" placeholder="Tytuł newsa">
+                <select id="n-cat">
+                    <option value="Ogólne">Ogólne</option>
+                    <option value="Utrudnienia">Utrudnienia</option>
+                    <option value="Zmiany Rozkładów">Zmiany Rozkładów</option>
+                </select>
+                <textarea id="n-content" placeholder="Treść komunikatu..." rows="3"></textarea>
+                <button class="btn" style="background:var(--tram); color:#fff" onclick="ModAdmin.saveNews()">Opublikuj News</button>
+            </div>
+
+            <div id="admin-lines-list"></div>`;
+        this.listLines();
+    },
+
+    login() {
+        if(document.getElementById('adm-pass').value === '123') {
+            this.isLogged = true; this.render();
+        } else alert("Hasło: 123");
+    },
+
+    saveLine() {
+        const num = document.getElementById('l-num').value;
+        const dir = document.getElementById('l-dir').value;
+        const cat = document.getElementById('l-cat').value || 'Autobusy';
+        const timesRaw = document.getElementById('l-times').value;
+        const stopsRaw = document.getElementById('l-stops').value;
+
+        if(!num || !dir || !timesRaw || !stopsRaw) return alert("Wypełnij wszystkie pola!");
+
+        const baseTimes = timesRaw.split(',').map(t => t.trim());
+        const stops = stopsRaw.split(',').map(s => {
+            const parts = s.split('|');
+            return { name: parts[0].trim(), time: parseInt(parts[1].trim()) };
+        });
+
+        let lines = window.dbCache.lines;
+        lines.push({
+            num: num,
+            dir: dir,
+            cat: cat,
+            type: cat.toLowerCase().includes('tram') ? 'tram' : 'bus',
+            baseTimes: baseTimes,
+            stops: stops
+        });
+
+        App.db.ref(App.dbKey + '/lines').set(lines).then(() => {
+            alert("Linia dodana poprawnie!");
+            this.render();
+        });
+    },
+
+    saveNews() {
+        const title = document.getElementById('n-title').value;
+        const content = document.getElementById('n-content').value;
+        const cat = document.getElementById('n-cat').value;
+        if(!title || !content) return alert("Uzupełnij newsa!");
+
+        App.db.ref(App.dbKey + '/news').push({
+            title: title,
+            content: content,
+            cat: cat,
+            date: new Date().toLocaleString('pl-PL', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })
+        }).then(() => {
+            alert("Komunikat dodany!");
+            this.render();
+        });
+    },
+
+    deleteLine(idx) {
+        if(confirm("Usunąć tę linię?")) {
+            let lines = window.dbCache.lines;
+            lines.splice(idx, 1);
+            App.db.ref(App.dbKey + '/lines').set(lines).then(() => this.render());
+        }
+    },
+
+    listLines() {
+        let h = `<h4 style="margin:20px 0 10px; opacity:0.5">Zarządzaj Bazą:</h4>`;
+        window.dbCache.lines.forEach((l, i) => {
+            h += `
+            <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 20px">
+                <span><b>${l.num}</b> ${l.dir}</span>
+                <i class="fa-solid fa-trash" onclick="ModAdmin.deleteLine(${i})" style="color:var(--tram); cursor:pointer"></i>
+            </div>`;
+        });
+        document.getElementById('admin-lines-list').innerHTML = h;
+    }
+};
+
+// FINISH
+</script>
+</body>
+</html>

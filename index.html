@@ -567,8 +567,374 @@ window.ModAdmin = {
         document.getElementById('admin-news-list').innerHTML = hNews;
     }
 };
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MZK GORZÓW ULTIMATE</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
-// ZAKOŃCZENIE PLIKU
+    <style>
+        :root { 
+            --accent: #00d166; --bg: #080c14; --surf: #121a29; --surf-l: #1e293b; 
+            --text: #ffffff; --text-m: #94a3b8; --bus: #00d166; --tram: #ff4757; 
+            --border: rgba(255,255,255,0.08); --grad: linear-gradient(135deg, #00d166 0%, #009e4d 100%);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 100px; overflow-x: hidden; line-height: 1.6; }
+
+        /* HEADER & DRAWER */
+        header { 
+            background: rgba(8, 12, 20, 0.9); backdrop-filter: blur(15px);
+            padding: 18px 20px; position: sticky; top: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
+        }
+        
+        #drawer {
+            position: fixed; top: 0; left: -100%; width: 300px; height: 100%;
+            background: var(--surf); z-index: 3000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 40px 25px; box-shadow: 25px 0 60px rgba(0,0,0,0.6);
+        }
+        #drawer.open { left: 0; }
+        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2900; display:none; backdrop-filter: blur(4px); }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 15px; }
+        .module { display: none; animation: slideUp 0.4s ease-out; }
+        .module.active { display: block; }
+
+        /* UI ELEMENTS */
+        .cat-label { font-size: 0.7rem; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin: 25px 5px 10px; display: flex; align-items: center; gap: 10px; }
+        .cat-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid var(--border); transition: 0.3s; cursor: pointer; }
+        .card:hover { border-color: var(--accent); background: var(--surf-l); }
+        
+        .btn { background: var(--grad); color: #000; padding: 16px; border: none; border-radius: 14px; width: 100%; font-weight: 800; cursor: pointer; text-transform: uppercase; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,209,102,0.3); }
+        input, select, textarea { width: 100%; padding: 16px; border-radius: 12px; background: var(--surf-l); color: #fff; border: 1px solid var(--border); margin-bottom: 12px; font-size: 1rem; }
+
+        .line-badge { width: 50px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-weight: 900; font-size: 1.1rem; flex-shrink: 0; }
+        .bg-bus { background: var(--bus); color: #000; }
+        .bg-tram { background: var(--tram); color: #fff; }
+
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: rgba(18, 26, 41, 0.95); backdrop-filter: blur(15px); display: flex; height: 80px; border-top: 1px solid var(--border); z-index: 2000; }
+        .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+        .nav-tab.active { color: var(--accent); }
+        .nav-tab i { font-size: 1.4rem; margin-bottom: 5px; }
+
+        .stop-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .time-pill { background: var(--surf-l); padding: 5px 12px; border-radius: 8px; font-weight: 900; color: var(--accent); font-size: 0.95rem; min-width: 65px; text-align: center; margin-right: 15px; border: 1px solid var(--border); }
+
+        /* ANIMATIONS */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <i class="fa-solid fa-bars-staggered" onclick="App.drawer(true)" style="font-size: 1.5rem"></i>
+        <h1 style="font-size: 1.1rem; font-weight: 900; letter-spacing: 2px;">MZK <span style="color:var(--accent)">GORZÓW</span></h1>
+        <i class="fa-solid fa-shield-halved" onclick="App.switch('admin')" style="opacity: 0.5"></i>
+    </header>
+
+    <div id="drawer">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px">
+            <h2 style="color: var(--accent); font-weight: 900;">NAWIGACJA</h2>
+            <i class="fa-solid fa-xmark" onclick="App.drawer(false)"></i>
+        </div>
+        <div onclick="App.switch('lines'); App.drawer(false)" style="padding: 18px 0; font-weight: 600; font-size: 1.2rem;"><i class="fa-solid fa-bus-semi"></i> &nbsp; Linie Komunikacyjne</div>
+        <div onclick="App.switch('stops'); App.drawer(false)" style="padding: 18px 0; font-weight: 600; font-size: 1.2rem;"><i class="fa-solid fa-map-location-dot"></i> &nbsp; Indeks Przystanków</div>
+        <div onclick="App.switch('news'); App.drawer(false)" style="padding: 18px 0; font-weight: 600; font-size: 1.2rem;"><i class="fa-solid fa-bullhorn"></i> &nbsp; Komunikaty</div>
+        <div onclick="App.switch('admin'); App.drawer(false)" style="padding: 18px 0; font-weight: 600; font-size: 1.2rem; margin-top: 30px; border-top: 1px solid var(--border); opacity:0.6"><i class="fa-solid fa-lock"></i> &nbsp; Panel Kierowcy</div>
+    </div>
+    <div class="overlay" onclick="App.drawer(false)"></div>
+
+    <div class="container">
+        <div id="view-lines" class="module active"></div>
+        <div id="view-stops" class="module">
+            <h2 style="margin-bottom: 20px;">Wyszukaj przystanek</h2>
+            <div id="stops-container"></div>
+        </div>
+        <div id="view-news" class="module"></div>
+        <div id="view-admin" class="module"></div>
+        <div id="view-details" class="module"></div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-tab active" id="nav-lines" onclick="App.switch('lines')"><i class="fa-solid fa-route"></i><span>Linie</span></div>
+        <div class="nav-tab" id="nav-stops" onclick="App.switch('stops')"><i class="fa-solid fa-location-arrow"></i><span>Przystanki</span></div>
+        <div class="nav-tab" id="nav-news" onclick="App.switch('news')"><i class="fa-solid fa-newspaper"></i><span>Info</span></div>
+    </div>
+
+    <script>
+        // === ENGINE ===
+        window.App = {
+            dbKey: localStorage.getItem('mzk_key') || 'mzk_v2026_pro',
+            init() {
+                const config = {
+                    apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M",
+                    authDomain: "mzk-by-facio.firebaseapp.com",
+                    databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app",
+                    projectId: "mzk-by-facio"
+                };
+                if (!firebase.apps.length) firebase.initializeApp(config);
+                this.db = firebase.database();
+                this.sync();
+            },
+            sync() {
+                this.db.ref(this.dbKey).on('value', snap => {
+                    const data = snap.val() || {};
+                    window.dbCache = { lines: data.lines || [], news: data.news || {} };
+                    this.refresh();
+                });
+            },
+            switch(id) {
+                document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+                document.querySelectorAll('.nav-tab').forEach(n => n.classList.remove('active'));
+                document.getElementById('view-'+id)?.classList.add('active');
+                document.getElementById('nav-'+id)?.classList.add('active');
+                this.refresh();
+                window.scrollTo(0,0);
+            },
+            refresh() {
+                const active = document.querySelector('.module.active').id.replace('view-', '');
+                if(active === 'lines') ModLines.render();
+                if(active === 'stops') ModStops.render();
+                if(active === 'news') ModNews.render();
+                if(active === 'admin') ModAdmin.render();
+            },
+            drawer(show) {
+                document.getElementById('drawer').classList.toggle('open', show);
+                document.querySelector('.overlay').style.display = show ? 'block' : 'none';
+            },
+            calcTime(min) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() + parseInt(min));
+                return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+        };
+
+        // === MODULE: LINES (With Categories & Sorting) ===
+        window.ModLines = {
+            q: '',
+            render() {
+                let lines = window.dbCache.lines;
+                if(this.q) lines = lines.filter(l => l.num.includes(this.q) || l.dir.toLowerCase().includes(this.q.toLowerCase()));
+                
+                let html = `<input type="text" placeholder="Szukaj linii lub kierunku..." onkeyup="ModLines.search(this.value)" value="${this.q}">`;
+                
+                const cats = [...new Set(lines.map(l => l.cat || 'Autobusy'))].sort();
+
+                cats.forEach(cat => {
+                    const catLines = lines.filter(l => (l.cat || 'Autobusy') === cat);
+                    const nums = [...new Set(catLines.map(l => l.num))].sort((a, b) => parseInt(a) - parseInt(b));
+
+                    if(nums.length > 0) {
+                        html += `<div class="cat-label"><i class="fa-solid fa-tags"></i> ${cat}</div>`;
+                        nums.forEach(num => {
+                            const variants = lines.filter(l => l.num === num);
+                            const type = variants[0].type;
+                            const dirs = variants.map(v => v.dir).join(' • ');
+
+                            html += `
+                            <div class="card" onclick="ModLines.handle('${num}')" style="display:flex; align-items:center; gap:18px">
+                                <div class="line-badge ${type==='tram'?'bg-tram':'bg-bus'}">${num}</div>
+                                <div style="flex:1">
+                                    <div style="font-weight:800; font-size:1.15rem">Linia ${num}</div>
+                                    <div style="font-size:0.75rem; opacity:0.5; font-weight:600; text-transform:uppercase">${dirs}</div>
+                                </div>
+                                <i class="fa-solid fa-angle-right" style="opacity:0.3"></i>
+                            </div>`;
+                        });
+                    }
+                });
+                document.getElementById('view-lines').innerHTML = html || '<div class="card">Brak wyników</div>';
+            },
+            search(v) { this.q = v; this.render(); },
+            handle(num) {
+                const variants = window.dbCache.lines.filter(l => l.num === num);
+                if(variants.length === 1) this.show(window.dbCache.lines.indexOf(variants[0]));
+                else {
+                    document.getElementById('view-details').innerHTML = `
+                        <h2 style="margin-bottom:20px">Wybierz wariant linii ${num}</h2>
+                        ${variants.map(v => `
+                            <div class="card" onclick="ModLines.show(${window.dbCache.lines.indexOf(v)})" style="border-left:5px solid var(--accent)">
+                                <div style="font-size:0.6rem; opacity:0.5; font-weight:800">KIERUNEK DOCELOWY</div>
+                                <div style="font-weight:900; font-size:1.3rem">${v.dir}</div>
+                            </div>
+                        `).join('')}
+                        <button class="btn" style="background:var(--surf-l); color:#fff" onclick="App.switch('lines')">Anuluj</button>`;
+                    App.switch('details');
+                }
+            },
+            show(i) {
+                const l = window.dbCache.lines[i];
+                document.getElementById('view-details').innerHTML = `
+                    <div class="card" style="border-bottom: 4px solid var(--accent)">
+                        <div style="display:flex; align-items:center; gap:20px">
+                            <div class="line-badge ${l.type==='tram'?'bg-tram':'bg-bus'}">${l.num}</div>
+                            <div><small style="font-weight:900; color:var(--accent)">KIERUNEK</small><h2 style="font-weight:900">${l.dir}</h2></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        ${l.stops.map(s => `<div class="stop-row"><div class="time-pill">${App.calcTime(s.time)}</div><div style="font-weight:600">${s.name}</div></div>`).join('')}
+                    </div>
+                    <button class="btn" onclick="App.switch('lines')">Powrót do listy</button>`;
+                App.switch('details');
+            }
+        };
+
+        // === MODULE: STOPS (Board with closest variant) ===
+        window.ModStops = {
+            render() {
+                let stops = new Set();
+                window.dbCache.lines.forEach(l => l.stops?.forEach(s => stops.add(s.name)));
+                let sortedStops = Array.from(stops).sort();
+                
+                let html = `<input type="text" placeholder="Gdzie chcesz jechać?" onkeyup="ModStops.filter(this.value)">`;
+                sortedStops.forEach(s => {
+                    html += `<div class="card stop-item" onclick="ModStops.board('${s}')" style="display:flex; align-items:center; gap:15px">
+                        <i class="fa-solid fa-location-dot" style="color:var(--accent)"></i>
+                        <span style="font-weight:800">${s}</span>
+                    </div>`;
+                });
+                document.getElementById('stops-container').innerHTML = html;
+            },
+            filter(v) {
+                const q = v.toLowerCase();
+                document.querySelectorAll('.stop-item').forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? 'flex' : 'none');
+            },
+            board(name) {
+                let departures = [];
+                window.dbCache.lines.forEach(l => {
+                    const stopInfo = l.stops?.find(st => st.name === name);
+                    if(stopInfo) departures.push({ num: l.num, dir: l.dir, time: stopInfo.time, type: l.type });
+                });
+                departures.sort((a,b) => parseInt(a.time) - parseInt(b.time));
+
+                document.getElementById('view-details').innerHTML = `
+                    <div class="card" style="background:var(--grad); color:#000">
+                        <small style="font-weight:900">PRZYSTANEK</small>
+                        <h2 style="font-weight:900">${name}</h2>
+                    </div>
+                    <div class="cat-label">Najbliższe odjazdy</div>
+                    <div class="card">
+                        ${departures.map(d => `
+                            <div class="stop-row">
+                                <div class="time-pill" style="background:#000; color:var(--accent)">${App.calcTime(d.time)}</div>
+                                <div class="line-badge ${d.type==='tram'?'bg-tram':'bg-bus'}" style="width:35px; height:25px; font-size:0.7rem; margin-right:12px">${d.num}</div>
+                                <div style="flex:1; font-weight:600; font-size:0.9rem">${d.dir}</div>
+                            </div>
+                        `).join('') || '<div style="padding:20px; text-align:center">Brak kursów dla tego przystanku</div>'}
+                    </div>
+                    <button class="btn" onclick="App.switch('stops')">Powrót</button>`;
+                App.switch('details');
+            }
+        };
+
+        // === MODULE: NEWS (Clickable for full view) ===
+        window.ModNews = {
+            render() {
+                const news = window.dbCache.news;
+                const keys = Object.keys(news).reverse();
+                let html = `<h2 style="margin-bottom:20px">Wiadomości i Komunikaty</h2>`;
+                
+                keys.forEach(k => {
+                    const item = news[k];
+                    html += `
+                    <div class="card" onclick="ModNews.show('${k}')" style="border-left: 4px solid var(--tram)">
+                        <div style="display:flex; justify-content:space-between; align-items:start">
+                            <small style="opacity:0.4; font-weight:800">${item.date}</small>
+                            <i class="fa-solid fa-arrow-right-long" style="color:var(--accent); font-size:0.8rem"></i>
+                        </div>
+                        <h3 style="margin:8px 0; font-weight:800; color:var(--tram)">${item.title}</h3>
+                        <p style="font-size:0.85rem; opacity:0.7; display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${item.content}</p>
+                    </div>`;
+                });
+                document.getElementById('view-news').innerHTML = html || '<div class="card">Brak nowych komunikatów</div>';
+            },
+            show(key) {
+                const item = window.dbCache.news[key];
+                document.getElementById('view-details').innerHTML = `
+                    <div class="card" style="border-bottom: 4px solid var(--tram)">
+                        <small style="opacity:0.5; font-weight:800">${item.date}</small>
+                        <h2 style="margin-top:10px; font-weight:900; color:var(--tram)">${item.title}</h2>
+                    </div>
+                    <div class="card" style="line-height:1.8; font-size:1.05rem; white-space: pre-wrap;">${item.content}</div>
+                    <button class="btn" style="background:var(--tram); color:#fff" onclick="App.switch('news')">Wróć do newsów</button>`;
+                App.switch('details');
+            }
+        };
+
+        // === MODULE: ADMIN ===
+        window.ModAdmin = {
+            isLogged: false, editIdx: null,
+            render() {
+                if(!this.isLogged) {
+                    document.getElementById('view-admin').innerHTML = `<div class="card" style="text-align:center"><h2>Panel Autoryzacji</h2><br><input type="password" id="pass" placeholder="Kod dostępu (123)"><button class="btn" onclick="ModAdmin.login()">Wejdź</button></div>`;
+                    return;
+                }
+                document.getElementById('view-admin').innerHTML = `
+                    <div class="card">
+                        <h3>Zarządzanie Linią</h3><br>
+                        <input id="an" placeholder="Nr linii">
+                        <input id="ad" placeholder="Kierunek">
+                        <select id="at"><option value="Autobusy">Autobusy</option><option value="Tramwaje">Tramwaje</option><option value="Nocne">Linie Nocne</option></select>
+                        <textarea id="as" placeholder="Przystanek|Minuty, Przystanek|Minuty..." rows="4"></textarea>
+                        <button class="btn" onclick="ModAdmin.save()">Zapisz Linię</button>
+                    </div>
+                    <div class="card" style="background:#1a2533">
+                        <h3>Nowy Komunikat</h3><br>
+                        <input id="ant" placeholder="Tytuł newsa">
+                        <textarea id="anc" placeholder="Treść newsa..." rows="4"></textarea>
+                        <button class="btn" style="background:var(--tram); color:#fff" onclick="ModAdmin.saveNews()">Opublikuj News</button>
+                    </div>
+                    <div id="adm-list"></div>`;
+                this.list();
+            },
+            login() { if(document.getElementById('pass').value === '123') { this.isLogged = true; this.render(); } },
+            save() {
+                const n = document.getElementById('an').value, d = document.getElementById('ad').value, s = document.getElementById('as').value, c = document.getElementById('at').value;
+                if(!n || !d || !s) return;
+                const stops = s.split(',').map(x=>{const p=x.split('|'); return {name:p[0].trim(), time:p[1].trim()}});
+                let lines = window.dbCache.lines;
+                const data = { num:n, dir:d, stops:stops, cat:c, type:c==='Tramwaje'?'tram':'bus' };
+                if(this.editIdx!==null) lines[this.editIdx] = data; else lines.push(data);
+                App.db.ref(App.dbKey+'/lines').set(lines).then(()=> { this.editIdx=null; this.render(); });
+            },
+            saveNews() {
+                const t = document.getElementById('ant').value, c = document.getElementById('anc').value;
+                if(!t || !c) return;
+                App.db.ref(App.dbKey+'/news').push({ title:t, content:c, date: new Date().toLocaleString() }).then(()=>this.render());
+            },
+            edit(i) {
+                this.editIdx = i; const l = window.dbCache.lines[i];
+                this.render();
+                document.getElementById('an').value = l.num; document.getElementById('ad').value = l.dir;
+                document.getElementById('as').value = l.stops.map(x=>`${x.name}|${x.time}`).join(', ');
+                window.scrollTo(0,0);
+            },
+            del(i) { if(confirm("Usunąć?")) { let l = window.dbCache.lines; l.splice(i,1); App.db.ref(App.dbKey+'/lines').set(l); } },
+            delNews(k) { if(confirm("Usunąć news?")) App.db.ref(App.dbKey+'/news/'+k).remove(); },
+            list() {
+                let html = `<h4 style="margin:20px 5px">Zarządzaj Danymi</h4>`;
+                window.dbCache.lines.forEach((l,i) => {
+                    html += `<div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 18px">
+                        <span><b>${l.num}</b> ${l.dir}</span>
+                        <div><i class="fa-solid fa-pen" onclick="ModAdmin.edit(${i})" style="margin-right:15px; color:var(--accent)"></i><i class="fa-solid fa-trash" onclick="ModAdmin.del(${i})" style="color:var(--tram)"></i></div>
+                    </div>`;
+                });
+                document.getElementById('adm-list').innerHTML = html;
+            }
+        };
+
+        App.init();
+    
 </script>
 </body>
 </html>

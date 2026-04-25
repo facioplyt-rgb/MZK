@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK OMEGA MASTER V25</title>
+    <title>MZK GORZÓW</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -575,6 +575,76 @@ Modules.Admin = {
             document.getElementById('new-content').value = '';
         });
     }
+};
+// --- MODUŁ START (DASHBOARD + NEWS + ULUBIONE LIVE) ---
+Modules.Home = () => {
+    let h = `<h2>Witaj na stronie MZK! 👋</h2>`;
+
+    // Sekcja News (Komunikaty Admina)
+    const news = Object.values(App.state.data.news || {}).reverse().slice(0, 1);
+    if(news.length > 0) {
+        news.forEach(n => {
+            h += `<div class="card" style="border-left: 4px solid var(--accent); background: linear-gradient(90deg, var(--surf-l), var(--surf));">
+                    <small style="color:var(--accent); font-weight:900;">KOMUNIKAT</small>
+                    <h3 style="margin:5px 0; font-size:1rem;">${n.title}</h3>
+                    <p style="font-size:0.85rem; opacity:0.8;">${n.content}</p>
+                  </div>`;
+        });
+    }
+
+    // Sekcja Ulubione (Odjazdy Live)
+    const favStops = App.state.favs.stops;
+    if(favStops && favStops.length > 0) {
+        h += `<div class="cat-header">Twoje Przystanki</div><div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:10px; margin-bottom:10px;">`;
+        let deps = [];
+        
+        App.state.data.lines.forEach(l => {
+            l.stops.forEach(s => {
+                if(favStops.includes(s.name)) {
+                    l.baseTimes.forEach(bt => {
+                        const rt = Time.calc(bt, s.time);
+                        const df = Time.diff(rt);
+                        if(df >= 0 && df <= 60) {
+                            deps.push({ n: l.num, rt, df, s: s.name, dir: l.dir, type: l.type });
+                        }
+                    });
+                }
+            });
+        });
+
+        if(deps.length > 0) {
+            deps.sort((a,b) => a.df - b.df).slice(0, 6).forEach(x => {
+                const c = x.type === 'tram' ? 'var(--tram)' : (x.type === 'night' ? 'var(--night)' : 'var(--bus)');
+                h += `<div class="card" onclick="Modules.Stops.board('${x.s}')" style="min-width:160px; margin-bottom:0; flex-shrink:0; border-bottom:3px solid ${c}">
+                        <div style="display:flex; justify-content:space-between;">
+                            <b style="font-size:1.2rem;">${x.n}</b>
+                            <b style="color:var(--accent)">${x.df}m</b>
+                        </div>
+                        <div style="font-size:0.7rem; font-weight:600; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${x.dir}</div>
+                        <div style="font-size:0.6rem; color:var(--text-m);">${x.s}</div>
+                    </div>`;
+            });
+        } else {
+            h += `<p style="font-size:0.8rem; opacity:0.5; padding:10px;">Brak odjazdów w ciągu 60 min.</p>`;
+        }
+        h += `</div>`;
+    }
+
+    // Szybkie Akcje
+    h += `
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+            <div class="card" onclick="App.gate('planer')" style="margin-bottom:0; text-align:center; padding:15px;">
+                <i class="fa-solid fa-route" style="color:var(--accent); font-size:1.5rem;"></i><br>
+                <small style="font-weight:800;">PLANER</small>
+            </div>
+            <div class="card" onclick="App.gate('reports')" style="margin-bottom:0; text-align:center; padding:15px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:var(--tram); font-size:1.5rem;"></i><br>
+                <small style="font-weight:800;">ALERTY</small>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('v-home').innerHTML = h;
 };
 
     </script>

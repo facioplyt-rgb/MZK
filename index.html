@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK OMEGA MASTER V24</title>
+    <title>MZK OMEGA MASTER V25</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -18,12 +18,12 @@
         body { background: var(--bg); color: var(--text); padding-bottom: 100px; overflow-x: hidden; }
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
         header { background: rgba(16, 22, 34, 0.85); backdrop-filter: blur(20px); padding: 20px; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-        .card { background: var(--surf); border-radius: 24px; padding: 20px; margin-bottom: 12px; border: 1px solid var(--border); transition: 0.3s; }
+        .card { background: var(--surf); border-radius: 24px; padding: 20px; margin-bottom: 12px; border: 1px solid var(--border); }
         .btn { background: var(--accent); color: #000; padding: 18px; border: none; border-radius: 18px; width: 100%; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--surf); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--surf); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; }
         .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); font-size: 0.7rem; font-weight: 600; opacity: 0.6; }
         .nav-tab.active { color: var(--accent); opacity: 1; }
-        input, select, textarea { width: 100%; padding: 15px; border-radius: 15px; background: var(--surf-l); border: 1px solid var(--border); color: #fff; margin-bottom: 12px; font-size: 1rem; }
+        input, select, textarea { width: 100%; padding: 15px; border-radius: 15px; background: var(--surf-l); border: 1px solid var(--border); color: #fff; margin-bottom: 12px; }
         .module { display: none; } .module.active { display: block; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .cat-header { font-size: 0.7rem; font-weight: 900; color: var(--text-m); margin: 25px 0 10px 5px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
@@ -32,16 +32,15 @@
         .grid-hours { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
         .hour-pill { background: var(--surf-l); padding: 12px; border-radius: 12px; text-align: center; font-weight: 700; border: 1px solid var(--border); font-size: 0.9rem; }
         .hour-pill.next { border-color: var(--accent); color: var(--accent); background: rgba(0,209,102,0.1); }
-        .transfer-line { border-left: 2px dashed var(--accent); margin: 10px 0 10px 20px; padding-left: 20px; }
     </style>
 </head>
 <body>
     <header>
         <div>
             <h1 style="font-size: 1.2rem; font-weight: 900;">MZK <span style="color:var(--accent)">OMEGA</span></h1>
-            <div id="live-clock" style="font-size: 0.75rem; color: var(--text-m); font-weight: 800;">...</div>
+            <div id="live-clock" style="font-size: 0.75rem; color: var(--text-m); font-weight: 800;">--:--:--</div>
         </div>
-        <div style="font-size: 0.6rem; font-weight: 900; border: 1px solid var(--accent); padding: 4px 10px; border-radius: 20px; color: var(--accent);">V24 MODULAR</div>
+        <div style="font-size: 0.6rem; font-weight: 900; border: 1px solid var(--accent); padding: 4px 10px; border-radius: 20px; color: var(--accent);">V25 CORE</div>
     </header>
 
     <div class="container">
@@ -50,6 +49,7 @@
         <div id="v-planer" class="module"></div>
         <div id="v-stops" class="module"></div>
         <div id="v-admin" class="module"></div>
+        <div id="v-reports" class="module"></div>
         <div id="v-details" class="module"></div>
     </div>
 
@@ -58,18 +58,15 @@
         <div class="nav-tab" id="nt-lines" onclick="App.gate('lines')"><i class="fa-solid fa-bus"></i><span>LINIE</span></div>
         <div class="nav-tab" id="nt-planer" onclick="App.gate('planer')"><i class="fa-solid fa-route"></i><span>PLANER</span></div>
         <div class="nav-tab" id="nt-stops" onclick="App.gate('stops')"><i class="fa-solid fa-map-pin"></i><span>STACJE</span></div>
-        <div class="nav-tab" id="nt-admin" onclick="App.gate('admin')"><i class="fa-solid fa-shield"></i><span>ADMIN</span></div>
+        <div class="nav-tab" id="nt-reports" onclick="App.gate('reports')"><i class="fa-solid fa-bullhorn"></i><span>ALERTY</span></div>
+        <div class="nav-tab" id="nt-admin" onclick="App.gate('admin')"><i class="fa-solid fa-lock"></i><span>ADMIN</span></div>
     </nav>
 
     <script>
-        // --- CORE ENGINE ---
+        // --- CORE ENGINE (SYSTEM NACZELNY) ---
         const App = {
             dbKey: 'mzk_v12_pro',
-            state: { 
-                favs: JSON.parse(localStorage.getItem('mzk_favs')) || { stops: [] },
-                data: { lines: [], news: {} },
-                currentView: 'home'
-            },
+            state: { favs: JSON.parse(localStorage.getItem('mzk_favs')) || { stops: [] }, data: { lines: [], news: {}, reports: {} }, currentView: 'home' },
             init() {
                 firebase.initializeApp({apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio"});
                 this.db = firebase.database();
@@ -81,6 +78,7 @@
                     const raw = snap.val() || {};
                     this.state.data.lines = Array.isArray(raw.lines) ? raw.lines : Object.values(raw.lines || {});
                     this.state.data.news = raw.news || {};
+                    this.state.data.reports = raw.reports || {};
                     this.render();
                 });
             },
@@ -89,16 +87,17 @@
                 document.querySelectorAll('.module, .nav-tab').forEach(x => x.classList.remove('active'));
                 document.getElementById('v-'+v).classList.add('active');
                 document.getElementById('nt-'+(v==='details'?'lines':v))?.classList.add('active');
-                this.render();
-                window.scrollTo(0,0);
+                this.render(); window.scrollTo(0,0);
             },
             render() {
                 const v = this.state.currentView;
-                if(v==='home') Modules.Home();
-                if(v==='lines') Modules.Lines.list();
-                if(v==='planer') Modules.Planer.draw();
-                if(v==='stops') Modules.Stops();
-                if(v==='admin') Modules.Admin.draw();
+                // Zabezpieczenie: Wywołaj moduł tylko jeśli istnieje, aby uniknąć błędów
+                if(v==='home' && typeof Modules !== 'undefined') Modules.Home?.();
+                if(v==='lines' && typeof Modules !== 'undefined') Modules.Lines?.list();
+                if(v==='planer' && typeof Modules !== 'undefined') Modules.Planer?.draw();
+                if(v==='stops' && typeof Modules !== 'undefined') Modules.Stops?.();
+                if(v==='reports' && typeof Modules !== 'undefined') Modules.Reports?.draw();
+                if(v==='admin' && typeof Modules !== 'undefined') Modules.Admin?.draw();
             }
         };
 
@@ -108,4 +107,12 @@
             diff(t) { return this.toMin(t)-(new Date().getHours()*60+new Date().getMinutes()); }
         };
 
-        // --- MIEJSCE NA MODUŁY ---
+        // OBIEKT MODUŁÓW - Tutaj będą trafiać Twoje wklejki
+        const Modules = {};
+
+        App.init();
+
+        // --- TUTAJ WKLEJAJ NOWE MODUŁY PRZED ZAMKNIĘCIEM SCRIPT ---
+    </script>
+</body>
+</html>

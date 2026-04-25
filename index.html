@@ -113,6 +113,470 @@
         App.init();
 
         // --- TUTAJ WKLEJAJ NOWE MODUŁY PRZED ZAMKNIĘCIEM SCRIPT ---
+// --- MODUŁ LINII (KATEGORIE + WARIANTY + GODZINY) ---
+Modules.Lines = {
+    // 1. GŁÓWNA LISTA Z PODZIAŁEM NA TRAKCJE
+    list: () => {
+        let h = `<h2>Linie Komunikacji</h2>`;
+        let grouped = {};
+        
+        // Grupowanie linii po numerze
+        App.state.data.lines.forEach(l => {
+            if(!grouped[l.num]) grouped[l.num] = [];
+            grouped[l.num].push(l);
+        });
+
+        const categories = [
+            { id: 'tram', name: 'Tramwaje', icon: 'fa-train-tram', color: 'var(--tram)' },
+            { id: 'bus', name: 'Autobusy', icon: 'fa-bus', color: 'var(--bus)' },
+            { id: 'night', name: 'Linie Nocne', icon: 'fa-moon', color: 'var(--night)' }
+        ];
+
+        categories.forEach(cat => {
+            let linesInCat = Object.keys(grouped).filter(num => (grouped[num][0].type || 'bus') === cat.id);
+            
+            if(linesInCat.length > 0) {
+                h += `<div class="cat-header"><i class="fa-solid ${cat.icon}"></i> ${cat.name}</div>`;
+                linesInCat.sort((a,b) => a.localeCompare(b, undefined, {numeric: true})).forEach(num => {
+                    h += `<div class="card" onclick="Modules.Lines.variants('${num}')" style="display:flex; align-items:center; gap:15px; padding:15px;">
+                        <div class="line-badge" style="background:${cat.color}">${num}</div>
+                        <div style="flex:1">
+                            <b style="font-size:1.1rem;">Linia ${num}</b><br>
+                            <small style="color:var(--text-m)">${grouped[num].length} warianty trasy</small>
+                        </div>
+                        <i class="fa-solid fa-chevron-right" style="opacity:0.3"></i>
+                    </div>`;
+                });
+            }
+        });
+        document.getElementById('v-lines').innerHTML = h;
+    },
+
+    // 2. WYBÓR WARIANTU (KIERUNKU)
+    variants: (num) => {
+        const variants = App.state.data.lines.filter(l => l.num === num);
+        let h = `<button class="btn" style="width:55px; margin-bottom:15px;" onclick="App.gate('lines')"><i class="fa-solid fa-arrow-left"></i></button>
+                 <h2>Linia ${num}</h2><p style="margin-bottom:20px; opacity:0.6;">Wybierz kierunek:</p>`;
+        
+        variants.forEach(l => {
+            const originalIdx = App.state.data.lines.indexOf(l);
+            h += `<div class="card" onclick="Modules.Lines.details(${originalIdx})" style="border-left:4px solid var(--accent);">
+                <small style="text-transform:uppercase; font-weight:900; color:var(--accent)">Kierunek</small>
+                <div style="font-weight:900; font-size:1.2rem;">${l.dir}</div>
+                <small style="opacity:0.5;">${l.stops.length} przystanków</small>
+            </div>`;
+        });
+        document.getElementById('v-details').innerHTML = h; 
+        App.gate('details');
+    },
+
+    // 3. LISTA PRZYSTANKÓW DLA WARIANTU
+    details: (idx) => {
+        const l = App.state.data.lines[idx];
+        let h = `<button class="btn" style="width:55px; margin-bottom:15px;" onclick="Modules.Lines.variants('${l.num}')"><i class="fa-solid fa-arrow-left"></i></button>
+                 <h2>${l.num} → ${l.dir}</h2>`;
+        
+        l.stops.forEach((s, si) => {
+            h += `<div class="card" onclick="Modules.Lines.timetable(${idx}, ${si})" style="display:flex; justify-content:space-between; align-items:center;">
+                <b>${s.name}</b>
+                <span style="opacity:0.5; font-weight:900;">+${s.time} min</span>
+            </div>`;
+        });
+        document.getElementById('v-details').innerHTML = h;
+    },
+
+    // 4. PEŁNY ROZKŁAD GODZINOWY (SIATKA)
+    timetable: (lIdx, sIdx) => {
+        const l = App.state.data.lines[lIdx], s = l.stops[sIdx];
+        let h = `<button class="btn" style="width:55px; margin-bottom:15px;" onclick="Modules.Lines.details(${lIdx})"><i class="fa-solid fa-arrow-left"></i></button>
+                 <h3>${s.name}</h3><p style="opacity:0.6; margin-bottom:15px;">Wszystkie odjazdy linii ${l.num}</p>
+                 <div class="grid-hours">`;
+        
+        l.baseTimes.sort().forEach(bt => {
+            const rt = Time.calc(bt, s.time);
+            const df = Time.diff(rt);
+            h += `<div class="hour-pill ${df >= 0 && df < 60 ? 'next' : ''}">${rt}</div>`;
+        });
+        
+        document.getElementById('v-details').innerHTML = h + `</div>`;
+    }
+};
+// --- MODUŁ STACJI (LISTA LINII + TABLICA LIVE + ULUBIONE) ---
+Modules.Stops = () => {
+    let map = {}; 
+    // Budowanie mapy przystanków: który numer linii i jaki typ staje na jakim przystanku
+    App.state.data.lines.forEach(l => {
+        l.stops.forEach(s => {
+            if(!map[s.name]) map[s.name] = [];
+            map[s.name].push({ n: l.num, t: l.type || 'bus' });
+        });
+    });
+
+    let h = `<h2>Przystanki</h2><p style="opacity:0.6; margin-bottom:20px;">Wybierz stację, aby zobaczyć odjazdy</p>`;
+    
+    // Sortowanie alfabetyczne przystanków
+    Object.keys(map).sort().forEach(name => {
+        // Unikalne linie na przystanku (żeby nie powtarzać numerów)
+        let uniqueLines = [...new Map(map[name].map(it => [it.n, it])).values()];
+        
+        let linesHtml = '';
+        uniqueLines.sort((a,b) => a.n.localeCompare(b.n, undefined, {numeric:true})).forEach(lx => {
+            const color = lx.t === 'tram' ? 'var(--tram)' : (lx.t === 'night' ? 'var(--night)' : 'var(--bus)');
+            linesHtml += `<span style="color:${color}; margin-right:8px; font-weight:900; font-size:0.8rem;">${lx.n}</span>`;
+        });
+
+        const isFav = App.state.favs.stops.includes(name);
+
+        h += `<div class="card" onclick="Modules.Stops.board('${name}')" style="padding:15px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <b style="font-size:1.1rem;">${name}</b>
+                <i class="fa-solid fa-heart" 
+                   onclick="Modules.Stops.toggleFav('${name}', event)" 
+                   style="color:${isFav ? 'var(--accent)' : '#222'}; font-size:1.2rem;"></i>
+            </div>
+            <div style="display:flex; flex-wrap:wrap;">${linesHtml}</div>
+        </div>`;
+    });
+    document.getElementById('v-stops').innerHTML = h;
+};
+
+// Funkcja tablicy odjazdów dla konkretnego przystanku
+Modules.Stops.board = (name) => {
+    let h = `<button class="btn" style="width:55px; margin-bottom:15px;" onclick="App.gate('stops')"><i class="fa-solid fa-arrow-left"></i></button>
+             <h2>${name}</h2><p style="opacity:0.6; margin-bottom:15px;">Najbliższe odjazdy:</p>`;
+    
+    let deps = [];
+    App.state.data.lines.forEach(l => {
+        const s = l.stops.find(st => st.name === name);
+        if(s) {
+            l.baseTimes.forEach(bt => {
+                const rt = Time.calc(bt, s.time);
+                const df = Time.diff(rt);
+                // Pokazuj tylko odjazdy od "teraz" do 2 godzin w przód
+                if(df >= -2 && df < 120) deps.push({ n: l.num, dir: l.dir, rt, df, type: l.type });
+            });
+        }
+    });
+
+    deps.sort((a,b) => a.df - b.df).forEach(x => {
+        const c = x.type === 'tram' ? 'var(--tram)' : (x.type === 'night' ? 'var(--night)' : 'var(--bus)');
+        h += `<div class="card" style="display:flex; align-items:center; gap:15px; padding:12px 18px;">
+            <div class="line-badge" style="background:${c}; width:38px; height:38px; font-size:0.9rem;">${x.n}</div>
+            <div style="flex:1">
+                <b style="font-size:0.9rem;">${x.dir}</b>
+            </div>
+            <div style="text-align:right;">
+                <b style="color:var(--accent); font-size:1rem;">${x.df <= 0 ? 'NOW' : (x.df <= 30 ? x.df + ' min' : x.rt)}</b>
+            </div>
+        </div>`;
+    });
+
+    document.getElementById('v-details').innerHTML = h || '<p>Brak odjazdów w najbliższym czasie.</p>';
+    App.gate('details');
+};
+
+// Obsługa ulubionych
+Modules.Stops.toggleFav = (name, e) => {
+    e.stopPropagation(); // Żeby nie otwierało tablicy przy kliknięciu w serce
+    const idx = App.state.favs.stops.indexOf(name);
+    if(idx > -1) App.state.favs.stops.splice(idx, 1);
+    else App.state.favs.stops.push(name);
+    
+    localStorage.setItem('mzk_favs', JSON.stringify(App.state.favs));
+    App.render(); // Odśwież widok, żeby serce zmieniło kolor
+};
+// --- MODUŁ PLANERA (POŁĄCZENIA BEZPOŚREDNIE + PRZESIADKI) ---
+Modules.Planer = {
+    draw: () => {
+        // Pobieranie unikalnych nazw przystanków do list rozwijanych
+        let stopsSet = new Set();
+        App.state.data.lines.forEach(l => l.stops.forEach(s => stopsSet.add(s.name)));
+        let sortedStops = Array.from(stopsSet).sort();
+        let options = sortedStops.map(x => `<option value="${x}">${x}</option>`).join('');
+
+        document.getElementById('v-planer').innerHTML = `
+            <h2>Planer Podróży</h2>
+            <div class="card">
+                <div style="margin-bottom:15px;">
+                    <small style="font-weight:900; color:var(--accent)">PUNKT STARTOWY</small>
+                    <select id="p-start">${options}</select>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <small style="font-weight:900; color:var(--tram)">CEL PODRÓŻY</small>
+                    <select id="p-end">${options}</select>
+                </div>
+                <button class="btn" onclick="Modules.Planer.find()">Znajdź połączenie</button>
+            </div>
+            <div id="planner-results"></div>
+        `;
+    },
+
+    find: () => {
+        const start = document.getElementById('p-start').value;
+        const end = document.getElementById('p-end').value;
+        const resDiv = document.getElementById('planner-results');
+        
+        if (start === end) {
+            resDiv.innerHTML = `<p style="text-align:center; padding:20px;">Jesteś już u celu! 😉</p>`;
+            return;
+        }
+
+        let results = [];
+
+        // 1. SZUKANIE POŁĄCZEŃ BEZPOŚREDNICH
+        App.state.data.lines.forEach(l => {
+            const si = l.stops.findIndex(s => s.name === start);
+            const ei = l.stops.findIndex(s => s.name === end);
+
+            if (si > -1 && ei > si) { // Linia jedzie we właściwym kierunku
+                l.baseTimes.forEach(bt => {
+                    const depTime = Time.calc(bt, l.stops[si].time);
+                    const arrTime = Time.calc(bt, l.stops[ei].time);
+                    const waitMin = Time.diff(depTime);
+
+                    if (waitMin >= -2) { // Pokazuj tylko te, co jeszcze nie odjechały
+                        results.push({
+                            type: 'direct',
+                            line: l.num,
+                            tType: l.type,
+                            dep: depTime,
+                            arr: arrTime,
+                            diff: waitMin,
+                            dur: l.stops[ei].time - l.stops[si].time
+                        });
+                    }
+                });
+            }
+        });
+
+        // 2. SZUKANIE PRZESIADEK (prosta logika 1 przesiadki)
+        if (results.length < 5) {
+            App.state.data.lines.forEach(l1 => {
+                const si = l1.stops.findIndex(s => s.name === start);
+                if (si > -1) {
+                    // Sprawdzamy każdy kolejny przystanek tej linii jako punkt przesiadki
+                    for (let i = si + 1; i < l1.stops.length; i++) {
+                        const transferStop = l1.stops[i].name;
+                        
+                        App.state.data.lines.forEach(l2 => {
+                            const ti = l2.stops.findIndex(s => s.name === transferStop);
+                            const ei = l2.stops.findIndex(s => s.name === end);
+
+                            if (ti > -1 && ei > ti && l1.num !== l2.num) {
+                                l1.baseTimes.forEach(bt1 => {
+                                    const dep1 = Time.calc(bt1, l1.stops[si].time);
+                                    const arr1 = Time.calc(bt1, l1.stops[i].time);
+                                    if (Time.diff(dep1) >= -2) {
+                                        // Szukamy pasującego odjazdu drugiej linii
+                                        l2.baseTimes.forEach(bt2 => {
+                                            const dep2 = Time.calc(bt2, l2.stops[ti].time);
+                                            const waitAtTransfer = Time.toMin(dep2) - Time.toMin(arr1);
+                                            
+                                            if (waitAtTransfer >= 3 && waitAtTransfer <= 25) { // Przesiadka od 3 do 25 min
+                                                results.push({
+                                                    type: 'transfer',
+                                                    l1: l1.num,
+                                                    l2: l2.num,
+                                                    xStop: transferStop,
+                                                    d1: dep1,
+                                                    a1: arr1,
+                                                    d2: dep2,
+                                                    diff: Time.diff(dep1)
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        // Renderowanie wyników
+        results.sort((a, b) => a.diff - b.diff);
+        let h = `<div class="cat-header">Sugerowane trasy</div>`;
+        
+        results.slice(0, 6).forEach(r => {
+            if (r.type === 'direct') {
+                const c = r.tType === 'tram' ? 'var(--tram)' : (r.tType === 'night' ? 'var(--night)' : 'var(--bus)');
+                h += `
+                    <div class="card" style="border-left: 4px solid var(--accent)">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span class="line-badge" style="background:${c}; width:30px; height:30px; font-size:0.7rem;">${r.line}</span>
+                            <b style="color:var(--accent)">za ${r.diff} min</b>
+                        </div>
+                        <div style="margin-top:10px; font-weight:900;">${r.dep} → ${r.arr}</div>
+                        <small style="opacity:0.5">Połączenie bezpośrednie • ${r.dur} min jazdy</small>
+                    </div>`;
+            } else {
+                h += `
+                    <div class="card" style="border-left: 4px solid #ffa502">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <b>Przesiadka</b>
+                            <b style="color:var(--accent)">za ${r.diff} min</b>
+                        </div>
+                        <div style="font-size:0.9rem;">
+                            <span style="color:var(--accent)">${r.d1}</span> Linia ${r.l1} do <b>${r.xStop}</b><br>
+                            <div style="height:10px; border-left:2px dashed #444; margin:5px 0 5px 10px;"></div>
+                            <span style="color:var(--accent)">${r.d2}</span> Linia ${r.l2} do celu
+                        </div>
+                    </div>`;
+            }
+        });
+
+        resDiv.innerHTML = h || `<p style="text-align:center; padding:20px;">Brak połączeń w najbliższym czasie.</p>`;
+    }
+};
+// --- MODUŁ ADMINA (ZARZĄDZANIE LINIAMI + NEWSY) ---
+Modules.Admin = {
+    logged: false,
+    
+    draw: () => {
+        const v = document.getElementById('v-admin');
+        if (!Modules.Admin.logged) {
+            v.innerHTML = `
+                <h2>Panel Administratora</h2>
+                <div class="card">
+                    <p style="margin-bottom:15px; opacity:0.7;">Wymagana autoryzacja:</p>
+                    <input type="password" id="admin-pass" placeholder="Hasło">
+                    <button class="btn" onclick="Modules.Admin.login()">Zaloguj się</button>
+                </div>`;
+            return;
+        }
+
+        let h = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>Panel Sterowania</h2>
+                <button onclick="Modules.Admin.logged=false; App.render()" style="background:none; border:none; color:var(--tram); font-weight:900;">Wyloguj</button>
+            </div>
+            
+            <div class="cat-header">Komunikaty (News)</div>
+            <div class="card">
+                <input id="new-title" placeholder="Tytuł komunikatu">
+                <textarea id="new-content" placeholder="Treść wiadomości..." style="height:80px;"></textarea>
+                <button class="btn" onclick="Modules.Admin.addNews()" style="background:var(--bus); color:white;">Opublikuj News</button>
+            </div>
+
+            <div class="cat-header">Zarządzanie Liniami</div>
+            <button class="btn" onclick="Modules.Admin.editForm()" style="margin-bottom:20px;">+ DODAJ NOWĄ LINIĘ</button>
+            <div id="admin-lines-list"></div>
+        `;
+        v.innerHTML = h;
+        Modules.Admin.listLines();
+    },
+
+    login: () => {
+        const p = document.getElementById('admin-pass').value;
+        if (p === '123') { // Twoje hasło
+            Modules.Admin.logged = true;
+            App.render();
+        } else {
+            alert("Błędne hasło!");
+        }
+    },
+
+    listLines: () => {
+        let h = '';
+        App.state.data.lines.forEach((l, idx) => {
+            h += `
+                <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:12px 20px;">
+                    <div>
+                        <b>${l.num}</b> <small style="opacity:0.5; margin-left:10px;">${l.dir}</small>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-pen" onclick="Modules.Admin.editForm(${idx})" style="margin-right:15px; cursor:pointer; color:var(--accent)"></i>
+                        <i class="fa-solid fa-trash" onclick="Modules.Admin.deleteLine(${idx})" style="cursor:pointer; color:var(--tram)"></i>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('admin-lines-list').innerHTML = h;
+    },
+
+    editForm: (idx = null) => {
+        const l = idx !== null ? App.state.data.lines[idx] : { num: '', dir: '', type: 'bus', baseTimes: [], stops: [] };
+        const v = document.getElementById('v-admin');
+        
+        v.innerHTML = `
+            <h2>${idx !== null ? 'Edycja' : 'Nowa'} Linia</h2>
+            <div class="card">
+                <small>Numer linii:</small>
+                <input id="e-num" value="${l.num}" placeholder="np. 12">
+                <small>Kierunek docelowy:</small>
+                <input id="e-dir" value="${l.dir}" placeholder="np. Osiedle Wolności">
+                <small>Typ pojazdu:</small>
+                <select id="e-type">
+                    <option value="bus" ${l.type==='bus'?'selected':''}>Autobus</option>
+                    <option value="tram" ${l.type==='tram'?'selected':''}>Tramwaj</option>
+                    <option value="night" ${l.type==='night'?'selected':''}>Nocny</option>
+                </select>
+                <small>Czasy bazowe (rozdzielone przecinkiem):</small>
+                <textarea id="e-times" placeholder="06:00, 06:30, 07:00">${l.baseTimes.join(', ')}</textarea>
+                <small>Przystanki i minuty (Format: Nazwa|Minuta):</small>
+                <textarea id="e-stops" style="height:120px;" placeholder="Dworzec|0, Centrum|5, Szpital|12">${l.stops.map(s => s.name+'|'+s.time).join(', ')}</textarea>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                    <button class="btn" onclick="Modules.Admin.save(${idx})" style="background:var(--accent)">ZAPISZ</button>
+                    <button class="btn" onclick="Modules.Admin.draw()" style="background:var(--surf-l); color:white;">ANULUJ</button>
+                </div>
+            </div>
+        `;
+    },
+
+    save: (idx) => {
+        const num = document.getElementById('e-num').value;
+        const dir = document.getElementById('e-dir').value;
+        const type = document.getElementById('e-type').value;
+        const times = document.getElementById('e-times').value.split(',').map(t => t.trim()).filter(t => t);
+        const stopsRaw = document.getElementById('e-stops').value.split(',').map(s => s.trim()).filter(s => s);
+        
+        const stops = stopsRaw.map(s => {
+            const [name, time] = s.split('|');
+            return { name: name.trim(), time: parseInt(time) || 0 };
+        });
+
+        if (!num || !dir || stops.length === 0) {
+            alert("Wypełnij podstawowe pola!");
+            return;
+        }
+
+        let allLines = [...App.state.data.lines];
+        const newData = { num, dir, type, baseTimes: times, stops };
+
+        if (idx !== null) allLines[idx] = newData;
+        else allLines.push(newData);
+
+        App.db.ref(App.dbKey + '/lines').set(allLines).then(() => {
+            alert("Dane zapisane w chmurze!");
+            Modules.Admin.draw();
+        });
+    },
+
+    deleteLine: (idx) => {
+        if (confirm("Czy na pewno chcesz usunąć tę linię?")) {
+            let allLines = [...App.state.data.lines];
+            allLines.splice(idx, 1);
+            App.db.ref(App.dbKey + '/lines').set(allLines).then(() => {
+                Modules.Admin.listLines();
+            });
+        }
+    },
+
+    addNews: () => {
+        const title = document.getElementById('new-title').value;
+        const content = document.getElementById('new-content').value;
+        if (!title || !content) return;
+
+        const newsObj = { title, content, date: Date.now() };
+        App.db.ref(App.dbKey + '/news').push(newsObj).then(() => {
+            alert("Komunikat wysłany!");
+            document.getElementById('new-title').value = '';
+            document.getElementById('new-content').value = '';
+        });
+    }
+};
+
     </script>
 </body>
 </html>

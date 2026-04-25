@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK OMEGA V23 MASTER</title>
-    
+    <title>MZK OMEGA MASTER V24</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
@@ -16,46 +15,42 @@
             --text: #ffffff; --text-m: #94a3b8; --tram: #ff4757; --bus: #00a8ff; --night: #9b59b6; --border: rgba(255,255,255,0.08); 
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 100px; overflow-x: hidden; }
         .container { max-width: 600px; margin: 0 auto; padding: 15px; }
-        header { background: rgba(16, 22, 34, 0.8); backdrop-filter: blur(20px); padding: 20px; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-        .card { background: var(--surf); border-radius: 24px; padding: 20px; margin-bottom: 12px; border: 1px solid var(--border); }
+        header { background: rgba(16, 22, 34, 0.85); backdrop-filter: blur(20px); padding: 20px; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+        .card { background: var(--surf); border-radius: 24px; padding: 20px; margin-bottom: 12px; border: 1px solid var(--border); transition: 0.3s; }
         .btn { background: var(--accent); color: #000; padding: 18px; border: none; border-radius: 18px; width: 100%; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--surf); display: flex; height: 80px; border-top: 1px solid var(--border); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); font-size: 0.7rem; font-weight: 600; }
-        .nav-tab.active { color: var(--accent); }
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: var(--surf); display: flex; height: 85px; border-top: 1px solid var(--border); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-m); font-size: 0.7rem; font-weight: 600; opacity: 0.6; }
+        .nav-tab.active { color: var(--accent); opacity: 1; }
         input, select, textarea { width: 100%; padding: 15px; border-radius: 15px; background: var(--surf-l); border: 1px solid var(--border); color: #fff; margin-bottom: 12px; font-size: 1rem; }
-        .module { display: none; animation: slideUp 0.4s ease; }
-        .module.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Specyficzne style */
-        .cat-header { font-size: 0.7rem; font-weight: 900; letter-spacing: 2px; color: var(--text-m); margin: 25px 0 10px 5px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+        .module { display: none; } .module.active { display: block; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .cat-header { font-size: 0.7rem; font-weight: 900; color: var(--text-m); margin: 25px 0 10px 5px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
         .cat-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-        .line-badge { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; color: #000; }
-        .bg-tram { background: var(--tram); }
-        .bg-bus { background: var(--bus); }
-        .bg-night { background: var(--night); }
+        .line-badge { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #000; }
         .grid-hours { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; }
-        .hour-pill { background: var(--surf-l); padding: 10px; border-radius: 12px; text-align: center; font-weight: 700; border: 1px solid var(--border); }
+        .hour-pill { background: var(--surf-l); padding: 12px; border-radius: 12px; text-align: center; font-weight: 700; border: 1px solid var(--border); font-size: 0.9rem; }
         .hour-pill.next { border-color: var(--accent); color: var(--accent); background: rgba(0,209,102,0.1); }
-        .transfer-line { border-left: 2px dashed var(--accent); margin-left: 20px; padding-left: 20px; margin: 10px 0; }
-        .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .transfer-line { border-left: 2px dashed var(--accent); margin: 10px 0 10px 20px; padding-left: 20px; }
     </style>
 </head>
 <body>
-
     <header>
         <div>
             <h1 style="font-size: 1.2rem; font-weight: 900;">MZK <span style="color:var(--accent)">OMEGA</span></h1>
-            <div id="live-clock" style="font-size: 0.75rem; color: var(--text-m); font-weight: 800;">--:--:--</div>
+            <div id="live-clock" style="font-size: 0.75rem; color: var(--text-m); font-weight: 800;">...</div>
         </div>
-        <div style="font-size: 0.6rem; font-weight: 900; border: 1px solid var(--accent); padding: 4px 10px; border-radius: 20px; color: var(--accent);">V23 MASTER</div>
+        <div style="font-size: 0.6rem; font-weight: 900; border: 1px solid var(--accent); padding: 4px 10px; border-radius: 20px; color: var(--accent);">V24 MODULAR</div>
     </header>
 
-    <div class="container" id="app-viewport">
-        <div id="loader" style="text-align:center; padding-top:100px;"><i class="fa-solid fa-atom fa-spin" style="font-size: 3rem; color: var(--accent);"></i></div>
+    <div class="container">
+        <div id="v-home" class="module active"></div>
+        <div id="v-lines" class="module"></div>
+        <div id="v-planer" class="module"></div>
+        <div id="v-stops" class="module"></div>
+        <div id="v-admin" class="module"></div>
+        <div id="v-details" class="module"></div>
     </div>
 
     <nav class="nav-bar">
@@ -67,53 +62,42 @@
     </nav>
 
     <script>
+        // --- CORE ENGINE ---
         const App = {
             dbKey: 'mzk_v12_pro',
             state: { 
-                favs: JSON.parse(localStorage.getItem('mzk_favs')) || { stops: [] }, 
-                data: { lines: [], news: {} }, 
-                currentView: 'home' 
+                favs: JSON.parse(localStorage.getItem('mzk_favs')) || { stops: [] },
+                data: { lines: [], news: {} },
+                currentView: 'home'
             },
             init() {
-                const cfg = {apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio"};
-                firebase.initializeApp(cfg);
+                firebase.initializeApp({apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M", authDomain: "mzk-by-facio.firebaseapp.com", databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app", projectId: "mzk-by-facio"});
                 this.db = firebase.database();
                 this.sync();
-                setInterval(() => { 
-                    document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('pl-PL');
-                }, 1000);
+                setInterval(() => { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('pl-PL'); }, 1000);
             },
             sync() {
                 this.db.ref(this.dbKey).on('value', snap => {
                     const raw = snap.val() || {};
                     this.state.data.lines = Array.isArray(raw.lines) ? raw.lines : Object.values(raw.lines || {});
                     this.state.data.news = raw.news || {};
-                    if(document.getElementById('loader')) this.buildLayout();
                     this.render();
                 });
             },
-            buildLayout() {
-                document.getElementById('app-viewport').innerHTML = `
-                    <div id="v-home" class="module"></div><div id="v-lines" class="module"></div>
-                    <div id="v-planer" class="module"></div><div id="v-stops" class="module"></div>
-                    <div id="v-admin" class="module"></div><div id="v-details" class="module"></div>
-                `;
-                this.gate('home');
-            },
-            gate(v) { 
-                this.state.currentView = v; 
+            gate(v) {
+                this.state.currentView = v;
                 document.querySelectorAll('.module, .nav-tab').forEach(x => x.classList.remove('active'));
-                document.getElementById('v-'+v)?.classList.add('active');
+                document.getElementById('v-'+v).classList.add('active');
                 document.getElementById('nt-'+(v==='details'?'lines':v))?.classList.add('active');
                 this.render();
                 window.scrollTo(0,0);
             },
             render() {
                 const v = this.state.currentView;
-                if(v==='home') Modules.Home.draw();
-                if(v==='lines') Modules.Lines.draw();
+                if(v==='home') Modules.Home();
+                if(v==='lines') Modules.Lines.list();
                 if(v==='planer') Modules.Planer.draw();
-                if(v==='stops') Modules.Stops.draw();
+                if(v==='stops') Modules.Stops();
                 if(v==='admin') Modules.Admin.draw();
             }
         };
@@ -124,256 +108,4 @@
             diff(t) { return this.toMin(t)-(new Date().getHours()*60+new Date().getMinutes()); }
         };
 
-        const Modules = {
-            Home: {
-                draw() {
-                    let h = `<h2 style="font-weight:900;">Dzień dobry! 👋</h2>`;
-                    
-                    // 1. NEWS SYSTEM (Przywrócony)
-                    const news = Object.values(App.state.data.news).reverse().slice(0, 1);
-                    news.forEach(n => {
-                        h += `<div class="card" style="border-left: 4px solid var(--accent); background: linear-gradient(to right, var(--surf-l), var(--surf));">
-                            <small style="color:var(--accent); font-weight:900;">KOMUNIKAT</small>
-                            <h3 style="font-size:1rem; margin:5px 0;">${n.title}</h3>
-                            <p style="font-size:0.8rem; opacity:0.7;">${n.content}</p>
-                        </div>`;
-                    });
-
-                    // 2. LIVE DASHBOARD (Ulubione)
-                    const favs = App.state.favs.stops;
-                    if(favs.length) {
-                        h += `<div class="cat-header">Najbliższe odjazdy</div><div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:15px; margin-bottom:10px;">`;
-                        let deps = [];
-                        App.state.data.lines.forEach(l => l.stops.forEach(s => {
-                            if(favs.includes(s.name)) l.baseTimes.forEach(bt => {
-                                const rt = Time.calc(bt, s.time), df = Time.diff(rt);
-                                if(df>=0 && df<=60) deps.push({n:l.num, rt, df, s:s.name, d:l.dir, type:l.type});
-                            });
-                        }));
-                        deps.sort((a,b)=>a.df-b.df).slice(0,6).forEach(x => {
-                            const c = x.type === 'tram' ? 'var(--tram)' : (x.type === 'night' ? 'var(--night)' : 'var(--bus)');
-                            h += `<div class="card" onclick="Modules.Lines.showBoard('${x.s}')" style="min-width:160px; border-bottom:4px solid ${c}; padding:15px; margin-bottom:0;">
-                                <div style="display:flex; justify-content:space-between;"><b>${x.n}</b> <b class="pulse" style="color:var(--accent)">${x.df}m</b></div>
-                                <div style="font-size:0.7rem; font-weight:800; margin-top:5px; white-space:nowrap; overflow:hidden;">${x.d}</div>
-                                <div style="font-size:0.55rem; color:var(--text-m);">${x.s}</div>
-                            </div>`;
-                        });
-                        h += `</div>`;
-                    }
-                    h += `<div class="card" onclick="App.gate('planer')"><i class="fa-solid fa-route" style="color:var(--accent); margin-right:10px;"></i> <b>Gdzie jedziemy?</b></div>`;
-                    document.getElementById('v-home').innerHTML = h;
-                }
-            },
-
-            Lines: {
-                draw() {
-                    let h = `<h2>Linie</h2>`;
-                    let grouped = {};
-                    App.state.data.lines.forEach(l => {
-                        if(!grouped[l.num]) grouped[l.num] = [];
-                        grouped[l.num].push(l);
-                    });
-
-                    const cats = [
-                        { id: 'tram', name: 'Tramwaje', icon: 'fa-train-tram', class: 'bg-tram' },
-                        { id: 'bus', name: 'Autobusy', icon: 'fa-bus', class: 'bg-bus' },
-                        { id: 'night', name: 'Nocne', icon: 'fa-moon', class: 'bg-night' }
-                    ];
-
-                    cats.forEach(cat => {
-                        let lines = Object.keys(grouped).filter(n => grouped[n][0].type === cat.id);
-                        if(lines.length) {
-                            h += `<div class="cat-header"><i class="fa-solid ${cat.icon}"></i> ${cat.name}</div>`;
-                            lines.sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).forEach(n => {
-                                h += `<div class="card" onclick="Modules.Lines.showVariants('${n}')" style="display:flex; align-items:center; gap:15px; padding:15px;">
-                                    <div class="line-badge ${cat.class}">${n}</div>
-                                    <div style="flex:1"><b>Linia ${n}</b><br><small style="opacity:0.5">${grouped[n].length} warianty</small></div>
-                                    <i class="fa-solid fa-chevron-right" style="opacity:0.2"></i>
-                                </div>`;
-                            });
-                        }
-                    });
-                    document.getElementById('v-lines').innerHTML = h;
-                },
-                showVariants(num) {
-                    const vars = App.state.data.lines.filter(l => l.num === num);
-                    let h = `<button class="btn" style="width:55px; margin-bottom:20px;" onclick="App.gate('lines')"><i class="fa-solid fa-arrow-left"></i></button><h2>Linia ${num}</h2>`;
-                    vars.forEach(l => {
-                        const idx = App.state.data.lines.indexOf(l);
-                        h += `<div class="card" onclick="Modules.Lines.showDetails(${idx})" style="border-left:4px solid var(--accent)">
-                            <small style="color:var(--accent); font-weight:900;">KIERUNEK</small>
-                            <div style="font-weight:900; font-size:1.1rem;">${l.dir}</div>
-                        </div>`;
-                    });
-                    document.getElementById('v-details').innerHTML = h; App.gate('details');
-                },
-                showDetails(idx) {
-                    const l = App.state.data.lines[idx];
-                    let h = `<button class="btn" style="width:55px; margin-bottom:20px;" onclick="Modules.Lines.showVariants('${l.num}')"><i class="fa-solid fa-arrow-left"></i></button><h2>${l.num} → ${l.dir}</h2>`;
-                    l.stops.forEach((s, si) => {
-                        h += `<div class="card" onclick="Modules.Lines.showFullTimetable(${idx}, ${si})"><b>${s.name}</b> <span style="float:right; opacity:0.4;">+${s.time}m</span></div>`;
-                    });
-                    document.getElementById('v-details').innerHTML = h;
-                },
-                showFullTimetable(lIdx, sIdx) {
-                    const l = App.state.data.lines[lIdx], s = l.stops[sIdx];
-                    let h = `<button class="btn" style="width:55px; margin-bottom:20px;" onclick="Modules.Lines.showDetails(${lIdx})"><i class="fa-solid fa-arrow-left"></i></button>
-                             <h3>${s.name}</h3><div class="grid-hours">`;
-                    l.baseTimes.sort().forEach(bt => {
-                        const rt = Time.calc(bt, s.time), df = Time.diff(rt);
-                        h += `<div class="hour-pill ${df>=0 && df<60 ? 'next' : ''}">${rt}</div>`;
-                    });
-                    document.getElementById('v-details').innerHTML = h + `</div>`;
-                },
-                showBoard(name) {
-                    let h = `<button class="btn" style="width:55px; margin-bottom:20px;" onclick="App.gate('home')"><i class="fa-solid fa-arrow-left"></i></button><h2>${name}</h2>`;
-                    let d = []; App.state.data.lines.forEach(l => {
-                        const s = l.stops.find(st => st.name === name);
-                        if(s) l.baseTimes.forEach(bt => {
-                            const rt = Time.calc(bt, s.time), df = Time.diff(rt);
-                            if(df>=-2 && df<120) d.push({n:l.num, dir:l.dir, rt, df, type:l.type});
-                        });
-                    });
-                    d.sort((a,b)=>a.df-b.df).forEach(x => {
-                        const bc = x.type === 'tram' ? 'bg-tram' : (x.type === 'night' ? 'bg-night' : 'bg-bus');
-                        h += `<div class="card" style="display:flex; align-items:center; gap:15px;">
-                            <div class="line-badge ${bc}" style="width:35px; height:35px; font-size:0.9rem;">${x.n}</div>
-                            <div style="flex:1"><b>${x.dir}</b></div>
-                            <b style="color:var(--accent)">${x.df>=0 && x.df<=30 ? x.df+'m' : x.rt}</b>
-                        </div>`;
-                    });
-                    document.getElementById('v-details').innerHTML = h; App.gate('details');
-                }
-            },
-
-            Stops: {
-                draw() {
-                    let map = {}; App.state.data.lines.forEach(l => l.stops.forEach(s => { if(!map[s.name]) map[s.name]=[]; map[s.name].push({n:l.num, t:l.type}); }));
-                    let h = `<h2>Przystanki</h2>`;
-                    Object.keys(map).sort().forEach(n => {
-                        let linesHtml = '';
-                        [...new Map(map[n].map(it => [it.n, it])).values()].forEach(lx => {
-                            const c = lx.t === 'tram' ? 'var(--tram)' : (lx.t === 'night' ? 'var(--night)' : 'var(--bus)');
-                            linesHtml += `<span style="color:${c}; margin-right:8px; font-weight:900;">${lx.n}</span>`;
-                        });
-                        h += `<div class="card" onclick="Modules.Lines.showBoard('${n}')">
-                            <div style="display:flex; justify-content:space-between;"><b>${n}</b> <i class="fa-solid fa-heart" onclick="Modules.Favs.toggle('${n}', event)" style="color:${App.state.favs.stops.includes(n)?'var(--accent)':'#222'}"></i></div>
-                            <div style="margin-top:8px; font-size:0.7rem;">${linesHtml}</div>
-                        </div>`;
-                    });
-                    document.getElementById('v-stops').innerHTML = h;
-                }
-            },
-
-            Favs: {
-                toggle(n, e) {
-                    e.stopPropagation(); const i = App.state.favs.stops.indexOf(n);
-                    if(i>-1) App.state.favs.stops.splice(i,1); else App.state.favs.stops.push(n);
-                    localStorage.setItem('mzk_favs', JSON.stringify(App.state.favs)); App.render();
-                }
-            },
-
-            Planer: {
-                draw() {
-                    let st = new Set(); App.state.data.lines.forEach(l => l.stops.forEach(s => st.add(s.name)));
-                    let opt = Array.from(st).sort().map(x => `<option value="${x}">${x}</option>`).join('');
-                    document.getElementById('v-planer').innerHTML = `<h2>Planer</h2><div class="card">
-                        <select id="ps">${opt}</select><select id="pe">${opt}</select>
-                        <button class="btn" onclick="Modules.Planer.find()">Szukaj Trasy</button>
-                    </div><div id="p-res"></div>`;
-                },
-                find() {
-                    const start = document.getElementById('ps').value, end = document.getElementById('pe').value;
-                    if(start === end) return;
-                    let res = [];
-                    // Logika przesiadek (v21)
-                    App.state.data.lines.forEach(l => {
-                        const si = l.stops.findIndex(x=>x.name===start), ei = l.stops.findIndex(x=>x.name===end);
-                        if(si>-1 && ei>si) l.baseTimes.forEach(bt => {
-                            const dep = Time.calc(bt, l.stops[si].time), df = Time.diff(dep);
-                            if(df>=0) res.push({type:'direct', n:l.num, dep, df, dur:l.stops[ei].time-l.stops[si].time});
-                        });
-                    });
-                    if(res.length < 3) {
-                        App.state.data.lines.forEach(l1 => {
-                            const si = l1.stops.findIndex(x=>x.name===start);
-                            if(si > -1) {
-                                for(let i=si+1; i<l1.stops.length; i++) {
-                                    const tx = l1.stops[i].name;
-                                    App.state.data.lines.forEach(l2 => {
-                                        const ti = l2.stops.findIndex(x=>x.name===tx), ei = l2.stops.findIndex(x=>x.name===end);
-                                        if(ti > -1 && ei > ti && l1.num !== l2.num) {
-                                            l1.baseTimes.forEach(bt1 => {
-                                                const d1 = Time.calc(bt1, l1.stops[si].time);
-                                                if(Time.diff(d1) >= 0) {
-                                                    const a1 = Time.calc(bt1, l1.stops[i].time);
-                                                    l2.baseTimes.forEach(bt2 => {
-                                                        const d2 = Time.calc(bt2, l2.stops[ti].time);
-                                                        const wait = Time.toMin(d2) - Time.toMin(a1);
-                                                        if(wait >= 2 && wait <= 30) res.push({type:'transfer', n1:l1.num, n2:l2.num, x:tx, d1, d2, df:Time.diff(d1)});
-                                                    });
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    }
-                    let h = '';
-                    res.sort((a,b)=>a.df-b.df).slice(0,5).forEach(r => {
-                        h += `<div class="card" style="border-left:5px solid ${r.type==='direct'?'var(--accent)':'var(--bus)'}">
-                            <b>${r.type==='direct'?'Linia '+r.n : r.n1+' → '+r.n2}</b><br>
-                            <small>Odjazd za ${r.df} min (${r.type==='direct'?r.dep:r.d1})</small>
-                            ${r.type==='transfer' ? `<div class="transfer-line">Przesiadka: ${r.x}<br>Odjazd ${r.n2}: ${r.d2}</div>` : ''}
-                        </div>`;
-                    });
-                    document.getElementById('p-res').innerHTML = h || '<p>Brak połączeń.</p>';
-                }
-            },
-
-            Admin: {
-                logged: false,
-                draw() {
-                    const c = document.getElementById('v-admin');
-                    if(!this.logged) {
-                        c.innerHTML = `<div class="card"><h3>Admin</h3><input type="password" id="pass"><button class="btn" onclick="Modules.Admin.login()">WEJDŹ</button></div>`;
-                        return;
-                    }
-                    let h = `<button class="btn" onclick="Modules.Admin.edit()">+ NOWA LINIA</button>
-                             <h3 style="margin:20px 0 10px;">News Manager</h3>
-                             <div class="card"><input id="nt" placeholder="Tytuł"><textarea id="nc" placeholder="Treść"></textarea><button class="btn" onclick="Modules.Admin.saveNews()">WYŚLIJ NEWS</button></div>
-                             <h3 style="margin:20px 0 10px;">Linie w chmurze</h3>`;
-                    App.state.data.lines.forEach((l, i) => {
-                        h += `<div class="card" style="padding:10px 20px;"><b>${l.num}</b> - ${l.dir} <i class="fa-solid fa-trash" onclick="Modules.Admin.del(${i})" style="float:right; color:var(--tram)"></i><i class="fa-solid fa-pen" onclick="Modules.Admin.edit(${i})" style="float:right; margin-right:20px;"></i></div>`;
-                    });
-                    c.innerHTML = h;
-                },
-                login() { if(document.getElementById('pass').value==='123') { this.logged=true; this.draw(); }},
-                edit(idx=null) {
-                    const l = idx!==null?App.state.data.lines[idx]:{num:'',dir:'',type:'bus',baseTimes:[],stops:[]};
-                    document.getElementById('v-admin').innerHTML = `<div class="card">
-                        <input id="en" value="${l.num}" placeholder="Nr"><input id="ed" value="${l.dir}" placeholder="Dir">
-                        <select id="etp"><option value="bus" ${l.type==='bus'?'selected':''}>Autobus</option><option value="tram" ${l.type==='tram'?'selected':''}>Tramwaj</option><option value="night" ${l.type==='night'?'selected':''}>Nocny</option></select>
-                        <textarea id="et" placeholder="Czasy (05:00, 06:00)">${l.baseTimes.join(',')}</textarea>
-                        <textarea id="es" placeholder="Stop|0, Stop|5">${l.stops.map(s=>s.name+'|'+s.time).join(',')}</textarea>
-                        <button class="btn" onclick="Modules.Admin.save(${idx})">ZAPISZ</button>
-                    </div>`;
-                },
-                save(idx) {
-                    const d = { num: document.getElementById('en').value, dir: document.getElementById('ed').value, type: document.getElementById('etp').value, baseTimes: document.getElementById('et').value.split(',').map(x=>x.trim()).filter(x=>x), stops: document.getElementById('es').value.split(',').map(x=>{const[n,t]=x.split('|'); return {name:n?n.trim():'', time:parseInt(t)||0};}).filter(x=>x.name)};
-                    let l = [...App.state.data.lines]; if(idx!==null) l[idx]=d; else l.push(d);
-                    App.db.ref(App.dbKey+'/lines').set(l).then(()=>this.draw());
-                },
-                saveNews() {
-                    const n = { title: document.getElementById('nt').value, content: document.getElementById('nc').value };
-                    App.db.ref(App.dbKey+'/news').push(n).then(()=>this.draw());
-                },
-                del(i) { if(confirm("Usunąć?")) { let l = [...App.state.data.lines]; l.splice(i,1); App.db.ref(App.dbKey+'/lines').set(l).then(()=>this.draw()); }}
-            }
-        };
-
-        App.init();
-    </script>
-</body>
-</html>
+        // --- MIEJSCE NA MODUŁY ---

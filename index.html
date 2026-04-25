@@ -517,3 +517,89 @@ ModHome = () => {
         </div>
     `;
 };
+// --- MODUŁ 7: WERYFIKACJA ALERTÓW I POWIADOMIENIA (CROWDSOURCING) ---
+const ModSocial = {
+    subs: JSON.parse(localStorage.getItem('mzk_subs')) || false,
+
+    draw: () => {
+        const v = document.getElementById('v-reports');
+        // Dodajemy przycisk subskrypcji na górze modułu Alerty
+        const subBtn = `<div class="card" style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03);">
+            <span>Odbieraj powiadomienia live</span>
+            <button onclick="ModSocial.toggleSubs()" class="btn" style="width:auto; padding:5px 15px; background:${ModSocial.subs ? 'var(--accent)' : 'var(--surf-l)'}; color:${ModSocial.subs ? '#000' : '#fff'}">
+                ${ModSocial.subs ? 'WŁĄCZONE' : 'WYŁĄCZONE'}
+            </button>
+        </div>`;
+        
+        // Wstrzykujemy pasek subskrypcji pod nagłówek
+        const header = v.querySelector('h2');
+        if(header && !document.getElementById('sub-bar')) {
+            const div = document.createElement('div');
+            div.id = 'sub-bar';
+            div.innerHTML = subBtn;
+            header.after(div);
+        }
+    },
+
+    toggleSubs: () => {
+        ModSocial.subs = !ModSocial.subs;
+        localStorage.setItem('mzk_subs', ModSocial.subs);
+        if(ModSocial.subs) alert("Będziesz otrzymywać powiadomienia o nowych kanarach!");
+        App.render();
+    },
+
+    vote: (reportId, type) => {
+        const path = `${App.dbKey}/reports/${reportId}/votes/${type}`;
+        App.db.ref(path).transaction(current => (current || 0) + 1);
+        alert("Dziękujemy za weryfikację!");
+    },
+
+    // Nadpisujemy wyświetlanie listy alertów w ModReports, aby dodać przyciski weryfikacji
+    renderWithVotes: () => {
+        const listDiv = document.getElementById('rep-list');
+        if(!listDiv) return;
+
+        let h = '';
+        const data = App.state.data.reports || {};
+        
+        Object.entries(data).reverse().forEach(([id, r]) => {
+            if(Date.now() - r.time > 7200000) return;
+
+            const up = (r.votes && r.votes.up) || 0;
+            const down = (r.votes && r.votes.down) || 0;
+
+            h += `<div class="card" style="border-left:4px solid ${r.type==='kanar'?'var(--tram)':'var(--bus)'}">
+                <div style="display:flex; justify-content:space-between;">
+                    <b>${r.t}</b>
+                    <small style="opacity:0.5;">Linia ${r.l}</small>
+                </div>
+                <p style="font-size:0.85rem; margin:5px 0;">${r.m}</p>
+                
+                <div style="display:flex; gap:10px; margin-top:10px; border-top:1px solid var(--border); padding-top:10px;">
+                    <button onclick="ModSocial.vote('${id}', 'up')" style="background:none; border:none; color:var(--accent); font-size:0.8rem; cursor:pointer;">
+                        <i class="fa-solid fa-check"></i> Potwierdzam (${up})
+                    </button>
+                    <button onclick="ModSocial.vote('${id}', 'down')" style="background:none; border:none; color:var(--tram); font-size:0.8rem; cursor:pointer;">
+                        <i class="fa-solid fa-xmark"></i> Fałsz (${down})
+                    </button>
+                </div>
+            </div>`;
+        });
+        listDiv.innerHTML = h || '<p>Brak zgłoszeń</p>';
+    }
+};
+
+// Integracja z istniejącym systemem alertów
+const _oldRepList = ModReports.list;
+ModReports.list = () => {
+    ModSocial.draw();
+    ModSocial.renderWithVotes();
+};
+
+// Symulacja powiadomienia (Toast) przy nowym raporcie
+App.db.ref(App.dbKey+'/reports').limitToLast(1).on('child_added', snap => {
+    const r = snap.val();
+    if(ModSocial.subs && Date.now() - r.time < 5000) { // Tylko dla nowych (ostatnie 5s)
+        alert(`🔔 NOWY ALERT: ${r.t} na linii ${r.l}!`);
+    }
+});

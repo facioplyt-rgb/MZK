@@ -353,72 +353,121 @@ const ModLines = {
 // --- PEŁNY MODUŁ ALERTY (GŁOSY, CZAS WYGAŚNIĘCIA, POTWIERDZENIA) ---
 const ModAlerts = {
     openForm(t) {
-        const lines = [...new Set(Object.values(App.data.lines).map(l => l.num))].sort((a,b)=>a-b);
+        // Pobieramy unikalne numery linii z bazy
+        const lines = [...new Set(Object.values(App.data.lines || {}).map(l => l.num))].sort((a,b) => a - b);
+        
         document.getElementById('mod-details').innerHTML = `
-        <button class="btn btn-sm" onclick="App.gate('alerts')">← COFNIJ</button>
-        <div class="card" style="margin-top:15px;">
-            <h2 style="color:var(--tram)">Nowe zgłoszenie: ${t}</h2>
-            <p style="margin-bottom:15px; opacity:0.7">Pomóż innym pasażerom i podaj szczegóły.</p>
-            <label>Linia:</label>
-            <select id="rl" onchange="ModAlerts.dirs(this.value)">
-                <option>Wybierz...</option>
-                ${lines.map(l=>`<option>${l}</option>`)}
+        <button class="btn btn-sm" onclick="App.gate('alerts')" style="margin-bottom:15px; background:var(--surf-l); color:#fff; border:1px solid var(--border);">
+            <i class="fa-solid fa-arrow-left"></i> COFNIJ
+        </button>
+        <div class="card" style="border-top: 5px solid ${t==='KANAR'?'#ff4757':'#f1c40f'};">
+            <h2 style="color:${t==='KANAR'?'#ff4757':'#f1c40f'}; margin-bottom:5px;">Nowe zgłoszenie: ${t}</h2>
+            <p style="margin-bottom:20px; font-size:0.9rem; opacity:0.7;">Pomóż innym pasażerom i podaj szczegóły.</p>
+            
+            <label style="font-size:0.8rem; color:var(--accent); font-weight:900;">LINIA:</label>
+            <select id="rl" onchange="ModAlerts.dirs(this.value)" style="margin-bottom:15px;">
+                <option>Wybierz linię...</option>
+                ${lines.map(l => `<option value="${l}">${l}</option>`).join('')}
             </select>
-            <label>Kierunek:</label>
-            <select id="rd"></select>
-            <label>Gdzie dokładnie? (opcjonalnie):</label>
-            <input type="text" id="r-loc" placeholder="np. przystanek, tył pojazdu...">
-            <button class="btn" style="margin-top:10px" onclick="ModAlerts.send('${t}')">OPUBLIKUJ ALERT</button>
+            
+            <label style="font-size:0.8rem; color:var(--accent); font-weight:900;">KIERUNEK:</label>
+            <select id="rd" style="margin-bottom:15px;">
+                <option>Najpierw wybierz linię</option>
+            </select>
+            
+            <label style="font-size:0.8rem; color:var(--accent); font-weight:900;">GDZIE DOKŁADNIE? (OPCJONALNIE):</label>
+            <input type="text" id="r-loc" placeholder="np. przystanek, tył pojazdu..." style="margin-bottom:20px;">
+            
+            <button class="btn" onclick="ModAlerts.send('${t}')">OPUBLIKUJ ALERT</button>
         </div>`;
         App.gate('details');
     },
-    dirs(n) { document.getElementById('rd').innerHTML = Object.values(App.data.lines).filter(l=>l.num===n).map(v=>`<option>${v.dir}</option>`).join(''); },
+
+    dirs(n) { 
+        // Wczytuje dostępne kierunki dla wybranej linii
+        const options = Object.values(App.data.lines).filter(l => l.num === n).map(v => `<option value="${v.dir}">${v.dir}</option>`).join('');
+        document.getElementById('rd').innerHTML = options || '<option>Brak kierunków w bazie</option>';
+    },
+
     send(t) {
         const line = document.getElementById('rl').value;
         const dir = document.getElementById('rd').value;
-        const loc = document.getElementById('r-loc').value || "Brak szczegółów";
-        if(line === "Wybierz...") return alert("Wybierz linię!");
-        App.db.ref(App.dbKey+'/reports').push({ type: t, line: line, dir: dir, location: loc, time: Date.now(), yes: 0, no: 0 });
+        const loc = document.getElementById('r-loc').value || "Brak dodatkowych szczegółów";
+        
+        if(line === "Wybierz linię...") return alert("Mordo, wybierz numer linii przed wysłaniem!");
+        
+        App.db.ref(App.dbKey + '/reports').push({ 
+            type: t, 
+            line: line, 
+            dir: dir, 
+            location: loc, 
+            time: Date.now(), 
+            yes: 0, 
+            no: 0 
+        });
+        
         App.gate('alerts');
     },
+
     vote(id, v) {
-        if(localStorage.getItem('v_'+id)) return alert("Twój głos został już policzony.");
-        App.db.ref(`${App.dbKey}/reports/${id}/${v}`).transaction(c => (c||0)+1);
-        localStorage.setItem('v_'+id, 'true');
+        // Zabezpieczenie przed wielokrotnym głosowaniem z jednej przeglądarki
+        if(localStorage.getItem('vote_' + id)) {
+            return alert("Twój głos został już policzony w tym zgłoszeniu!");
+        }
+        App.db.ref(`${App.dbKey}/reports/${id}/${v}`).transaction(c => (c || 0) + 1);
+        localStorage.setItem('vote_' + id, 'true');
     },
+
     draw() {
         const box = document.getElementById('alerts-list');
         box.innerHTML = '';
         const now = Date.now();
-        Object.entries(App.data.reports || {}).reverse().forEach(([id, r]) => {
+        const entries = Object.entries(App.data.reports || {}).reverse();
+        
+        if(entries.length === 0) {
+            box.innerHTML = '<p style="text-align:center; opacity:0.4; margin-top:30px; font-weight:600;">Obecnie brak aktywnych alertów.</p>';
+            return;
+        }
+
+        entries.forEach(([id, r]) => {
             const diffMin = Math.floor((now - r.time) / 60000);
-            const isOld = diffMin > 120;
-            const isVerified = (r.yes - r.no) >= 3;
+            const isOld = diffMin > 120; // Alerty starsze niż 2 godziny są wygaszane
+            const isVerified = (r.yes - r.no) >= 3; // Minimum 3 głosy "na tak" przewagi
 
             box.innerHTML += `
-            <div class="card" style="opacity: ${isOld ? '0.4' : '1'}; border-left: 4px solid ${r.type==='KANAR'?'#ff4757':'#f1c40f'}">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <b style="color:${r.type==='KANAR'?'#ff4757':'#f1c40f'}">${r.type}</b>
-                    <span style="font-size:0.7rem; opacity:0.5">${diffMin} min temu</span>
+            <div class="card" style="opacity: ${isOld ? '0.4' : '1'}; border-left: 4px solid ${r.type==='KANAR'?'#ff4757':'#f1c40f'}; margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <b style="color:${r.type==='KANAR'?'#ff4757':'#f1c40f'}; font-size:1.1rem; letter-spacing:1px;">${r.type}</b>
+                    <span style="font-size:0.75rem; opacity:0.6; background:var(--surf-l); padding:3px 8px; border-radius:10px;">
+                        <i class="fa-regular fa-clock"></i> ${diffMin} min temu
+                    </span>
                 </div>
-                <div style="margin-bottom:10px;">
-                    <p style="font-size:1.1rem; font-weight:600;">Linia ${r.line} <span style="font-weight:300; font-size:0.9rem;">→ ${r.dir}</span></p>
-                    <p style="font-size:0.85rem; opacity:0.8; margin-top:5px;"><i class="fa-solid fa-location-crosshairs"></i> ${r.location}</p>
+                
+                <div style="margin-bottom:12px;">
+                    <p style="font-size:1.15rem; font-weight:900;">Linia ${r.line} <span style="font-weight:400; font-size:0.95rem; opacity:0.8;">→ ${r.dir}</span></p>
+                    <p style="font-size:0.9rem; opacity:0.7; margin-top:6px; background:rgba(255,255,255,0.03); padding:8px; border-radius:8px;">
+                        <i class="fa-solid fa-location-crosshairs" style="color:var(--accent); margin-right:5px;"></i> ${r.location}
+                    </p>
                 </div>
-                ${isVerified ? '<div style="color:var(--accent); font-size:0.7rem; margin-bottom:10px;"><i class="fa-solid fa-check-double"></i> POTWIERDZONE PRZEZ SPOŁECZNOŚĆ</div>' : ''}
-                <div class="verify-btns">
-                    <button class="v-btn" style="background:rgba(0,209,102,0.1); color:var(--accent)" onclick="ModAlerts.vote('${id}','yes')">
-                        <i class="fa-solid fa-thumbs-up"></i> Nadal jest (${r.yes||0})
+                
+                ${isVerified ? `
+                <div style="color:#00d166; font-size:0.75rem; margin-bottom:12px; font-weight:900; background:rgba(0,209,102,0.1); padding:6px 10px; border-radius:6px; display:inline-block;">
+                    <i class="fa-solid fa-shield-check"></i> POTWIERDZONE PRZEZ SPOŁECZNOŚĆ
+                </div>` : ''}
+                
+                <div class="verify-btns" style="display:flex; gap:10px; margin-top:5px;">
+                    <button class="v-btn" style="flex:1; background:rgba(0,209,102,0.1); color:#00d166; border:1px solid rgba(0,209,102,0.2); padding:10px; border-radius:10px; font-weight:900; cursor:pointer;" onclick="ModAlerts.vote('${id}','yes')">
+                        <i class="fa-solid fa-thumbs-up"></i> Nadal jest (${r.yes || 0})
                     </button>
-                    <button class="v-btn" style="background:rgba(255,71,87,0.1); color:var(--tram)" onclick="ModAlerts.vote('${id}','no')">
-                        <i class="fa-solid fa-thumbs-down"></i> Nie ma (${r.no||0})
+                    <button class="v-btn" style="flex:1; background:rgba(255,71,87,0.1); color:#ff4757; border:1px solid rgba(255,71,87,0.2); padding:10px; border-radius:10px; font-weight:900; cursor:pointer;" onclick="ModAlerts.vote('${id}','no')">
+                        <i class="fa-solid fa-thumbs-down"></i> Nie ma (${r.no || 0})
                     </button>
                 </div>
             </div>`;
         });
-        if(box.innerHTML === '') box.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:20px;">Obecnie brak aktywnych alertów.</p>';
     }
 };
+
 
 // --- MODUŁ PRZYSTANKI ---
 const ModStops = {

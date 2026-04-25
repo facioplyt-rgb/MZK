@@ -3,107 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK Pro Infinity</title>
+    <title>MZK Pro Infinity Cloud</title>
     
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
     <style>
         :root {
-            --accent: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.4);
-            --bg: #0f172a;
-            --surface: #1e293b;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --bg: #020617;
+            --surface: #0f172a;
+            --surface-bright: #1e293b;
             --text: #f8fafc;
             --text-dim: #94a3b8;
-            --border: rgba(255,255,255,0.1);
-            --radius-lg: 24px;
-            --radius-md: 16px;
-            --card-glass: rgba(30, 41, 59, 0.7);
-        }
-
-        [data-theme="light"] {
-            --bg: #f1f5f9; --surface: #ffffff; --text: #0f172a;
-            --text-dim: #64748b; --border: #e2e8f0; --card-glass: rgba(255,255,255,0.8);
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius-xl: 28px;
+            --radius-lg: 20px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; 
-            background: var(--bg); color: var(--text); transition: 0.3s;
-            padding-bottom: 100px; overflow-x: hidden;
+        
+        body {
+            margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg); color: var(--text);
+            padding-bottom: 110px; min-height: 100vh;
+            background-image: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                              radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
         }
 
-        /* --- UI COMPONENTS --- */
-        .glass-card {
-            background: var(--card-glass); backdrop-filter: blur(12px);
-            border: 1px solid var(--border); border-radius: var(--radius-lg);
-            padding: 20px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        /* --- STYLIZACJA ELEMENTÓW --- */
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
         }
+
+        .card {
+            padding: 20px; margin-bottom: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:active { transform: scale(0.98); }
 
         .header {
-            padding: 25px 20px; display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100; background: var(--bg);
+            padding: 30px 20px; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(8px);
         }
+
+        .status-tag {
+            display: flex; align-items: center; gap: 8px; padding: 6px 14px;
+            border-radius: 50px; font-size: 0.75rem; font-weight: 800;
+            text-transform: uppercase; border: 1px solid var(--border);
+        }
+        .online { color: var(--success); box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        .offline { color: var(--danger); }
 
         .btn {
-            padding: 12px 20px; border-radius: var(--radius-md); border: none;
-            font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
-            transition: 0.2s; font-family: inherit;
+            padding: 14px 24px; border-radius: 16px; border: none;
+            font-weight: 700; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 10px; transition: 0.2s; font-family: inherit;
         }
-        .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 15px var(--accent-glow); }
-        .btn-primary:hover { transform: translateY(-2px); }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-
-        .input {
-            width: 100%; padding: 14px 18px; border-radius: var(--radius-md);
-            background: var(--bg); border: 1px solid var(--border); color: var(--text);
-            margin-bottom: 12px; font-family: inherit; font-size: 1rem;
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 8px 20px var(--primary-glow); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        
+        .input, .select, .textarea {
+            width: 100%; padding: 15px; border-radius: 14px; background: var(--surface-bright);
+            border: 1px solid var(--border); color: var(--text); font-family: inherit;
+            margin-bottom: 12px; outline: none;
         }
-
-        .badge {
-            width: 55px; height: 55px; border-radius: 18px; display: flex;
-            align-items: center; justify-content: center; font-weight: 800;
-            font-size: 1.2rem; background: linear-gradient(135deg, var(--accent), #a855f7);
-            color: white; box-shadow: 0 5px 15px var(--accent-glow);
-        }
+        .input:focus { border-color: var(--primary); }
 
         /* --- NAVIGATION --- */
         .nav-bar {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 450px; background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(20px); border-radius: 30px; display: flex;
-            justify-content: space-around; padding: 10px; border: 1px solid var(--border);
-            z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            width: 92%; max-width: 480px; height: 75px;
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
         .nav-btn {
-            background: none; border: none; color: var(--text-dim);
-            padding: 12px; cursor: pointer; transition: 0.3s; border-radius: 20px;
+            color: var(--text-dim); transition: 0.3s; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
-        .nav-btn.active { color: var(--accent); background: rgba(99, 102, 241, 0.1); }
+        .nav-btn.active { color: var(--primary); transform: translateY(-5px); }
+        .nav-btn span { font-size: 0.6rem; font-weight: 700; }
 
-        /* --- ADMIN PANELS --- */
-        .admin-tab-group { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
-        .admin-section { display: none; }
-        .admin-section.active { display: block; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
-
-        .list-item {
+        /* --- ADMIN SPECIFIC --- */
+        .admin-tab-scroller {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px;
+            margin-bottom: 20px; scrollbar-width: none;
+        }
+        .admin-tab-scroller::-webkit-scrollbar { display: none; }
+        
+        .admin-card-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 15px; border-bottom: 1px solid var(--border);
+            padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px;
+            margin-bottom: 8px;
         }
 
-        /* --- STATUS --- */
-        .status-pill {
-            display: flex; align-items: center; gap: 8px; padding: 6px 12px;
-            border-radius: 20px; font-size: 0.75rem; font-weight: 800;
-            background: rgba(239, 68, 68, 0.1); color: #ef4444;
+        .category-tag {
+            padding: 4px 10px; border-radius: 6px; font-size: 0.65rem;
+            font-weight: 800; text-transform: uppercase;
         }
-        .status-pill.online { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+
+        /* --- ANIMACJE --- */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     </style>
 </head>
@@ -111,157 +124,135 @@
 
     <div class="header">
         <div>
-            <div style="font-size: 0.7rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;">System MZK</div>
-            <h2 style="margin:0;">Infinity Pro</h2>
+            <h1 style="margin:0; font-size: 1.5rem; font-weight: 800; letter-spacing: -1px;">MZK <span style="color:var(--primary)">INFINITY</span></h1>
+            <div style="font-size: 0.65rem; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">Cloud Management System</div>
         </div>
-        <div id="db-status" class="status-pill">
-            <div style="width:8px; height:8px; border-radius:50%; background:currentColor;"></div>
-            <span id="status-text">Baza Offline</span>
+        <div id="conn-status" class="status-tag offline">
+            <div style="width: 8px; height: 8px; background: currentColor; border-radius: 50%;"></div>
+            <span id="conn-text">Disconnected</span>
         </div>
     </div>
 
-    <div id="app-container" style="padding: 0 20px;">
-        <div id="main-content"></div>
+    <div id="app" class="container" style="padding: 0 20px;">
+        <div id="view-container"></div>
     </div>
 
-    <nav class="nav-bar">
-        <button class="nav-btn active" onclick="Router.go('home', this)"><i data-lucide="layout-grid"></i></button>
-        <button class="nav-btn" onclick="Router.go('stops', this)"><i data-lucide="map-pin"></i></button>
-        <button class="nav-btn" onclick="Router.go('lines', this)"><i data-lucide="bus"></i></button>
-        <button class="nav-btn" onclick="Router.go('admin', this)"><i data-lucide="shield-check"></i></button>
+    <nav class="nav-bar glass">
+        <div class="nav-btn active" onclick="Router.go('home', this)"><i data-lucide="home"></i><span>Start</span></div>
+        <div class="nav-btn" onclick="Router.go('stops', this)"><i data-lucide="map-pin"></i><span>Przystanki</span></div>
+        <div class="nav-btn" onclick="Router.go('lines', this)"><i data-lucide="bus"></i><span>Linie</span></div>
+        <div class="nav-btn" onclick="Router.go('admin', this)"><i data-lucide="shield-check"></i><span>Admin</span></div>
     </nav>
 
     <script>
-        // --- KONFIGURACJA I STAN ---
+        // --- KONFIGURACJA ---
         let db;
-        const DEFAULT_DATA = {
-            news: {}, stops: {}, lines: {}, 
-            settings: { theme: 'dark' },
-            categories: { "cat1": { name: "Autobusy", color: "#6366f1" } }
-        };
-
+        const DB_PREFIX = "mzk_infinity_v4";
         let AppState = {
-            data: JSON.parse(JSON.stringify(DEFAULT_DATA)),
-            favs: JSON.parse(localStorage.getItem('mzk_favs')) || []
+            data: { news: {}, stops: {}, lines: {}, categories: {} },
+            activeTab: 'admin-news'
         };
 
-        // --- INICJALIZACJA ---
-        function Init() {
-            const config = JSON.parse(localStorage.getItem('mzk_fb_config'));
-            if(config) {
-                ConnectFirebase(config);
-            } else {
-                Router.go('admin'); // Przekieruj do admina by wpisać klucze
-            }
-            Router.go('home');
-            lucide.createIcons();
-        }
-
-        function ConnectFirebase(conf) {
+        // --- FIREBASE LOGIC ---
+        function InitFirebase(config) {
             try {
                 if(firebase.apps.length) firebase.app().delete();
-                firebase.initializeApp(conf);
+                firebase.initializeApp(config);
                 db = firebase.database();
                 
                 db.ref('.info/connected').on('value', snap => {
-                    const el = document.getElementById('db-status');
-                    const txt = document.getElementById('status-text');
+                    const status = document.getElementById('conn-status');
+                    const text = document.getElementById('conn-text');
                     if(snap.val() === true) {
-                        el.classList.add('online');
-                        txt.innerText = "Chmura Połączona";
+                        status.className = "status-tag online";
+                        text.innerText = "Cloud Online";
                     } else {
-                        el.classList.remove('online');
-                        txt.innerText = "Baza Offline";
+                        status.className = "status-tag offline";
+                        text.innerText = "Disconnected";
                     }
                 });
 
-                db.ref('mzk_infinity').on('value', snap => {
+                db.ref(DB_PREFIX).on('value', snap => {
                     if(snap.val()) {
                         AppState.data = snap.val();
                         Router.refresh();
                     }
                 });
-                localStorage.setItem('mzk_fb_config', JSON.stringify(conf));
+                localStorage.setItem('mzk_fb_config', JSON.stringify(config));
             } catch(e) { alert("Błąd Firebase: " + e.message); }
         }
 
         // --- ROUTER ---
         const Router = {
             current: 'home',
-            go(path, btn) {
-                this.current = path;
-                if(btn) {
-                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                }
+            go(view, el) {
+                this.current = view;
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                if(el) el.classList.add('active');
                 this.refresh();
             },
             refresh() {
-                const root = document.getElementById('main-content');
-                root.innerHTML = '';
-                if(this.current === 'home') Render.home(root);
-                if(this.current === 'stops') Render.stops(root);
-                if(this.current === 'lines') Render.lines(root);
-                if(this.current === 'admin') Render.admin(root);
+                const container = document.getElementById('view-container');
+                container.innerHTML = '';
+                container.className = 'fade-in';
+                
+                if(this.current === 'home') Render.home(container);
+                if(this.current === 'stops') Render.stops(container);
+                if(this.current === 'lines') Render.lines(container);
+                if(this.current === 'admin') Render.admin(container);
+                
                 lucide.createIcons();
             }
         };
 
-        // --- RENDEROWANIE WIDOKÓW ---
+        // --- RENDERERY ---
         const Render = {
-            home(container) {
-                let newsHtml = '';
+            home(cont) {
+                let html = `<h2 style="margin-bottom:20px;">Aktualności</h2>`;
                 const news = Object.entries(AppState.data.news || {}).reverse();
                 
                 news.forEach(([id, n]) => {
-                    newsHtml += `
-                        <div class="glass-card">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                                <span style="font-size:0.7rem; font-weight:800; color:var(--accent)">${n.date}</span>
-                                <span style="background:${AppState.data.categories[n.cat]?.color || '#333'}; padding:2px 8px; border-radius:5px; font-size:0.6rem; font-weight:bold;">${AppState.data.categories[n.cat]?.name || 'Info'}</span>
+                    const cat = AppState.data.categories?.[n.cat] || { name: 'Ogólne', color: '#6366f1' };
+                    html += `
+                        <div class="glass card">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <span class="category-tag" style="background: ${cat.color}22; color: ${cat.color}; border: 1px solid ${cat.color}44;">${cat.name}</span>
+                                <span style="font-size:0.7rem; color:var(--text-dim); font-weight:700;">${n.date}</span>
                             </div>
-                            <div style="font-weight:600; line-height:1.5;">${n.content}</div>
+                            <div style="font-weight:600; line-height:1.6;">${n.content}</div>
                         </div>
                     `;
                 });
-
-                container.innerHTML = `
-                    <h1 style="font-size:2rem; margin-bottom:5px;">Witaj! 👋</h1>
-                    <p style="color:var(--text-dim); margin-bottom:30px;">Sprawdź komunikaty i rozkłady.</p>
-                    ${newsHtml || '<p>Brak nowych komunikatów.</p>'}
-                `;
+                cont.innerHTML = html || `<p style="text-align:center; color:var(--text-dim); padding:40px;">Brak komunikatów w chmurze.</p>`;
             },
 
-            stops(container) {
-                container.innerHTML = `<h1>Przystanki</h1><input type="text" class="input" placeholder="Szukaj przystanku..." oninput="Search(this, '.stop-card')">`;
+            stops(cont) {
+                cont.innerHTML = `<h2>Wszystkie Przystanki</h2><input type="text" class="input glass" placeholder="Szukaj przystanku..." oninput="Search(this, '.stop-card')">`;
                 Object.entries(AppState.data.stops || {}).forEach(([id, s]) => {
-                    const isFav = AppState.favs.includes(id);
-                    container.innerHTML += `
-                        <div class="glass-card stop-card" data-search="${s.name.toLowerCase()}">
+                    cont.innerHTML += `
+                        <div class="glass card stop-card" data-search="${s.name.toLowerCase()}" onclick="Render.viewStopDetails('${id}')">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <div onclick="Render.viewStop('${id}')" style="cursor:pointer; flex:1;">
-                                    <div style="font-weight:800; font-size:1.2rem;">${s.name}</div>
-                                    <div style="color:var(--text-dim); font-size:0.8rem; margin-top:5px;">Linie: ${s.lines?.join(', ') || 'Brak'}</div>
-                                </div>
-                                <button onclick="ToggleFav('${id}')" style="background:none; border:none; color:${isFav ? '#ef4444' : 'var(--text-dim)'}; cursor:pointer;">
-                                    <i data-lucide="heart" style="${isFav ? 'fill:currentColor' : ''}"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-            },
-
-            lines(container) {
-                container.innerHTML = `<h1>Linie MZK</h1><input type="text" class="input" placeholder="Numer linii lub kierunek..." oninput="Search(this, '.line-card')">`;
-                Object.entries(AppState.data.lines || {}).forEach(([id, l]) => {
-                    container.innerHTML += `
-                        <div class="glass-card line-card" data-search="${id} ${l.direction.toLowerCase()}" onclick="Render.viewLine('${id}')" style="cursor:pointer;">
-                            <div style="display:flex; align-items:center; gap:20px;">
-                                <div class="badge">${id}</div>
                                 <div>
-                                    <div style="font-size:0.7rem; font-weight:800; color:var(--text-dim);">KIERUNEK</div>
-                                    <div style="font-weight:800; font-size:1.1rem;">${l.direction}</div>
+                                    <div style="font-weight:800; font-size:1.1rem;">${s.name}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-dim); margin-top:4px;">Obsługiwane linie: ${s.lines?.join(', ') || 'Brak danych'}</div>
+                                </div>
+                                <i data-lucide="chevron-right" style="color:var(--text-dim)"></i>
+                            </div>
+                        </div>
+                    `;
+                });
+            },
+
+            lines(cont) {
+                cont.innerHTML = `<h2>Linie Komunikacyjne</h2><input type="text" class="input glass" placeholder="Szukaj linii..." oninput="Search(this, '.line-card')">`;
+                Object.entries(AppState.data.lines || {}).forEach(([id, l]) => {
+                    cont.innerHTML += `
+                        <div class="glass card line-card" data-search="${id} ${l.direction.toLowerCase()}" onclick="Render.viewLineDetails('${id}')">
+                            <div style="display:flex; align-items:center; gap:20px;">
+                                <div style="background:var(--primary); color:white; width:50px; height:50px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.3rem;">${id}</div>
+                                <div>
+                                    <div style="font-size:0.65rem; color:var(--text-dim); font-weight:800;">KIERUNEK</div>
+                                    <div style="font-weight:700; font-size:1.1rem;">${l.direction}</div>
                                 </div>
                             </div>
                         </div>
@@ -269,194 +260,196 @@
                 });
             },
 
-            viewLine(lineId) {
-                const l = AppState.data.lines[lineId];
-                const root = document.getElementById('main-content');
-                let stopsHtml = '';
-                l.stops?.forEach(s => {
-                    stopsHtml += `
-                        <div class="list-item" onclick="Render.viewStopSchedule('${lineId}', '${s.id}')" style="cursor:pointer">
-                            <span>${AppState.data.stops[s.id]?.name || s.id}</span>
-                            <span style="font-weight:bold; color:var(--accent)">+${s.offset} min</span>
-                        </div>
-                    `;
-                });
-                root.innerHTML = `
-                    <button class="btn btn-ghost" onclick="Router.go('lines')" style="margin-bottom:20px;"><i data-lucide="chevron-left"></i> Powrót</button>
-                    <div class="glass-card" style="display:flex; align-items:center; gap:20px;">
-                        <div class="badge">${lineId}</div>
-                        <h2>${l.direction}</h2>
+            admin(cont) {
+                cont.innerHTML = `
+                    <div class="glass card" style="margin-bottom:25px; border-color: var(--primary);">
+                        <h3 style="margin-top:0;">Konfiguracja Chmury</h3>
+                        <p style="font-size:0.8rem; color:var(--text-dim);">Wklej swój obiekt firebaseConfig, aby aplikacja zaczęła pobierać i zapisywać dane w Twojej chmurze.</p>
+                        <textarea id="fb-config-input" class="textarea" style="height:100px; font-size:0.7rem;" placeholder='{"apiKey": "...", "databaseURL": "...", ...}'></textarea>
+                        <button class="btn btn-primary" onclick="SaveFBConfig()">Połącz i Aktywuj</button>
                     </div>
-                    <div class="glass-card">
-                        <h3>Trasa przejazdu</h3>
-                        ${stopsHtml}
+
+                    <div class="admin-tab-scroller">
+                        <button class="btn btn-outline" onclick="SetAdminTab('news')">Komunikaty</button>
+                        <button class="btn btn-outline" onclick="SetAdminTab('stops')">Przystanki</button>
+                        <button class="btn btn-outline" onclick="SetAdminTab('lines')">Linie</button>
+                        <button class="btn btn-outline" onclick="SetAdminTab('cats')">Kategorie</button>
                     </div>
+
+                    <div id="admin-panel-content" class="fade-in"></div>
                 `;
-                lucide.createIcons();
-            },
-
-            viewStopSchedule(lineId, stopId) {
-                const line = AppState.data.lines[lineId];
-                const stop = AppState.data.stops[stopId];
-                const stopInfo = line.stops.find(x => x.id === stopId);
-                const offset = stopInfo ? parseInt(stopInfo.offset) : 0;
-
-                let timesHtml = '';
-                line.baseTimes?.forEach(bt => {
-                    let [h, m] = bt.split(':').map(Number);
-                    m += offset;
-                    while(m >= 60) { m -= 60; h += 1; }
-                    timesHtml += `<div style="background:var(--bg); padding:10px; border-radius:10px; font-weight:800; text-align:center;">${h}:${m < 10 ? '0'+m : m}</div>`;
-                });
-
-                document.getElementById('main-content').innerHTML = `
-                    <button class="btn btn-ghost" onclick="Render.viewLine('${lineId}')" style="margin-bottom:20px;"><i data-lucide="chevron-left"></i> Powrót do linii</button>
-                    <div class="glass-card">
-                        <h1 style="margin:0;">${stop.name}</h1>
-                        <p style="color:var(--accent); font-weight:bold;">Linia ${lineId} → ${line.direction}</p>
-                    </div>
-                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">
-                        ${timesHtml}
-                    </div>
-                `;
-                lucide.createIcons();
-            },
-
-            admin(container) {
-                container.innerHTML = `
-                    <h1>Panel Admina</h1>
-                    <div class="admin-tab-group">
-                        <button class="btn btn-ghost" onclick="AdminTab('adm-config')">Klucze</button>
-                        <button class="btn btn-ghost" onclick="AdminTab('adm-news')">Newsy</button>
-                        <button class="btn btn-ghost" onclick="AdminTab('adm-stops')">Przystanki</button>
-                        <button class="btn btn-ghost" onclick="AdminTab('adm-lines')">Linie</button>
-                    </div>
-
-                    <div id="adm-config" class="admin-section active">
-                        <div class="glass-card">
-                            <h3>Połączenie Firebase</h3>
-                            <p style="font-size:0.8rem; color:var(--text-dim)">Wklej JSON firebaseConfig z ustawień projektu.</p>
-                            <textarea id="adm-fb-json" class="input" style="height:150px;" placeholder='{"apiKey": "...", ...}'></textarea>
-                            <button class="btn btn-primary" onclick="AdminSaveConfig()">Zapisz i Połącz</button>
-                        </div>
-                    </div>
-
-                    <div id="adm-news" class="admin-section">
-                        <div class="glass-card">
-                            <h3>Nowy Komunikat</h3>
-                            <select id="adm-news-cat" class="input">
-                                ${Object.entries(AppState.data.categories || {}).map(([id, c]) => `<option value="${id}">${c.name}</option>`)}
-                            </select>
-                            <textarea id="adm-news-txt" class="input" placeholder="Treść komunikatu..."></textarea>
-                            <button class="btn btn-primary" onclick="AdminAddNews()">Dodaj News</button>
-                        </div>
-                        <div id="adm-news-list"></div>
-                    </div>
-
-                    <div id="adm-stops" class="admin-section">
-                        <div class="glass-card">
-                            <h3>Zarządzaj Przystankiem</h3>
-                            <input id="adm-stop-id" class="input" placeholder="ID (np. s1)">
-                            <input id="adm-stop-name" class="input" placeholder="Pełna nazwa">
-                            <button class="btn btn-primary" onclick="AdminSaveStop()">Zapisz Przystanek</button>
-                        </div>
-                        <div id="adm-stops-list"></div>
-                    </div>
-
-                    <div id="adm-lines" class="admin-section">
-                        <div class="glass-card">
-                            <h3>Zarządzaj Linią</h3>
-                            <input id="adm-line-id" class="input" placeholder="Numer linii (np. 10)">
-                            <input id="adm-line-dir" class="input" placeholder="Kierunek">
-                            <textarea id="adm-line-times" class="input" placeholder="Czasy bazowe po przecinku (np. 08:00, 08:30)"></textarea>
-                            <p style="font-size:0.8rem;">Trasa (format ID:MINUTY, np. s1:0, s2:10):</p>
-                            <textarea id="adm-line-route" class="input" placeholder="s1:0, s2:10"></textarea>
-                            <button class="btn btn-primary" onclick="AdminSaveLine()">Zapisz Linię</button>
-                        </div>
-                        <div id="adm-lines-list"></div>
-                    </div>
-                `;
-                AdminRefreshLists();
+                SetAdminTab('news');
             }
         };
 
-        // --- FUNKCJE LOGICZNE ADMINA ---
-        function AdminTab(id) {
-            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+        // --- FUNKCJE ADMINISTRACYJNE ---
+        function SetAdminTab(tab) {
+            const area = document.getElementById('admin-panel-content');
+            let html = ``;
+
+            if(tab === 'news') {
+                html = `
+                    <div class="glass card">
+                        <h3>Dodaj Nowy Komunikat</h3>
+                        <select id="adm-news-cat" class="select">
+                            ${Object.entries(AppState.data.categories || {}).map(([id, c]) => `<option value="${id}">${c.name}</option>`).join('')}
+                            <option value="none">Bez kategorii</option>
+                        </select>
+                        <textarea id="adm-news-content" class="textarea" placeholder="Treść wiadomości..."></textarea>
+                        <button class="btn btn-primary" style="width:100%" onclick="AdminAddNews()">Opublikuj w Chmurze</button>
+                    </div>
+                    <div class="glass card">
+                        <h3>Zarządzaj wiadomościami</h3>
+                        ${Object.entries(AppState.data.news || {}).reverse().map(([id, n]) => `
+                            <div class="admin-card-item">
+                                <div style="font-size:0.8rem; max-width:70%;">${n.content.substring(0,40)}...</div>
+                                <button class="btn btn-danger" style="padding:6px 10px;" onclick="AdminDelete('news/${id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            if(tab === 'stops') {
+                html = `
+                    <div class="glass card">
+                        <h3>Nowy Przystanek / Edycja</h3>
+                        <input id="adm-stop-id" class="input" placeholder="ID Przystanku (np. s1)">
+                        <input id="adm-stop-name" class="input" placeholder="Nazwa Przystanku">
+                        <button class="btn btn-primary" style="width:100%" onclick="AdminSaveStop()">Zapisz Przystanek</button>
+                    </div>
+                    <div class="glass card">
+                        <h3>Lista Przystanków</h3>
+                        ${Object.entries(AppState.data.stops || {}).map(([id, s]) => `
+                            <div class="admin-card-item">
+                                <div><b>${id}</b> - ${s.name}</div>
+                                <button class="btn btn-danger" style="padding:6px 10px;" onclick="AdminDelete('stops/${id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            if(tab === 'lines') {
+                html = `
+                    <div class="glass card">
+                        <h3>Kreator Linii</h3>
+                        <input id="adm-line-id" class="input" placeholder="Numer (np. 102)">
+                        <input id="adm-line-dir" class="input" placeholder="Kierunek docelowy">
+                        <p style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px;">Czasy bazowe (rozdzielone przecinkiem):</p>
+                        <input id="adm-line-times" class="input" placeholder="06:00, 07:15, 08:30">
+                        <p style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px;">Trasa (ID:Offset, ID:Offset...):</p>
+                        <textarea id="adm-line-route" class="textarea" placeholder="s1:0, s2:12, s3:25"></textarea>
+                        <button class="btn btn-primary" style="width:100%" onclick="AdminSaveLine()">Zapisz Linię</button>
+                    </div>
+                    <div class="glass card">
+                        <h3>Istniejące Linie</h3>
+                        ${Object.entries(AppState.data.lines || {}).map(([id, l]) => `
+                            <div class="admin-card-item">
+                                <div><b>Linia ${id}</b> → ${l.direction}</div>
+                                <button class="btn btn-danger" style="padding:6px 10px;" onclick="AdminDelete('lines/${id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            if(tab === 'cats') {
+                html = `
+                    <div class="glass card">
+                        <h3>Kategorie Newsów</h3>
+                        <input id="adm-cat-id" class="input" placeholder="ID (np. info)">
+                        <input id="adm-cat-name" class="input" placeholder="Nazwa wyświetlana">
+                        <input id="adm-cat-color" class="input" type="color" value="#6366f1">
+                        <button class="btn btn-primary" style="width:100%" onclick="AdminSaveCat()">Zapisz Kategorię</button>
+                    </div>
+                    <div class="glass card">
+                        ${Object.entries(AppState.data.categories || {}).map(([id, c]) => `
+                            <div class="admin-card-item">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="width:20px; height:20px; border-radius:4px; background:${c.color}"></div>
+                                    <b>${c.name}</b>
+                                </div>
+                                <button class="btn btn-danger" style="padding:6px 10px;" onclick="AdminDelete('categories/${id}')"><i data-lucide="trash-2" style="width:14px;"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            area.innerHTML = html;
+            lucide.createIcons();
         }
 
-        function AdminSaveConfig() {
+        // --- AKCJE BAZY DANYCH ---
+        function SaveFBConfig() {
+            const val = document.getElementById('fb-config-input').value;
             try {
-                const json = JSON.parse(document.getElementById('adm-fb-json').value);
-                ConnectFirebase(json);
-                alert("Konfiguracja zapisana pomyślnie!");
-            } catch(e) { alert("Błąd JSON: " + e.message); }
+                const conf = JSON.parse(val);
+                InitFirebase(conf);
+                alert("Konfiguracja przyjęta! Sprawdź status połączenia.");
+            } catch(e) { alert("To nie jest poprawny JSON!"); }
         }
 
         function AdminAddNews() {
-            const txt = document.getElementById('adm-news-txt').value;
+            if(!db) return alert("Brak połączenia!");
+            const content = document.getElementById('adm-news-content').value;
             const cat = document.getElementById('adm-news-cat').value;
-            if(!db) return alert("Połącz z bazą!");
-            db.ref('mzk_infinity/news/' + Date.now()).set({
-                content: txt, cat: cat, date: new Date().toLocaleDateString()
-            });
-            document.getElementById('adm-news-txt').value = '';
+            const payload = {
+                content: content,
+                cat: cat,
+                date: new Date().toLocaleString('pl-PL')
+            };
+            db.ref(`${DB_PREFIX}/news/${Date.now()}`).set(payload);
         }
 
         function AdminSaveStop() {
             const id = document.getElementById('adm-stop-id').value;
             const name = document.getElementById('adm-stop-name').value;
-            if(!db || !id) return;
-            db.ref('mzk_infinity/stops/' + id).update({ name: name });
+            if(!id || !name || !db) return alert("Błąd danych!");
+            db.ref(`${DB_PREFIX}/stops/${id}`).update({ name: name });
         }
 
         function AdminSaveLine() {
             const id = document.getElementById('adm-line-id').value;
             const dir = document.getElementById('adm-line-dir').value;
-            const times = document.getElementById('adm-line-times').value.split(',').map(x => x.trim());
-            const routeRaw = document.getElementById('adm-line-route').value.split(',').map(x => {
-                const [sid, off] = x.trim().split(':');
-                return { id: sid, offset: off };
+            const times = document.getElementById('adm-line-times').value.split(',').map(t => t.trim());
+            const routeRaw = document.getElementById('adm-line-route').value.split(',').map(r => {
+                const [sid, off] = r.trim().split(':');
+                return { id: sid, offset: parseInt(off) };
             });
 
-            if(!db || !id) return;
-            db.ref('mzk_infinity/lines/' + id).set({
+            if(!id || !db) return alert("Błąd!");
+            db.ref(`${DB_PREFIX}/lines/${id}`).set({
                 direction: dir,
                 baseTimes: times,
                 stops: routeRaw
-            });
-
-            // Automatyczne dopisanie linii do przystanków
-            routeRaw.forEach(r => {
-                const currentLines = AppState.data.stops[r.id]?.lines || [];
-                if(!currentLines.includes(id)) {
-                    currentLines.push(id);
-                    db.ref('mzk_infinity/stops/' + r.id + '/lines').set(currentLines);
-                }
+            }).then(() => {
+                // Automatyczna aktualizacja przystanków - dopisanie linii
+                routeRaw.forEach(r => {
+                    const stopRef = db.ref(`${DB_PREFIX}/stops/${r.id}/lines`);
+                    stopRef.transaction(current => {
+                        let lines = current || [];
+                        if(!lines.includes(id)) lines.push(id);
+                        return lines;
+                    });
+                });
+                alert("Linia zapisana w chmurze!");
             });
         }
 
-        function AdminRefreshLists() {
-            const newsL = document.getElementById('adm-news-list');
-            const stopsL = document.getElementById('adm-stops-list');
-            const linesL = document.getElementById('adm-lines-list');
-
-            if(newsL) newsL.innerHTML = Object.entries(AppState.data.news || {}).map(([id, n]) => `
-                <div class="list-item"><span>${n.content.substring(0,30)}...</span><button class="btn btn-danger" onclick="Delete('news/${id}')">usuń</button></div>
-            `).join('');
-
-            if(stopsL) stopsL.innerHTML = Object.entries(AppState.data.stops || {}).map(([id, s]) => `
-                <div class="list-item"><span>${s.name} (${id})</span><button class="btn btn-danger" onclick="Delete('stops/${id}')">usuń</button></div>
-            `).join('');
-
-            if(linesL) linesL.innerHTML = Object.entries(AppState.data.lines || {}).map(([id, l]) => `
-                <div class="list-item"><span>Linia ${id}</span><button class="btn btn-danger" onclick="Delete('lines/${id}')">usuń</button></div>
-            `).join('');
+        function AdminSaveCat() {
+            const id = document.getElementById('adm-cat-id').value;
+            const name = document.getElementById('adm-cat-name').value;
+            const color = document.getElementById('adm-cat-color').value;
+            if(!id || !db) return;
+            db.ref(`${DB_PREFIX}/categories/${id}`).set({ name, color });
         }
 
-        function Delete(path) {
-            if(confirm("Usunąć permanentnie?") && db) db.ref('mzk_infinity/' + path).remove();
+        function AdminDelete(path) {
+            if(confirm("Czy na pewno chcesz to usunąć z chmury?") && db) {
+                db.ref(`${DB_PREFIX}/${path}`).remove();
+            }
         }
 
         // --- UTILS ---
@@ -467,16 +460,13 @@
             });
         }
 
-        function ToggleFav(id) {
-            const idx = AppState.favs.indexOf(id);
-            if(idx > -1) AppState.favs.splice(idx, 1);
-            else AppState.favs.push(id);
-            localStorage.setItem('mzk_favs', JSON.stringify(AppState.favs));
-            Router.refresh();
-        }
+        // Start aplikacji
+        window.onload = () => {
+            const saved = localStorage.getItem('mzk_fb_config');
+            if(saved) InitFirebase(JSON.parse(saved));
+            Router.go('home');
+        };
 
-        // Start
-        window.onload = Init;
     </script>
 </body>
 </html>

@@ -3,111 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MZK Pro</title>
+    <title>MZK Pro Ultra</title>
     
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
     <style>
-        /* --- SYSTEM MOTYWÓW --- */
-        :root { --radius: 20px; --transition: 0.3s; }
+        :root { 
+            --radius: 20px; 
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --p-blue: #3b82f6;
+            --p-purple: #8b5cf6;
+        }
 
         .theme-light {
-            --bg: #f8fafc; --surface: #ffffff; --primary: #3b82f6; 
+            --bg: #f8fafc; --surface: #ffffff; --primary: var(--p-blue); 
             --text: #0f172a; --text-dim: #64748b; --border: #e2e8f0;
-            --nav-bg: rgba(255,255,255,0.9);
+            --nav-bg: rgba(255,255,255,0.9); --card-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
         .theme-dark {
-            --bg: #050505; --surface: #121212; --primary: #3b82f6; 
+            --bg: #050505; --surface: #121212; --primary: var(--p-blue); 
             --text: #ffffff; --text-dim: #94a3b8; --border: #1e293b;
-            --nav-bg: rgba(18,18,18,0.9);
+            --nav-bg: rgba(18,18,18,0.9); --card-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
 
         .theme-cyber {
             --bg: #09090b; --surface: #18181b; --primary: #d946ef; 
             --text: #22d3ee; --text-dim: #a855f7; --border: #d946ef;
-            --nav-bg: rgba(0,0,0,0.9); --radius: 8px;
+            --nav-bg: rgba(0,0,0,0.9); --card-shadow: 0 0 15px rgba(217,70,239,0.2);
         }
 
-        /* --- BAZA --- */
         body {
-            margin: 0; font-family: 'Inter', sans-serif;
-            background: var(--bg); color: var(--text);
-            padding-bottom: 100px; transition: background 0.3s;
+            margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text);
+            padding-bottom: 120px; transition: background var(--transition); overflow-x: hidden;
         }
-        * { box-sizing: border-box; }
 
-        /* --- SELEKTOR MOTYWÓW NA START --- */
+        #app { display: none; max-width: 650px; margin: 0 auto; padding: 20px; }
+        
+        /* UI Elements */
+        .card {
+            background: var(--surface); border-radius: var(--radius); padding: 20px;
+            margin-bottom: 15px; border: 1px solid var(--border); box-shadow: var(--card-shadow);
+            position: relative; transition: var(--transition);
+        }
+
+        .search-box, select, textarea {
+            width: 100%; padding: 14px; border-radius: 14px; background: var(--bg);
+            border: 1px solid var(--border); color: var(--text); margin-bottom: 10px; font-family: inherit;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, var(--primary), var(--p-purple));
+            color: white; padding: 8px 15px; border-radius: 12px; font-weight: 800;
+        }
+
+        .btn {
+            padding: 12px 20px; border-radius: 12px; border: none; font-weight: 700;
+            cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: white; width: 100%; justify-content: center; }
+        .btn-danger { background: #ef4444; color: white; padding: 8px 12px; font-size: 0.8rem; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+        /* News Categories */
+        .cat-tag { font-size: 0.7rem; padding: 4px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: inline-block; }
+        .cat-info { background: #3b82f633; color: #3b82f6; }
+        .cat-alert { background: #ef444433; color: #ef4444; }
+        .cat-promo { background: #10b98133; color: #10b981; }
+
+        /* Nav */
+        .bottom-nav {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 500px; background: var(--nav-bg); backdrop-filter: blur(15px);
+            border-radius: 25px; display: none; justify-content: space-around; padding: 8px;
+            border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 1000;
+        }
+        .nav-item { background: transparent; border: none; color: var(--text-dim); padding: 10px; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-5px); }
+
+        /* Theme Picker */
         #theme-picker {
             position: fixed; inset: 0; background: #000; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .theme-btn {
-            width: 80%; max-width: 300px; padding: 20px; margin: 10px; border-radius: 15px;
-            font-size: 1.2rem; font-weight: bold; cursor: pointer; border: none;
-            transition: transform 0.2s;
-        }
-        .theme-btn:active { transform: scale(0.95); }
 
-        /* --- LAYOUT & KARTY --- */
-        #app { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
-        
-        .search-box {
-            width: 100%; padding: 15px; border-radius: 15px; background: var(--surface);
-            border: 1px solid var(--border); color: var(--text); margin-bottom: 20px; font-size: 1rem;
-        }
-
-        .card {
-            background: var(--surface); border-radius: var(--radius); padding: 20px;
-            margin-bottom: 15px; border: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        
-        .badge {
-            background: var(--primary); color: white; width: 45px; height: 45px;
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 1.2rem;
-        }
-
-        /* --- ROZKŁAD JAZDY --- */
-        .hour-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-start; }
-        .hour-num { font-size: 1.5rem; font-weight: 800; color: var(--primary); width: 40px; }
-        .min-pill { 
-            background: var(--bg); padding: 8px 12px; border-radius: 10px; 
-            border: 1px solid var(--border); 
-        }
-        .min-pill.past { opacity: 0.3; }
-
-        /* --- NAWIGACJA --- */
-        .bottom-nav {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px; background: var(--nav-bg);
-            backdrop-filter: blur(10px); border-radius: 30px; display: none;
-            justify-content: space-around; padding: 10px; border: 1px solid var(--border);
-        }
-        .nav-item {
-            background: transparent; border: none; color: var(--text-dim);
-            padding: 12px; cursor: pointer; transition: 0.3s;
-        }
-        .nav-item.active { color: var(--primary); transform: translateY(-3px); }
+        /* Admin Styles */
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); }
     </style>
 </head>
 <body>
 
     <div id="theme-picker">
-        <h1 style="color: white; margin-bottom: 30px;">Wybierz Wygląd</h1>
-        <button class="theme-btn" style="background: #fff; color: #000;" onclick="StartApp('theme-light')">Jasny Motyw</button>
-        <button class="theme-btn" style="background: #121212; color: #fff; border: 1px solid #333;" onclick="StartApp('theme-dark')">Ciemny Motyw</button>
-        <button class="theme-btn" style="background: #09090b; color: #22d3ee; border: 1px solid #d946ef;" onclick="StartApp('theme-cyber')">Cyberpunk</button>
+        <h1 style="color: white; margin-bottom: 30px;">Wybierz Styl MZK</h1>
+        <button class="btn btn-primary" style="max-width:300px; margin-bottom:10px;" onclick="InitApp('theme-light')">Jasny</button>
+        <button class="btn btn-primary" style="max-width:300px; margin-bottom:10px; background:#1e293b;" onclick="InitApp('theme-dark')">Ciemny</button>
+        <button class="btn btn-primary" style="max-width:300px; background:#d946ef;" onclick="InitApp('theme-cyber')">Cyberpunk</button>
     </div>
 
     <div id="app">
-        <div id="db-error" style="display:none; background: #f59e0b; color: #000; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: bold;">
-            ⚠️ Używam danych offline. Uzupełnij Firebase w kodzie, aby działała chmura.
+        <div id="header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h1 style="margin:0;">MZK Pro <span style="color:var(--primary)">Ultra</span></h1>
+            <div id="db-indicator" style="font-size:0.7rem; padding:5px 10px; border-radius:10px; background: #ef444433; color: #ef4444; font-weight:800;">OFFLINE</div>
         </div>
         <div id="content"></div>
     </div>
@@ -117,359 +118,331 @@
         <button class="nav-item" onclick="Router.go('stops', this)"><i data-lucide="map-pin"></i></button>
         <button class="nav-item" onclick="Router.go('lines', this)"><i data-lucide="bus"></i></button>
         <button class="nav-item" onclick="Router.go('travel', this)"><i data-lucide="navigation"></i></button>
-        <button class="nav-item" onclick="Router.go('admin', this)"><i data-lucide="settings"></i></button>
+        <button class="nav-item" onclick="Router.go('admin', this)"><i data-lucide="settings-2"></i></button>
     </nav>
 
     <script>
-        // ==========================================
-        // 🔥 KONFIGURACJA FIREBASE (ZAMIEŃ NA WŁASNE)
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "WKLEJ_SWOJ_KLUCZ_API",
-            authDomain: "twoj-projekt.firebaseapp.com",
-            databaseURL: "https://twoj-projekt-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "twoj-projekt",
-            storageBucket: "twoj-projekt.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
-        };
-
-        // ==========================================
-        // 📦 DOMYŚLNE DANE BAZOWE (mzk_v12_pro)
-        // ==========================================
-        const defaultData = {
-            news: {
-                "1714032000000": { 
-                    content: "Witaj w MZK Pro! Baza danych została załadowana z sukcesem.", 
-                    date: "25.04.2024" 
-                }
-            },
-            categories: {
-                "c1": { name: "Autobusy dzienne" },
-                "c2": { name: "Tramwaje" }
-            },
-            stops: {
-                "s1": { name: "Dworzec Główny", lines: ["102", "201"] },
-                "s2": { name: "Centrum Handlowe", lines: ["102"] },
-                "s3": { name: "Osiedle Słoneczne", lines: ["102", "201"] }
-            },
-            lines: {
-                "102": {
-                    direction: "Osiedle Słoneczne",
-                    category: "c1",
-                    baseTimes: ["06:10", "07:40", "08:15", "12:30", "15:45", "18:20"],
-                    stops: [
-                        { id: "s1", offset: 0 },
-                        { id: "s2", offset: 12 },
-                        { id: "s3", offset: 25 }
-                    ]
-                },
-                "201": {
-                    direction: "Dworzec Główny",
-                    category: "c2",
-                    baseTimes: ["05:00", "09:00", "14:00"],
-                    stops: [
-                        { id: "s3", offset: 0 },
-                        { id: "s1", offset: 18 }
-                    ]
-                }
-            }
-        };
-
+        // --- STAN APLIKACJI ---
         let db;
-        try {
-            // Unikamy inicjalizacji jeśli config to wciąż placeholder
-            if (firebaseConfig.apiKey !== "WKLEJ_SWOJ_KLUCZ_API") {
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.database();
-            }
-        } catch (e) {
-            console.warn("Firebase nie zainicjowany poprawnie:", e);
-        }
-        
         const DB_KEY = "mzk_v12_pro";
-
-        // GLOBALNY STAN APLIKACJI
-        const AppState = {
-            data: { lines: {}, stops: {}, news: {}, categories: {} },
+        let AppState = {
+            data: { news: {}, stops: {}, lines: {}, categories: {} },
             favs: JSON.parse(localStorage.getItem('mzk_favs')) || []
         };
 
-        // ==========================================
-        // 🚀 START APLIKACJI I POBIERANIE DANYCH
-        // ==========================================
-        function StartApp(theme) {
+        // --- INICJALIZACJA ---
+        function InitApp(theme) {
             document.body.className = theme;
             document.getElementById('theme-picker').style.display = 'none';
             document.getElementById('app').style.display = 'block';
             document.getElementById('main-nav').style.display = 'flex';
+            
+            const savedConfig = JSON.parse(localStorage.getItem('firebase_config'));
+            if(savedConfig) ConnectFirebase(savedConfig);
+            
+            Router.go('home');
             lucide.createIcons();
-
-            if(db) {
-                db.ref(DB_KEY).on('value', snap => {
-                    const data = snap.val();
-                    if(data) {
-                        AppState.data = data;
-                        document.getElementById('db-error').style.display = 'none';
-                        Router.go('home');
-                    } else {
-                        // Baza podłączona, ale pusta - ładujemy do niej strukturę domyślną!
-                        db.ref(DB_KEY).set(defaultData).then(() => {
-                            console.log("Zainicjowano bazę Firebase domyślnymi danymi!");
-                        });
-                    }
-                });
-            } else {
-                // Tryb Offline / Fallback (użycie wbudowanych danych)
-                document.getElementById('db-error').style.display = 'block';
-                AppState.data = defaultData; // Ładujemy z pliku zamiast z chmury
-                Router.go('home'); 
-            }
         }
 
-        // ==========================================
-        // 🧭 ROUTER I RENDEROWANIE WIDOKÓW
-        // ==========================================
+        function ConnectFirebase(config) {
+            try {
+                if(firebase.apps.length) firebase.app().delete();
+                firebase.initializeApp(config);
+                db = firebase.database();
+                document.getElementById('db-indicator').innerText = "ONLINE";
+                document.getElementById('db-indicator').style.background = "#10b98133";
+                document.getElementById('db-indicator').style.color = "#10b981";
+                
+                db.ref(DB_KEY).on('value', snap => {
+                    if(snap.val()) {
+                        AppState.data = snap.val();
+                        Router.renderCurrent();
+                    }
+                });
+                localStorage.setItem('firebase_config', JSON.stringify(config));
+            } catch(e) { alert("Błąd połączenia: " + e.message); }
+        }
+
+        // --- ROUTER ---
         const Router = {
             current: 'home',
-            go: function(view, btnElement) {
+            go(view, btn) {
                 this.current = view;
-                if(btnElement) {
-                    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-                    btnElement.classList.add('active');
+                if(btn) {
+                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                    btn.classList.add('active');
                 }
+                this.renderCurrent();
+            },
+            renderCurrent() {
                 const container = document.getElementById('content');
-                
-                if(view === 'home') Render.home(container);
-                if(view === 'stops') Render.stops(container);
-                if(view === 'lines') Render.lines(container);
-                if(view === 'travel') Render.travel(container);
-                if(view === 'admin') Render.admin(container);
-                
+                if(this.current === 'home') Render.home(container);
+                if(this.current === 'stops') Render.stops(container);
+                if(this.current === 'lines') Render.lines(container);
+                if(this.current === 'travel') Render.travel(container);
+                if(this.current === 'admin') Render.admin(container);
                 lucide.createIcons();
             }
         };
 
+        // --- RENDEROWANIE ---
         const Render = {
-            // WIDOK 1: GŁÓWNA (Newsy i Ulubione)
             home: function(container) {
-                const news = AppState.data.news || {};
-                const latestNews = Object.values(news).reverse()[0] || { content: "Brak nowych komunikatów z MZK." };
-
-                let html = `
-                    <h1 style="margin-bottom:5px;">Cześć!</h1>
-                    <p style="color:var(--text-dim); margin-top:0;">Aktualne komunikaty i ulubione trasy.</p>
-                    
-                    <div class="card" style="border-left: 4px solid var(--primary);">
-                        <div>
-                            <div style="font-weight:bold; margin-bottom:5px;">Komunikat MZK</div>
-                            <div style="font-size:0.9rem;">${latestNews.content}</div>
+                const news = Object.entries(AppState.data.news || {}).reverse();
+                let html = `<h2>Komunikaty</h2>`;
+                news.forEach(([id, item]) => {
+                    html += `
+                        <div class="card">
+                            <span class="cat-tag cat-${item.category || 'info'}">${item.category || 'info'}</span>
+                            <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:5px;">${item.date}</div>
+                            <div style="font-weight:600;">${item.content}</div>
                         </div>
-                    </div>
-                    <h3>Twoje Przystanki</h3>
-                `;
+                    `;
+                });
+                container.innerHTML = html || `<p>Brak komunikatów.</p>`;
+            },
 
-                if(AppState.favs.length === 0) {
-                    html += `<p style="color:var(--text-dim)">Nie dodałeś jeszcze żadnych przystanków do ulubionych.</p>`;
-                } else {
-                    AppState.favs.forEach(id => {
-                        const stop = AppState.data.stops[id];
-                        if(stop) html += this.stopCard(id, stop);
-                    });
-                }
+            stops: function(container) {
+                let html = `<h2>Przystanki</h2><input type="text" class="search-box" placeholder="Szukaj..." oninput="Filter(this, '.stop-card')">`;
+                Object.entries(AppState.data.stops || {}).forEach(([id, stop]) => {
+                    const isFav = AppState.favs.includes(id);
+                    html += `
+                        <div class="card stop-card" data-name="${stop.name.toLowerCase()}">
+                            <div onclick="Render.schedule('${id}')" style="flex:1; cursor:pointer;">
+                                <div style="font-weight:bold; font-size:1.1rem;">${stop.name}</div>
+                                <div style="font-size:0.8rem; color:var(--text-dim)">ID: ${id} | Linie: ${stop.lines?.join(', ') || 'brak'}</div>
+                            </div>
+                            <i data-lucide="heart" onclick="ToggleFav('${id}')" style="cursor:pointer; fill:${isFav ? 'red' : 'none'}; color:${isFav ? 'red' : 'inherit'}"></i>
+                        </div>
+                    `;
+                });
                 container.innerHTML = html;
             },
 
-            // WIDOK 2: PRZYSTANKI
-            stops: function(container) {
-                container.innerHTML = `
-                    <h1>Przystanki</h1>
-                    <input type="text" class="search-box" placeholder="Szukaj przystanku..." oninput="Render.filter('stops-list', this.value)">
-                    <div id="stops-list">
-                        ${Object.keys(AppState.data.stops || {}).map(id => this.stopCard(id, AppState.data.stops[id])).join('')}
-                    </div>
-                `;
-            },
-
-            // WIDOK 3: LINIE
             lines: function(container) {
-                container.innerHTML = `
-                    <h1>Linie</h1>
-                    <input type="text" class="search-box" placeholder="Szukaj linii..." oninput="Render.filter('lines-list', this.value)">
-                    <div id="lines-list">
-                        ${Object.keys(AppState.data.lines || {}).map(id => this.lineCard(id, AppState.data.lines[id])).join('')}
-                    </div>
-                `;
-            },
-
-            // KARTA PRZYSTANKU (HTML)
-            stopCard: function(id, stop) {
-                const isFav = AppState.favs.includes(id);
-                return `
-                    <div class="card item-card" data-search="${stop.name.toLowerCase()}" onclick="Render.stopBoard('${id}')">
-                        <div>
-                            <div style="font-weight:bold; font-size:1.1rem;">${stop.name}</div>
-                            <div style="font-size:0.8rem; color:var(--text-dim)">Linie: ${stop.lines.join(', ')}</div>
-                        </div>
-                        <button onclick="ToggleFav('${id}', event)" style="background:none; border:none; color:${isFav ? '#ef4444' : 'var(--text-dim)'}; cursor:pointer;">
-                            <i data-lucide="heart" style="fill:${isFav ? '#ef4444' : 'none'}"></i>
-                        </button>
-                    </div>
-                `;
-            },
-
-            // KARTA LINII (HTML)
-            lineCard: function(id, line) {
-                const category = AppState.data.categories && line.category ? AppState.data.categories[line.category].name : "Inna";
-                return `
-                    <div class="card item-card" data-search="${id} ${line.direction.toLowerCase()}" onclick="Render.schedule('${id}', '${line.stops[0]?.id}')">
-                        <div style="display:flex; align-items:center; gap:15px;">
-                            <div class="badge">${id}</div>
-                            <div>
-                                <div style="font-size:0.8rem; color:var(--text-dim)">${category} • Kierunek</div>
-                                <div style="font-weight:bold;">${line.direction}</div>
-                            </div>
-                        </div>
-                        <i data-lucide="chevron-right" style="color:var(--text-dim)"></i>
-                    </div>
-                `;
-            },
-
-            // TABLICA ODJAZDÓW (Po kliknięciu w przystanek)
-            stopBoard: function(id) {
-                const stop = AppState.data.stops[id];
-                if(!stop) return;
-                
-                if(stop.lines.length > 0) {
-                    this.schedule(stop.lines[0], id);
-                }
-            },
-
-            // PEŁNY ROZKŁAD JAZDY
-            schedule: function(lineId, stopId) {
-                const line = AppState.data.lines[lineId];
-                const stop = AppState.data.stops[stopId];
-                if(!line || !stop) return;
-
-                const stopData = line.stops.find(s => s.id === stopId);
-                const offset = stopData ? stopData.offset : 0;
-                
-                const scheduleMap = {};
-                const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
-
-                line.baseTimes.forEach(t => {
-                    let [h, m] = t.split(':').map(Number);
-                    let totalMin = h * 60 + m + offset;
-                    let realH = Math.floor(totalMin / 60) % 24;
-                    let realM = totalMin % 60;
-                    
-                    if(!scheduleMap[realH]) scheduleMap[realH] = [];
-                    scheduleMap[realH].push({ val: realM < 10 ? '0'+realM : realM, isPast: totalMin < nowMinutes });
-                });
-
-                document.getElementById('content').innerHTML = `
-                    <button onclick="Router.go('lines')" style="background:none; border:none; color:var(--primary); font-weight:bold; margin-bottom:20px; cursor:pointer;">← POWRÓT</button>
-                    <div style="margin-bottom:30px;">
-                        <h1 style="margin:0; font-size:2.5rem;">Linia ${lineId}</h1>
-                        <div style="font-weight:bold;">Przystanek: ${stop.name}</div>
-                        <div style="color:var(--text-dim);">Kierunek: ${line.direction}</div>
-                    </div>
-                    <div>
-                        ${Object.keys(scheduleMap).sort((a,b)=>a-b).map(h => `
-                            <div class="hour-row">
-                                <div class="hour-num">${h}</div>
-                                <div style="display:flex; flex-wrap:wrap; gap:10px;">
-                                    ${scheduleMap[h].map(m => `<div class="min-pill ${m.isPast ? 'past' : ''}">${m.val}</div>`).join('')}
+                let html = `<h2>Linie</h2><input type="text" class="search-box" placeholder="Szukaj..." oninput="Filter(this, '.line-card')">`;
+                Object.entries(AppState.data.lines || {}).forEach(([id, line]) => {
+                    html += `
+                        <div class="card line-card" data-name="${id} ${line.direction.toLowerCase()}" onclick="Render.lineDetail('${id}')" style="cursor:pointer;">
+                            <div style="display:flex; align-items:center; gap:15px;">
+                                <div class="badge">${id}</div>
+                                <div>
+                                    <div style="font-size:0.7rem; color:var(--text-dim); font-weight:bold;">KIERUNEK</div>
+                                    <div style="font-weight:bold;">${line.direction}</div>
                                 </div>
                             </div>
-                        `).join('')}
-                    </div>
-                `;
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
             },
 
-            // PLANER PODRÓŻY
-            travel: function(container) {
-                const opts = Object.keys(AppState.data.stops || {}).map(id => `<option value="${id}">${AppState.data.stops[id].name}</option>`).join('');
-                container.innerHTML = `
-                    <h1>Planer Podróży</h1>
-                    <div class="card" style="flex-direction:column; gap:15px; align-items:stretch;">
-                        <select id="t-start" class="search-box" style="margin:0;"><option value="" disabled selected>Z przystanku...</option>${opts}</select>
-                        <select id="t-end" class="search-box" style="margin:0;"><option value="" disabled selected>Do przystanku...</option>${opts}</select>
-                        <button onclick="FindRoute()" style="background:var(--primary); color:white; padding:15px; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">Szukaj Połączenia</button>
-                    </div>
-                    <div id="route-result" style="margin-top:20px;"></div>
-                `;
+            schedule: function(stopId) {
+                const stop = AppState.data.stops[stopId];
+                let html = `<button class="btn btn-outline" onclick="Router.go('stops')" style="margin-bottom:15px;">← Powrót</button>
+                            <h1>${stop.name}</h1>`;
+                
+                // Prosta logika odjazdów
+                stop.lines?.forEach(lineId => {
+                    const line = AppState.data.lines[lineId];
+                    if(!line) return;
+                    const stopIdx = line.stops?.findIndex(s => s.id === stopId);
+                    const offset = line.stops[stopIdx]?.offset || 0;
+
+                    html += `<div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="badge">${lineId}</span>
+                            <span style="font-weight:bold;">→ ${line.direction}</span>
+                        </div>
+                        <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:5px;">
+                            ${line.baseTimes?.map(t => {
+                                let [h, m] = t.split(':').map(Number);
+                                m += offset;
+                                while(m >= 60) { m -= 60; h += 1; }
+                                return `<span style="background:var(--bg); padding:5px; border-radius:5px; font-size:0.8rem;">${h}:${m < 10 ? '0'+m : m}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+                });
+                document.getElementById('content').innerHTML = html;
+                lucide.createIcons();
             },
 
-            // ADMIN
             admin: function(container) {
                 container.innerHTML = `
-                    <h1>Panel Admina</h1>
-                    <div class="card" style="flex-direction:column; align-items:stretch; gap:15px;">
-                        <div style="font-weight:bold;">Dodaj nowy komunikat:</div>
-                        <textarea id="admin-news" class="search-box" rows="3" style="margin:0;" placeholder="Wpisz treść komunikatu..."></textarea>
-                        <button onclick="AddNews()" style="background:var(--primary); color:white; padding:15px; border:none; border-radius:15px; font-weight:bold; cursor:pointer;">Opublikuj w chmurze</button>
+                    <h2>Panel Administratora</h2>
+                    <div class="card">
+                        <h3>🔑 Konfiguracja Firebase</h3>
+                        <textarea id="fb-json" placeholder="Wklej JSON firebaseConfig tutaj..."></textarea>
+                        <button class="btn btn-primary" onclick="SaveConfig()">Połącz z Bazą</button>
                     </div>
+
+                    <div class="admin-grid">
+                        <button class="btn btn-outline" onclick="AdminRender('news')">Newsy</button>
+                        <button class="btn btn-outline" onclick="AdminRender('stops')">Przystanki</button>
+                        <button class="btn btn-outline" onclick="AdminRender('lines')">Linie</button>
+                        <button class="btn btn-outline" onclick="ExportDB()">Eksport JSON</button>
+                    </div>
+                    <div id="admin-work-area"></div>
                 `;
             }
         };
 
-        // ==========================================
-        // 🛠 FUNKCJE POMOCNICZE
-        // ==========================================
-        Render.filter = function(listId, text) {
-            const query = text.toLowerCase();
-            document.querySelectorAll(`#${listId} .item-card`).forEach(el => {
-                el.style.display = el.dataset.search.includes(query) ? 'flex' : 'none';
-            });
-        };
+        // --- FUNKCJE ADMINA (CRUD) ---
+        function AdminRender(type) {
+            const area = document.getElementById('admin-work-area');
+            let html = `<div class="card"><h3>Zarządzaj: ${type}</h3>`;
+            
+            if(type === 'news') {
+                html += `
+                    <select id="adm-news-cat"><option value="info">Info</option><option value="alert">Alert</option><option value="promo">Promo</option></select>
+                    <textarea id="adm-news-txt" placeholder="Treść newsa..."></textarea>
+                    <button class="btn btn-primary" onclick="AddNews()">Dodaj</button>
+                    <hr>
+                    ${Object.entries(AppState.data.news || {}).map(([id, n]) => `
+                        <div class="admin-list-item">
+                            <span>${n.content.substring(0,20)}...</span>
+                            <button class="btn btn-danger" onclick="DeleteDB('news/${id}')">Usuń</button>
+                        </div>
+                    `).join('')}
+                `;
+            }
 
-        function ToggleFav(id, event) {
-            event.stopPropagation();
-            const index = AppState.favs.indexOf(id);
-            if(index > -1) AppState.favs.splice(index, 1);
-            else AppState.favs.push(id);
-            localStorage.setItem('mzk_favs', JSON.stringify(AppState.favs));
-            Router.go(Router.current);
+            if(type === 'stops') {
+                html += `
+                    <input id="adm-stop-id" placeholder="ID (np. s1)">
+                    <input id="adm-stop-name" placeholder="Nazwa przystanku">
+                    <button class="btn btn-primary" onclick="AddStop()">Zapisz/Dodaj</button>
+                    <hr>
+                    ${Object.entries(AppState.data.stops || {}).map(([id, s]) => `
+                        <div class="admin-list-item">
+                            <span><b>${id}</b>: ${s.name}</span>
+                            <button class="btn btn-danger" onclick="DeleteDB('stops/${id}')">Usuń</button>
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            if(type === 'lines') {
+                html += `
+                    <input id="adm-line-id" placeholder="Numer linii (np. 102)">
+                    <input id="adm-line-dir" placeholder="Kierunek">
+                    <textarea id="adm-line-times" placeholder="Czasy bazowe (HH:MM, HH:MM...)"></textarea>
+                    <button class="btn btn-primary" onclick="AddLine()">Dodaj Linię</button>
+                    <hr>
+                    ${Object.entries(AppState.data.lines || {}).map(([id, l]) => `
+                        <div class="admin-list-item">
+                            <span><b>${id}</b> -> ${l.direction}</span>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn btn-outline" onclick="EditLineStops('${id}')">Trasa</button>
+                                <button class="btn btn-danger" onclick="DeleteDB('lines/${id}')">Usuń</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            area.innerHTML = html + `</div>`;
         }
 
-        function FindRoute() {
-            const start = document.getElementById('t-start').value;
-            const end = document.getElementById('t-end').value;
-            const res = document.getElementById('route-result');
-            
-            if(!start || !end || start === end) return res.innerHTML = "Wybierz dwa różne przystanki.";
-            
-            let html = "<h3>Znalezione opcje:</h3>";
-            Object.keys(AppState.data.lines || {}).forEach(lId => {
-                const line = AppState.data.lines[lId];
-                const iStart = line.stops.findIndex(s => s.id === start);
-                const iEnd = line.stops.findIndex(s => s.id === end);
-                
-                if(iStart > -1 && iEnd > -1 && iStart < iEnd) {
-                    const time = line.stops[iEnd].offset - line.stops[iStart].offset;
-                    html += `
-                        <div class="card" onclick="Render.schedule('${lId}', '${start}')" style="cursor:pointer;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <div class="badge">${lId}</div>
-                                <div><b>${line.direction}</b></div>
-                            </div>
-                            <div style="font-weight:bold; color:var(--primary);">${time} min</div>
-                        </div>
-                    `;
-                }
-            });
-            res.innerHTML = html === "<h3>Znalezione opcje:</h3>" ? "Brak połączenia bezpośredniego." : html;
+        // --- AKCJE DB ---
+        function SaveConfig() {
+            const raw = document.getElementById('fb-json').value;
+            try {
+                const config = JSON.parse(raw);
+                ConnectFirebase(config);
+                alert("Konfiguracja zapisana!");
+            } catch(e) { alert("Błędny format JSON!"); }
         }
 
         function AddNews() {
-            if(!db) return alert("Działasz w trybie offline. Podepnij Firebase, aby móc publikować zmiany!");
-            const txt = document.getElementById('admin-news').value;
-            if(!txt) return;
+            const cat = document.getElementById('adm-news-cat').value;
+            const txt = document.getElementById('adm-news-txt').value;
+            if(!db) return alert("Brak połączenia!");
+            db.ref(`${DB_KEY}/news/${Date.now()}`).set({
+                category: cat,
+                content: txt,
+                date: new Date().toLocaleString()
+            });
+        }
+
+        function AddStop() {
+            const id = document.getElementById('adm-stop-id').value;
+            const name = document.getElementById('adm-stop-name').value;
+            if(!db || !id) return alert("Błąd!");
+            db.ref(`${DB_KEY}/stops/${id}`).update({ name: name, lines: AppState.data.stops[id]?.lines || [] });
+        }
+
+        function AddLine() {
+            const id = document.getElementById('adm-line-id').value;
+            const dir = document.getElementById('adm-line-dir').value;
+            const times = document.getElementById('adm-line-times').value.split(',').map(t => t.trim());
+            if(!db || !id) return alert("Błąd!");
+            db.ref(`${DB_KEY}/lines/${id}`).update({
+                direction: dir,
+                baseTimes: times,
+                stops: AppState.data.lines[id]?.stops || []
+            });
+        }
+
+        function EditLineStops(lineId) {
+            const line = AppState.data.lines[lineId];
+            let html = `<div class="card"><h3>Trasa linii ${lineId}</h3>`;
+            html += `<p>Format: stop_id:offset (np. s1:0, s2:12)</p>
+                     <textarea id="route-edit" style="height:100px;">${line.stops?.map(s => `${s.id}:${s.offset}`).join(', ') || ''}</textarea>
+                     <button class="btn btn-primary" onclick="SaveRoute('${lineId}')">Zapisz Trasę</button></div>`;
+            document.getElementById('admin-work-area').innerHTML = html;
+        }
+
+        function SaveRoute(lineId) {
+            const raw = document.getElementById('route-edit').value;
+            const stopsArray = raw.split(',').map(item => {
+                const [id, offset] = item.trim().split(':');
+                return { id, offset: parseInt(offset) };
+            });
             
-            db.ref(`${DB_KEY}/news/${Date.now()}`).set({ content: txt, date: new Date().toLocaleDateString() })
-              .then(() => { alert('Dodano pomyślnie!'); document.getElementById('admin-news').value = ''; Router.go('home'); })
-              .catch(e => alert("Błąd zapisu: " + e.message));
+            // Aktualizacja przystanków (dodanie linii do przystanku)
+            stopsArray.forEach(s => {
+                const currentLines = AppState.data.stops[s.id]?.lines || [];
+                if(!currentLines.includes(lineId)) {
+                    currentLines.push(lineId);
+                    db.ref(`${DB_KEY}/stops/${s.id}/lines`).set(currentLines);
+                }
+            });
+
+            db.ref(`${DB_KEY}/lines/${lineId}/stops`).set(stopsArray).then(() => alert("Trasa zapisana!"));
+        }
+
+        function DeleteDB(path) {
+            if(confirm("Usunąć permanentnie?") && db) {
+                db.ref(`${DB_KEY}/${path}`).remove();
+            }
+        }
+
+        function ExportDB() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(AppState.data));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "mzk_backup.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        // --- UTILS ---
+        function ToggleFav(id) {
+            const idx = AppState.favs.indexOf(id);
+            if(idx > -1) AppState.favs.splice(idx, 1);
+            else AppState.favs.push(id);
+            localStorage.setItem('mzk_favs', JSON.stringify(AppState.favs));
+            Router.renderCurrent();
+        }
+
+        function Filter(input, selector) {
+            const val = input.value.toLowerCase();
+            document.querySelectorAll(selector).forEach(el => {
+                el.style.display = el.dataset.name.includes(val) ? 'block' : 'none';
+            });
         }
     </script>
 </body>

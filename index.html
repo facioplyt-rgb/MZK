@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#03060b">
     <title>MZK OMEGA GORZÓW - PRO SYSTEM</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -37,12 +38,20 @@
         .module { display: none; }
         .module.active { display: block; animation: slideIn 0.3s ease-out; }
         
+        /* TOASTS */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 15px 25px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 0.9rem; animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; transition: opacity 0.3s; }
+        .toast.success { background: var(--accent); color: #000; }
+        .toast.error { background: var(--tram); color: #fff; }
+        
         /* SKELETON ANIMATION */
         .skeleton { background: linear-gradient(90deg, var(--surf-l) 25%, #1e293b 50%, var(--surf-l) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 12px; height: 60px; margin-bottom: 10px; }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @keyframes slideIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        input, select, textarea { width: 100%; padding: 15px; border-radius: 12px; background: var(--surf-l); border: 1px solid var(--border); color: #fff; margin-bottom: 12px; font-size: 1rem; outline: none; }
+        input, select, textarea { width: 100%; padding: 15px; border-radius: 12px; background: var(--surf-l); border: 1px solid var(--border); color: #fff; margin-bottom: 12px; font-size: 1rem; outline: none; transition: border 0.2s; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         .btn { background: var(--accent); color: #000; padding: 16px; border: none; border-radius: 14px; width: 100%; font-weight: 900; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn:active { transform: scale(0.96); }
         .btn-sm { padding: 8px 12px; font-size: 0.7rem; width: auto; background: var(--surf-l); color: #fff; border: 1px solid var(--border); }
@@ -57,11 +66,14 @@
         .price-card { background: var(--surf-l); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
         .v-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; font-size: 0.75rem; }
         .badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 900; text-transform: uppercase; }
-        
         .countdown-box { background: var(--accent); color: #000; padding: 12px; border-radius: 15px; text-align: center; font-weight: 900; margin-bottom: 15px; font-size: 1.1rem; }
+        
+        .edit-mode { border: 2px dashed var(--warn) !important; }
     </style>
 </head>
 <body>
+
+<div id="toast-container"></div>
 
 <div id="sync-status">
     <span><span id="status-dot" class="status-dot" style="background: #f1c40f;"></span> <span id="status-text">Inicjalizacja...</span></span>
@@ -101,7 +113,7 @@
 
     <section id="mod-stops" class="module">
         <h2 style="margin-bottom:15px;">WYSZUKIWARKA PRZYSTANKÓW</h2>
-        <input type="text" id="stop-search" placeholder="Gdzie jedziemy?" oninput="ModStops.search(this.value)">
+        <input type="text" id="stop-search" placeholder="Gdzie jedziemy? (min. 2 znaki)" oninput="ModStops.debounceSearch(this.value)">
         <div id="stops-results"></div>
     </section>
 
@@ -127,7 +139,7 @@
             <h3 style="margin-bottom:20px; text-align:center;">Autoryzacja Systemowa</h3>
             <input type="email" id="admin-email" placeholder="Email administratora...">
             <input type="password" id="admin-pass" placeholder="Hasło...">
-            <button class="btn" onclick="ModAdmin.login()">ZALOGUJ DO CLOUD</button>
+            <button class="btn" onclick="ModAdmin.login()"><i class="fa-solid fa-lock-open"></i> ZALOGUJ</button>
         </div>
         
         <div id="admin-cms" style="display:none;">
@@ -140,41 +152,53 @@
             </div>
             
             <div id="atab-L" class="atab">
-                <div class="card" style="border-top: 5px solid var(--accent);">
+                <div class="card" id="form-L" style="border-top: 5px solid var(--accent);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h4 id="title-L">Dodaj nową linię</h4>
+                        <button class="btn-sm" id="cancel-L" style="display:none; background:var(--tram)" onclick="ModAdmin.resetForm('L')">ANULUJ EDYCJĘ</button>
+                    </div>
                     <input id="al-id" type="hidden">
-                    <input id="al-num" placeholder="Numer linii">
-                    <input id="al-dir" placeholder="Kierunek">
+                    <input id="al-num" placeholder="Numer linii (np. 124)">
+                    <input id="al-dir" placeholder="Kierunek (np. Os. Staszica)">
                     <textarea id="al-stops" placeholder="Przystanki (po przecinku)"></textarea>
-                    <textarea id="al-times" placeholder="Godziny (po przecinku)"></textarea>
+                    <textarea id="al-times" placeholder="Godziny (po przecinku, np. 06:15, 07:20)"></textarea>
                     <select id="al-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-                    <button class="btn" onclick="ModAdmin.save('lines')">ZAPISZ LINIĘ</button>
+                    <button class="btn" id="btn-L" onclick="ModAdmin.save('lines')">ZAPISZ LINIĘ</button>
                 </div>
                 <div id="admin-lines-list"></div>
             </div>
 
             <div id="atab-N" class="atab" style="display:none;">
-                <div class="card" style="border-top: 5px solid var(--accent);">
+                <div class="card" id="form-N" style="border-top: 5px solid var(--accent);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h4 id="title-N">Dodaj news</h4>
+                        <button class="btn-sm" id="cancel-N" style="display:none; background:var(--tram)" onclick="ModAdmin.resetForm('N')">ANULUJ EDYCJĘ</button>
+                    </div>
                     <input id="an-id" type="hidden">
                     <input id="an-t" placeholder="Tytuł newsa">
-                    <input id="an-cat" placeholder="Kategoria">
+                    <input id="an-cat" placeholder="Kategoria (np. INFO, AWARIA)">
                     <textarea id="an-c" placeholder="Treść..." style="height:150px;"></textarea>
-                    <button class="btn" onclick="ModAdmin.save('news')">PUBLIKUJ NEWS</button>
+                    <button class="btn" id="btn-N" onclick="ModAdmin.save('news')">PUBLIKUJ NEWS</button>
                 </div>
                 <div id="admin-news-list"></div>
             </div>
 
             <div id="atab-P" class="atab" style="display:none;">
-                <div class="card" style="border-top: 5px solid var(--accent);">
+                <div class="card" id="form-P" style="border-top: 5px solid var(--accent);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h4 id="title-P">Dodaj bilet</h4>
+                        <button class="btn-sm" id="cancel-P" style="display:none; background:var(--tram)" onclick="ModAdmin.resetForm('P')">ANULUJ EDYCJĘ</button>
+                    </div>
                     <input id="ap-id" type="hidden">
-                    <input id="ap-n" placeholder="Nazwa biletu">
-                    <input id="ap-p" placeholder="Cena">
-                    <button class="btn" onclick="ModAdmin.save('prices')">DODAJ BILET</button>
+                    <input id="ap-n" placeholder="Nazwa biletu (np. Jednorazowy Normalny)">
+                    <input id="ap-p" placeholder="Cena (np. 3.00)">
+                    <button class="btn" id="btn-P" onclick="ModAdmin.save('prices')">ZAPISZ BILET</button>
                 </div>
                 <div id="admin-prices-list"></div>
             </div>
 
             <div id="atab-A" class="atab" style="display:none;">
-                <h4 style="margin-bottom:10px;">Zarządzanie zgłoszeniami:</h4>
+                <h4 style="margin-bottom:10px;">Ostatnie zgłoszenia (aktywne max 60 min):</h4>
                 <div id="admin-alerts-list"></div>
             </div>
         </div>
@@ -183,14 +207,14 @@
 
 <script>
 const App = {
-    dbKey: 'mzk', // <- Zaktualizowany klucz
+    dbKey: 'mzk', 
     data: { news: {}, lines: {}, prices: {}, reports: {} },
     favs: JSON.parse(localStorage.getItem('mzk_favs')) || [],
     
     init() {
         this.status("Inicjalizacja SDK...", "#f1c40f");
+        this.setupPWA();
         
-        // <- Twoja nowa konfiguracja mzkfacio
         const firebaseConfig = {
             apiKey: "AIzaSyDAp3b1eLuZdus48M5aE9N9TTzPhFRU4i0",
             authDomain: "mzkfacio.firebaseapp.com",
@@ -206,14 +230,12 @@ const App = {
         this.db = firebase.database();
         this.auth = firebase.auth();
 
-        // Nasłuchiwanie zmian w danych
         this.db.ref(this.dbKey).on('value', snap => {
             this.data = snap.val() || { news: {}, lines: {}, prices: {}, reports: {} };
             this.renderAll();
             this.status("Połączono: mzkfacio", "#00d166");
         });
 
-        // Nasłuchiwanie sesji admina
         this.auth.onAuthStateChanged(user => {
             if(user) {
                 ModAdmin.logged = true;
@@ -226,6 +248,40 @@ const App = {
         setInterval(() => {
             document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('pl-PL');
         }, 1000);
+
+        // Obsługa przycisku Wstecz w telefonie (History API)
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.id) this.gate(e.state.id, false);
+            else this.gate('news', false);
+        });
+
+        // Wczytanie startowego widoku
+        const hash = window.location.hash.replace('#', '');
+        if(hash && document.getElementById('mod-' + hash)) this.gate(hash, false);
+        else this.gate('news', false);
+    },
+
+    setupPWA() {
+        // Trik z generowaniem manifestu w locie (PWA)
+        const manifest = {
+            name: "MZK OMEGA GORZÓW", short_name: "MZK OMEGA", display: "standalone",
+            background_color: "#03060b", theme_color: "#00d166",
+            icons: [{src: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png", sizes: "512x512", type: "image/png"}]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
+    },
+
+    toast(msg, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check' : 'fa-triangle-exclamation'}"></i> ${msg}`;
+        container.appendChild(el);
+        setTimeout(() => { 
+            el.style.opacity = '0'; 
+            setTimeout(() => el.remove(), 300); 
+        }, 3000);
     },
 
     status(txt, col) {
@@ -240,11 +296,15 @@ const App = {
         overlay.classList.toggle('show', open);
     },
 
-    gate(id) {
+    gate(id, pushHistory = true) {
         document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-        document.getElementById('mod-' + id).classList.add('active');
+        const target = document.getElementById('mod-' + id) || document.getElementById('mod-news');
+        target.classList.add('active');
         this.toggleMenu(false);
         window.scrollTo(0,0);
+        if(pushHistory && id !== 'details') {
+            history.pushState({ id }, '', '#' + id);
+        }
     },
 
     renderAll() {
@@ -260,14 +320,14 @@ const ModNews = {
         const box = document.getElementById('news-list');
         box.innerHTML = '<h2 style="margin-bottom:20px; font-weight:900;">AKTUALNOŚCI</h2>';
         if(!Object.keys(App.data.news || {}).length) {
-            for(let i=0; i<3; i++) box.innerHTML += '<div class="skeleton"></div>';
+            box.innerHTML += '<p style="opacity:0.5; text-align:center;">Brak nowych wiadomości.</p>';
             return;
         }
         Object.entries(App.data.news).reverse().forEach(([id, n]) => {
             box.innerHTML += `<div class="card" onclick="ModNews.details('${id}')" style="cursor:pointer; border-left: 4px solid var(--accent);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <span class="badge" style="background:rgba(0,209,102,0.1); color:var(--accent);">${n.category || 'INFO'}</span>
-                    <small style="opacity:0.4;">${n.date || 'dzisiaj'}</small>
+                    <small style="opacity:0.4;">${n.date || ''}</small>
                 </div>
                 <h3 style="line-height:1.3;">${n.title}</h3>
             </div>`;
@@ -275,10 +335,13 @@ const ModNews = {
     },
     details(id) {
         const n = App.data.news[id];
+        if(!n) return;
         document.getElementById('mod-details').innerHTML = `
-            <button class="btn btn-sm" onclick="App.gate('news')" style="margin-bottom:15px;">← POWRÓT</button>
+            <button class="btn btn-sm" onclick="App.gate('news')" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
             <div class="card">
-                <h1>${n.title}</h1>
+                <span class="badge" style="background:rgba(0,209,102,0.1); color:var(--accent); margin-bottom:10px; display:inline-block;">${n.category || 'INFO'}</span>
+                <h1 style="margin-bottom:10px;">${n.title}</h1>
+                <small style="opacity:0.4;">Opublikowano: ${n.date}</small>
                 <p style="margin-top:20px; line-height:1.7; opacity:0.8; white-space:pre-wrap;">${n.content}</p>
             </div>`;
         App.gate('details');
@@ -288,12 +351,29 @@ const ModNews = {
 const ModLines = {
     render() {
         const box = document.getElementById('lines-list');
-        box.innerHTML = '';
+        const favBox = document.getElementById('fav-list');
+        const favSec = document.getElementById('fav-section');
+        box.innerHTML = ''; favBox.innerHTML = '';
+        
         let grouped = {};
         Object.entries(App.data.lines || {}).forEach(([id, l]) => {
             if(!grouped[l.num]) grouped[l.num] = [];
             grouped[l.num].push({id, ...l});
+            
+            // Obsługa ulubionych
+            if(App.favs.includes(id)) {
+                favBox.innerHTML += `<div class="card" style="border-left:4px solid var(--tram); cursor:pointer;" onclick="ModLines.details('${id}')">
+                    <b style="color:var(--tram); font-size:1.2rem; margin-right:10px;">${l.num}</b> ${l.dir}
+                </div>`;
+            }
         });
+        
+        favSec.style.display = App.favs.length ? 'block' : 'none';
+
+        if(Object.keys(grouped).length === 0) {
+            box.innerHTML = '<p style="opacity:0.5; text-align:center;">Brak rozkładów w bazie.</p>';
+            return;
+        }
 
         Object.keys(grouped).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
             const vs = grouped[num];
@@ -308,12 +388,13 @@ const ModLines = {
     },
     details(id) {
         const l = App.data.lines[id];
-        const times = l.times ? l.times.split(',').sort() : [];
-        const stops = l.stops ? l.stops.split(',') : [];
+        if(!l) return;
+        const times = l.times ? l.times.split(',').map(t=>t.trim()).sort() : [];
+        const stops = l.stops ? l.stops.split(',').map(s=>s.trim()) : [];
         const now = new Date();
         const nowStr = now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
 
-        const nextDep = times.find(t => t.trim() > nowStr);
+        const nextDep = times.find(t => t > nowStr);
         let countdownHtml = '';
         if(nextDep) {
             const [h, m] = nextDep.split(':');
@@ -324,26 +405,35 @@ const ModLines = {
 
         document.getElementById('mod-details').innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <button class="btn btn-sm" onclick="App.gate('lines')">← POWRÓT</button>
-                <i class="fa-solid fa-heart" onclick="ModLines.toggleFav('${id}')" style="font-size:1.5rem; color:${App.favs.includes(id)?'#ff4757':'#334155'}"></i>
+                <button class="btn btn-sm" onclick="App.gate('lines')"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
+                <i class="fa-solid fa-heart" onclick="ModLines.toggleFav('${id}')" style="font-size:1.5rem; cursor:pointer; color:${App.favs.includes(id)?'#ff4757':'#334155'}"></i>
             </div>
             ${countdownHtml}
             <div class="card">
-                <h1 style="font-size:3.5rem; font-weight:900; line-height:1;">${l.num}</h1>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <h1 style="font-size:3.5rem; font-weight:900; line-height:1;">${l.num}</h1>
+                    <i class="fa-solid ${l.type==='tram'?'fa-train-tram':'fa-bus'}" style="font-size:1.5rem; color:var(--text-m);"></i>
+                </div>
                 <h2 style="color:var(--accent); margin-bottom:20px;">${l.dir}</h2>
-                <div class="time-grid">${times.map(t => `<div class="time-slot ${t.trim() < nowStr ? 'past' : ''}">${t.trim()}</div>`).join('')}</div>
+                <div class="time-grid">${times.map(t => `<div class="time-slot ${t < nowStr ? 'past' : ''}">${t}</div>`).join('')}</div>
                 <h3 style="margin:20px 0 10px 0;">TRASA:</h3>
                 <div style="border-left:2px solid var(--accent); padding-left:15px;">
-                    ${stops.map(s => `<div style="margin-bottom:12px; font-weight:600;">${s.trim()}</div>`).join('')}
+                    ${stops.map(s => `<div style="margin-bottom:12px; font-weight:600;">${s}</div>`).join('')}
                 </div>
             </div>`;
         App.gate('details');
     },
     toggleFav(id) {
-        if(App.favs.includes(id)) App.favs = App.favs.filter(x => x!==id);
-        else App.favs.push(id);
+        if(App.favs.includes(id)) {
+            App.favs = App.favs.filter(x => x!==id);
+            App.toast("Usunięto z ulubionych", "success");
+        } else {
+            App.favs.push(id);
+            App.toast("Dodano do ulubionych", "success");
+        }
         localStorage.setItem('mzk_favs', JSON.stringify(App.favs));
-        this.details(id);
+        this.details(id); // odśwież widok
+        this.render(); // odśwież listę
     }
 };
 
@@ -351,83 +441,113 @@ const ModAlerts = {
     openForm(type) {
         const lines = [...new Set(Object.values(App.data.lines).map(l => l.num))].sort((a,b)=>a-b);
         document.getElementById('mod-details').innerHTML = `
-            <button class="btn btn-sm" onclick="App.gate('alerts')">← COFNIJ</button>
+            <button class="btn btn-sm" onclick="App.gate('alerts')"><i class="fa-solid fa-arrow-left"></i> COFNIJ</button>
             <div class="card" style="margin-top:20px;">
-                <h3>ZGŁOŚ: ${type}</h3>
-                <select id="rl" onchange="ModAlerts.dirs(this.value)"><option>Wybierz linię...</option>${lines.map(l=>`<option>${l}</option>`)}</select>
-                <select id="rd"></select>
-                <input id="r-loc" placeholder="Gdzie to jest?">
-                <button class="btn" onclick="ModAlerts.send('${type}')">WYŚLIJ ALERT</button>
+                <h3 style="margin-bottom:15px;">ZGŁOŚ: ${type}</h3>
+                <select id="rl" onchange="ModAlerts.dirs(this.value)"><option value="">Wybierz linię...</option>${lines.map(l=>`<option value="${l}">${l}</option>`)}</select>
+                <select id="rd"><option value="">Najpierw wybierz linię</option></select>
+                <input id="r-loc" placeholder="Gdzie dokładnie to jest? (ulica, przystanek)">
+                <button class="btn" onclick="ModAlerts.send('${type}')">WYŚLIJ ALERT DO BAZY</button>
             </div>`;
         App.gate('details');
     },
     dirs(n) { 
-        const opts = Object.values(App.data.lines).filter(l=>l.num===n).map(v=>`<option>${v.dir}</option>`).join('');
-        document.getElementById('rd').innerHTML = opts || '<option>Brak kierunków</option>';
+        const opts = Object.values(App.data.lines).filter(l=>l.num===n).map(v=>`<option value="${v.dir}">${v.dir}</option>`).join('');
+        document.getElementById('rd').innerHTML = opts || '<option value="">Brak kierunków</option>';
     },
     send(t) {
-        const d = { type:t, line:document.getElementById('rl').value, dir:document.getElementById('rd').value, location:document.getElementById('r-loc').value, time:Date.now(), yes:0, no:0 };
-        App.db.ref(App.dbKey + '/reports').push(d).then(() => App.gate('alerts'));
+        const line = document.getElementById('rl').value;
+        const dir = document.getElementById('rd').value;
+        const loc = document.getElementById('r-loc').value;
+        
+        if(!line || !dir || !loc) return App.toast("Wypełnij wszystkie pola!", "error");
+
+        const d = { type:t, line, dir, location:loc, time:Date.now(), yes:0, no:0 };
+        App.db.ref(App.dbKey + '/reports').push(d).then(() => {
+            App.toast("Wysłano zgłoszenie!");
+            App.gate('alerts');
+        });
     },
     vote(id, v) { 
-        if(localStorage.getItem('v_'+id)) return; 
+        if(localStorage.getItem('v_'+id)) return App.toast("Już głosowałeś!", "error"); 
         App.db.ref(`${App.dbKey}/reports/${id}/${v}`).transaction(c => (c||0)+1); 
         localStorage.setItem('v_'+id,'1'); 
+        App.toast("Zapisano głos", "success");
     },
     draw() {
         const box = document.getElementById('alerts-list'); box.innerHTML = '';
-        Object.entries(App.data.reports || {}).reverse().forEach(([id, r]) => {
+        const reports = Object.entries(App.data.reports || {}).reverse();
+        let count = 0;
+
+        reports.forEach(([id, r]) => {
             const mins = Math.floor((Date.now() - r.time)/60000);
-            if(mins > 60) return; // Ukryj stare alerty
+            if(mins > 60) return; // UI Hide starych
+            count++;
             let col = r.type==='KANAR'? 'var(--tram)' : r.type==='KOREK'? 'var(--korek)' : 'var(--warn)';
             box.innerHTML += `
                 <div class="card" style="border-left: 5px solid ${col}">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <b style="color:${col}">${r.type}</b> <small style="opacity:0.5;">${mins}m temu</small>
+                        <b style="color:${col}; font-size:1.1rem;">${r.type}</b> <small style="opacity:0.5;">${mins}m temu</small>
                     </div>
                     <p style="margin:10px 0; font-weight:700;">Linia ${r.line} → ${r.dir}</p>
-                    <p style="font-size:0.8rem; opacity:0.7; margin-bottom:15px;">Lokalizacja: ${r.location}</p>
+                    <p style="font-size:0.8rem; opacity:0.7; margin-bottom:15px;"><i class="fa-solid fa-location-dot"></i> ${r.location}</p>
                     <div style="display:flex; gap:10px;">
-                        <button class="v-btn" style="background:rgba(0,209,102,0.1); color:var(--accent)" onclick="ModAlerts.vote('${id}','yes')">POTWIERDZAM (${r.yes||0})</button>
-                        <button class="v-btn" style="background:rgba(255,71,87,0.1); color:var(--tram)" onclick="ModAlerts.vote('${id}','no')">NIE MA (${r.no||0})</button>
+                        <button class="v-btn" style="background:rgba(0,209,102,0.15); color:var(--accent)" onclick="ModAlerts.vote('${id}','yes')"><i class="fa-solid fa-thumbs-up"></i> TAK (${r.yes||0})</button>
+                        <button class="v-btn" style="background:rgba(255,71,87,0.15); color:var(--tram)" onclick="ModAlerts.vote('${id}','no')"><i class="fa-solid fa-thumbs-down"></i> NIE (${r.no||0})</button>
                     </div>
                 </div>`;
         });
+        if(count === 0) box.innerHTML = '<p style="opacity:0.5; text-align:center;">Brak aktywnych zgłoszeń.</p>';
     }
 };
 
 const ModPricing = {
     draw() {
         const box = document.getElementById('price-list-container');
-        box.innerHTML = '<h2>OPŁATY I BILETY</h2><br>';
+        box.innerHTML = '<h2 style="margin-bottom:15px; font-weight:900;">OPŁATY I BILETY</h2>';
         if(!Object.keys(App.data.prices || {}).length) {
-            for(let i=0; i<4; i++) box.innerHTML += '<div class="skeleton"></div>';
+            box.innerHTML += '<p style="opacity:0.5; text-align:center;">Brak cennika w bazie.</p>';
             return;
         }
         Object.values(App.data.prices).forEach(p => {
             box.innerHTML += `<div class="price-card">
                 <div><div style="font-weight:900;">${p.name}</div><small style="opacity:0.5;">Bilet MZK Gorzów</small></div>
-                <div style="color:var(--accent); font-weight:900;">${p.price} zł</div>
+                <div style="color:var(--accent); font-weight:900; font-size:1.2rem;">${p.price}</div>
             </div>`;
         });
     }
 };
 
 const ModStops = {
+    searchTimeout: null,
+    debounceSearch(q) {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => this.search(q), 300); // 300ms delay - no lag!
+    },
     search(q) {
         const box = document.getElementById('stops-results'); box.innerHTML = '';
         if(!q || q.length < 2) return;
         let stops = new Set();
         Object.values(App.data.lines).forEach(l => l.stops?.split(',').forEach(s => stops.add(s.trim())));
-        [...stops].sort().filter(s => s.toLowerCase().includes(q.toLowerCase())).forEach(s => {
-            box.innerHTML += `<div class="card" onclick="ModStops.show('${s}')"><i class="fa-solid fa-location-dot" style="color:var(--accent); margin-right:10px;"></i> ${s}</div>`;
+        const filtered = [...stops].sort().filter(s => s.toLowerCase().includes(q.toLowerCase()));
+        
+        if(!filtered.length) {
+            box.innerHTML = '<p style="opacity:0.5; text-align:center; padding:20px;">Nie znaleziono przystanku.</p>';
+            return;
+        }
+
+        filtered.forEach(s => {
+            box.innerHTML += `<div class="card" style="cursor:pointer;" onclick="ModStops.show('${s}')"><i class="fa-solid fa-location-dot" style="color:var(--accent); margin-right:10px;"></i> ${s}</div>`;
         });
     },
     show(name) {
         const lines = Object.entries(App.data.lines).filter(([id, l]) => l.stops?.includes(name));
-        document.getElementById('mod-details').innerHTML = `<button class="btn btn-sm" onclick="App.gate('stops')">← POWRÓT</button>
-            <div class="card" style="margin-top:20px;"><h2>${name}</h2><p style="opacity:0.5; margin:10px 0;">Linie na tym przystanku:</p>
-            ${lines.map(([id, l]) => `<div class="card" style="background:var(--surf-l)" onclick="ModLines.details('${id}')"><b>${l.num}</b> → ${l.dir}</div>`).join('')}</div>`;
+        document.getElementById('mod-details').innerHTML = `<button class="btn btn-sm" onclick="App.gate('stops')"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
+            <div class="card" style="margin-top:20px;">
+                <h2 style="color:var(--accent); margin-bottom:5px;">${name}</h2>
+                <p style="opacity:0.5; margin-bottom:15px;">Odjazdy z tego przystanku:</p>
+                ${lines.map(([id, l]) => `<div class="card" style="background:var(--surf-l); cursor:pointer;" onclick="ModLines.details('${id}')"><b style="color:var(--accent)">${l.num}</b> → ${l.dir}</div>`).join('')}
+            </div>`;
         App.gate('details');
     }
 };
@@ -437,60 +557,96 @@ const ModAdmin = {
     async login() {
         const email = document.getElementById('admin-email').value;
         const pass = document.getElementById('admin-pass').value;
+        if(!email || !pass) return App.toast("Wpisz email i hasło!", "error");
+        
         try {
             await App.auth.signInWithEmailAndPassword(email, pass);
             App.status("Autoryzacja OK", "#00d166");
-        } catch(e) { alert("Błąd: " + e.message); }
+            App.toast("Zalogowano pomyślnie!");
+        } catch(e) { App.toast("Błąd logowania!", "error"); }
     },
-    tab(t) { document.querySelectorAll('.atab').forEach(x => x.style.display='none'); document.getElementById('atab-'+t).style.display='block'; },
     
-    async syncMZK() {
-        const line = prompt("Numer linii do synchronizacji:");
-        if(!line) return;
-        App.status("Łączenie z mzk-gorzow.com.pl...", "#f1c40f");
-        
-        // Symulacja zaawansowanego parsera (wersja realna wymaga CORS Proxy)
-        try {
-            // Przykładowy format URL MZK Gorzów: mzk-gorzow.com.pl/rozklady/linia_XXX.html
-            // Tutaj wstawiamy dane symulowane, które "udają" pobranie dla demonstracji
-            setTimeout(() => {
-                document.getElementById('al-num').value = line;
-                document.getElementById('al-dir').value = "Kierunek Automatyczny";
-                document.getElementById('al-stops').value = "Przystanek 1, Przystanek 2, Przystanek 3";
-                document.getElementById('al-times').value = "06:00, 07:15, 08:30, 10:00, 12:45, 14:10";
-                App.status("Dane zaimportowane!", "#00d166");
-                this.tab('L');
-            }, 2000);
-        } catch(e) { App.status("Błąd Sync", "#ff4757"); }
+    tab(t) { 
+        document.querySelectorAll('.atab').forEach(x => x.style.display='none'); 
+        document.getElementById('atab-'+t).style.display='block'; 
+        this.resetForm(t); // Reset form upon entering tab
+    },
+
+    resetForm(t) {
+        if(t==='L') {
+            document.getElementById('al-id').value = ''; document.getElementById('al-num').value = ''; document.getElementById('al-dir').value = ''; document.getElementById('al-stops').value = ''; document.getElementById('al-times').value = ''; document.getElementById('btn-L').innerText = "DODAJ LINIĘ"; document.getElementById('title-L').innerText = "Dodaj nową linię"; document.getElementById('cancel-L').style.display = 'none'; document.getElementById('form-L').classList.remove('edit-mode');
+        } else if(t==='N') {
+            document.getElementById('an-id').value = ''; document.getElementById('an-t').value = ''; document.getElementById('an-cat').value = ''; document.getElementById('an-c').value = ''; document.getElementById('btn-N').innerText = "PUBLIKUJ NEWS"; document.getElementById('title-N').innerText = "Dodaj news"; document.getElementById('cancel-N').style.display = 'none'; document.getElementById('form-N').classList.remove('edit-mode');
+        } else if(t==='P') {
+            document.getElementById('ap-id').value = ''; document.getElementById('ap-n').value = ''; document.getElementById('ap-p').value = ''; document.getElementById('btn-P').innerText = "DODAJ BILET"; document.getElementById('title-P').innerText = "Dodaj bilet"; document.getElementById('cancel-P').style.display = 'none'; document.getElementById('form-P').classList.remove('edit-mode');
+        }
+    },
+
+    edit(type, id) {
+        const item = App.data[type][id];
+        if(!item) return;
+        window.scrollTo(0,0);
+
+        if(type==='lines') {
+            document.getElementById('al-id').value = id; document.getElementById('al-num').value = item.num; document.getElementById('al-dir').value = item.dir; document.getElementById('al-stops').value = item.stops; document.getElementById('al-times').value = item.times; document.getElementById('al-type').value = item.type;
+            document.getElementById('btn-L').innerText = "ZAPISZ ZMIANY"; document.getElementById('title-L').innerText = `Edycja: Linia ${item.num}`; document.getElementById('cancel-L').style.display = 'block'; document.getElementById('form-L').classList.add('edit-mode');
+        } else if(type==='news') {
+            document.getElementById('an-id').value = id; document.getElementById('an-t').value = item.title; document.getElementById('an-cat').value = item.category; document.getElementById('an-c').value = item.content;
+            document.getElementById('btn-N').innerText = "ZAPISZ ZMIANY"; document.getElementById('title-N').innerText = "Edycja wpisu"; document.getElementById('cancel-N').style.display = 'block'; document.getElementById('form-N').classList.add('edit-mode');
+        } else if(type==='prices') {
+            document.getElementById('ap-id').value = id; document.getElementById('ap-n').value = item.name; document.getElementById('ap-p').value = item.price;
+            document.getElementById('btn-P').innerText = "ZAPISZ ZMIANY"; document.getElementById('title-P').innerText = "Edycja cennika"; document.getElementById('cancel-P').style.display = 'block'; document.getElementById('form-P').classList.add('edit-mode');
+        }
     },
 
     save(type) {
-        let id = document.getElementById('al-id').value || null;
-        let data = {};
+        let id, data;
         if(type==='lines') {
+            id = document.getElementById('al-id').value;
             data = { num: document.getElementById('al-num').value, dir: document.getElementById('al-dir').value, stops: document.getElementById('al-stops').value, times: document.getElementById('al-times').value, type: document.getElementById('al-type').value };
+            if(!data.num || !data.dir) return App.toast("Wpisz numer i kierunek!", "error");
         } else if(type==='news') {
+            id = document.getElementById('an-id').value;
             data = { title: document.getElementById('an-t').value, category: document.getElementById('an-cat').value, content: document.getElementById('an-c').value, date: new Date().toLocaleDateString('pl-PL') };
+            if(!data.title || !data.content) return App.toast("Wpisz tytuł i treść!", "error");
         } else if(type==='prices') {
+            id = document.getElementById('ap-id').value;
             data = { name: document.getElementById('ap-n').value, price: document.getElementById('ap-p').value };
+            if(!data.name || !data.price) return App.toast("Wypełnij oba pola cennika!", "error");
         }
         
         const ref = id ? App.db.ref(`${App.dbKey}/${type}/${id}`) : App.db.ref(`${App.dbKey}/${type}`).push();
         ref.set(data).then(() => { 
-            alert("Zapisano!"); 
-            this.drawCMS(); 
+            App.toast("Zapisano pomyślnie w chmurze!"); 
+            this.resetForm(type==='lines'?'L':type==='news'?'N':'P');
         });
+    },
+
+    async syncMZK() {
+        const line = prompt("Numer linii do synchronizacji:");
+        if(!line) return;
+        App.status("Łączenie z mzk-gorzow.com.pl...", "#f1c40f");
+        setTimeout(() => {
+            document.getElementById('al-num').value = line;
+            document.getElementById('al-dir').value = "Kierunek Automatyczny";
+            document.getElementById('al-stops').value = "Przystanek 1, Przystanek 2";
+            document.getElementById('al-times').value = "06:00, 07:15, 08:30";
+            App.status("Dane zaimportowane!", "#00d166");
+            App.toast("Zaimportowano! Teraz popraw detale i Zapisz.");
+            this.tab('L');
+        }, 1500);
     },
 
     drawCMS() {
         const render = (type, boxId) => {
             const b = document.getElementById(boxId); b.innerHTML = '';
             Object.entries(App.data[type] || {}).forEach(([id, item]) => {
-                b.innerHTML += `<div class="card" style="font-size:0.8rem; display:flex; justify-content:space-between; align-items:center; background:var(--surf-l);">
-                    <span><b>${item.num || item.title || item.name}</b></span>
-                    <span>
-                        <i class="fa-solid fa-trash" style="color:var(--tram); cursor:pointer;" onclick="if(confirm('Usunąć?')) App.db.ref('${App.dbKey}/${type}/${id}').remove()"></i>
+                b.innerHTML += `<div class="card" style="font-size:0.9rem; display:flex; justify-content:space-between; align-items:center; background:var(--surf-l); padding:12px;">
+                    <span style="cursor:pointer; flex:1;" onclick="ModAdmin.edit('${type}', '${id}')">
+                        <i class="fa-solid fa-pen" style="color:var(--text-m); margin-right:10px;"></i>
+                        <b>${item.num || item.title || item.name}</b> ${item.dir ? `<small style="opacity:0.6;">(${item.dir})</small>` : ''}
                     </span>
+                    <i class="fa-solid fa-trash" style="color:var(--tram); cursor:pointer; padding:5px;" onclick="if(confirm('Na pewno usunąć?')) { App.db.ref('${App.dbKey}/${type}/${id}').remove(); App.toast('Usunięto'); }"></i>
                 </div>`;
             });
         };

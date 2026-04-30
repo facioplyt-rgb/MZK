@@ -65,7 +65,7 @@
 
 <div id="sync-status">
     <span><span id="status-dot" class="status-dot" style="background: #f1c40f;"></span> <span id="status-text">Inicjalizacja...</span></span>
-    <span id="cloud-name">CLOUD: mzk_v12_pro</span>
+    <span id="cloud-name">CLOUD: mzkfacio (DB: mzk)</span>
 </div>
 
 <div class="overlay" id="overlay" onclick="App.toggleMenu(false)"></div>
@@ -183,18 +183,26 @@
 
 <script>
 const App = {
-    dbKey: 'mzk_v12_pro',
+    dbKey: 'mzk', // <- Zaktualizowany klucz
     data: { news: {}, lines: {}, prices: {}, reports: {} },
     favs: JSON.parse(localStorage.getItem('mzk_favs')) || [],
     
     init() {
         this.status("Inicjalizacja SDK...", "#f1c40f");
-        firebase.initializeApp({
-            apiKey: "AIzaSyCb5QmZdwWwa9LafqqGZvGW-6vblkab32M",
-            authDomain: "mzk-by-facio.firebaseapp.com",
-            databaseURL: "https://mzk-by-facio-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "mzk-by-facio"
-        });
+        
+        // <- Twoja nowa konfiguracja mzkfacio
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAp3b1eLuZdus48M5aE9N9TTzPhFRU4i0",
+            authDomain: "mzkfacio.firebaseapp.com",
+            databaseURL: "https://mzkfacio-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "mzkfacio",
+            storageBucket: "mzkfacio.firebasestorage.app",
+            messagingSenderId: "34171682379",
+            appId: "1:34171682379:web:dbf01d56ace53536d597ce",
+            measurementId: "G-BQTF7HZTFR"
+        };
+
+        firebase.initializeApp(firebaseConfig);
         this.db = firebase.database();
         this.auth = firebase.auth();
 
@@ -202,7 +210,7 @@ const App = {
         this.db.ref(this.dbKey).on('value', snap => {
             this.data = snap.val() || { news: {}, lines: {}, prices: {}, reports: {} };
             this.renderAll();
-            this.status("Połączono z chmurą", "#00d166");
+            this.status("Połączono: mzkfacio", "#00d166");
         });
 
         // Nasłuchiwanie sesji admina

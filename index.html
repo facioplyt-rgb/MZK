@@ -128,28 +128,46 @@ const CONFIG = {
     TOKEN: "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9"
 };
 
-// Bezpieczne pobieranie z odpornością na błędy i CORS
+// Zoptymalizowana funkcja z bezpośrenim połączeniem, przekazywaniem tokenu w URL i limitem czasu
 async function fetchSafeJSON(url, headers = {}) {
+    let targetUrl = url;
+    if (CONFIG.TOKEN && !targetUrl.includes('token=')) {
+        targetUrl += (targetUrl.includes('?') ? '&' : '?') + `token=${CONFIG.TOKEN}`;
+    }
+
+    // 1. Próba bezpośredniego połączenia (najszybsza i bez strat nagłówków)
+    try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
+        const res = await fetch(targetUrl, { headers, signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+            const text = await res.text();
+            return JSON.parse(text);
+        }
+    } catch (e) {
+        // Ignorujemy błąd CORS/sieci i przechodzimy do proxy
+    }
+
+    // 2. Próba przez darmowe bramki proxy z automatycznym timeoutem (max 3.5s na próbowaną bramkę)
     const proxies = [
+        u => `https://thingproxy.freeboard.io/fetch/${u}`,
         u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        u => u
+        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`
     ];
 
     for (const proxyFn of proxies) {
         try {
-            const targetUrl = proxyFn(url);
-            const res = await fetch(targetUrl, { headers });
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 3500);
+            const res = await fetch(proxyFn(targetUrl), { signal: controller.signal });
+            clearTimeout(timer);
+
             if (!res.ok) continue;
             const text = await res.text();
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                // Odpowiedź nie jest prawidłowym JSON-em
-                continue;
-            }
+            return JSON.parse(text);
         } catch (e) {
-            // Kontynuuj do następnego proxy w przypadku błędu sieci
+            // Przejdź do kolejnego proxy w przypadku powolnej odpowiedzi/błędu
         }
     }
     return null;
@@ -193,12 +211,11 @@ const App = {
 
     async loadAllAPIData() {
         this.status("Pobieranie danych z API Gorzowa...", "#f1c40f");
-        const headers = { "Authorization": `Bearer ${CONFIG.TOKEN}` };
 
         const [vData, lData, pData, nData] = await Promise.all([
-            fetchSafeJSON(`${CONFIG.UM_API}&action=v`, headers),
-            fetchSafeJSON(`${CONFIG.UM_API}&action=l`, headers),
-            fetchSafeJSON(`${CONFIG.UM_API}&action=p`, headers),
+            fetchSafeJSON(`${CONFIG.UM_API}&action=v`),
+            fetchSafeJSON(`${CONFIG.UM_API}&action=l`),
+            fetchSafeJSON(`${CONFIG.UM_API}&action=p`),
             fetchSafeJSON(CONFIG.MZK_NEWS)
         ]);
 
@@ -257,7 +274,7 @@ const App = {
 const ModVehicles = {
     async load() {
         App.status("Odświeżanie pozycji GPS...", "#f1c40f");
-        const data = await fetchSafeJSON(`${CONFIG.UM_API}&action=v`, { "Authorization": `Bearer ${CONFIG.TOKEN}` });
+        const data = await fetchSafeJSON(`${CONFIG.UM_API}&action=v`);
         if(data) {
             App.cache.vehicles = Array.isArray(data) ? data : (data.vehicles || []);
             this.render();
@@ -387,7 +404,7 @@ const ModStops = {
         App.gate('details');
         document.getElementById('mod-details').innerHTML = '<div class="card">Ładowanie odjazdów...</div>';
 
-        const deps = await fetchSafeJSON(`${CONFIG.UM_API}&action=b&stopId=${stopId}`, { "Authorization": `Bearer ${CONFIG.TOKEN}` });
+        const deps = await fetchSafeJSON(`${CONFIG.UM_API}&action=b&stopId=${stopId}`);
         const depList = Array.isArray(deps) ? deps : (deps?.departures || []);
 
         let listHtml = depList.map(d => `

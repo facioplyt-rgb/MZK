@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#03060b">
-    <title>MZK Gorzów)67</title>
+    <title>MZK Gorzów - LIVE (UM + MZK)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
@@ -129,44 +128,28 @@ const CONFIG = {
     TOKEN: "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9"
 };
 
-// Funkcja fetch pozbawiona nagłówków customowych - omija zapytania Preflight (OPTIONS)
+// Pobieranie danych przez Twój prywatny Worker w Cloudflare
 async function fetchSafeJSON(url) {
     const token = CONFIG.TOKEN;
     const separator = url.includes('?') ? '&' : '?';
     const targetUrl = url.includes('token=') ? url : `${url}${separator}token=${token}`;
 
-    const proxies = [
-        u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
-    ];
+    const MY_PROXY = "https://shiny-tree-3a9b.fabianzukowski-32.workers.dev";
 
-    for (const proxyFn of proxies) {
-        const proxyUrl = proxyFn(targetUrl);
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 4500);
+    try {
+        const proxyUrl = `${MY_PROXY}/?url=${encodeURIComponent(targetUrl)}`;
+        const res = await fetch(proxyUrl);
 
-            // Brak nagłówków 'headers' -> prosty GET, co zapobiega błędom CORS Preflight
-            const res = await fetch(proxyUrl, { signal: controller.signal });
-            clearTimeout(timeoutId);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-            if (!res.ok) continue;
+        const text = await res.text();
+        if (!text || text.trim().startsWith('<')) throw new Error("Błędna odpowiedź (HTML zamiast JSON)");
 
-            const text = await res.text();
-            
-            // Ignorowanie odpowiedzi będących błędami HTML zamiast czystego JSONa
-            if (!text || text.trim().startsWith('<')) continue;
-
-            const data = JSON.parse(text);
-            if (data) return data;
-        } catch (e) {
-            console.warn(`Bramka proxy ${proxyUrl} nie odpowiedziała w czasie.`);
-        }
+        return JSON.parse(text);
+    } catch (e) {
+        console.error("Błąd pobierania danych przez Cloudflare Worker:", e);
+        return null;
     }
-
-    console.error("Wszystkie bramki proxy nie zdołały połączyć z:", targetUrl);
-    return null;
 }
 
 const App = {
@@ -229,7 +212,7 @@ const App = {
             this.status("Połączono z API Gorzów", "#00d166");
             this.toast("Zaktualizowano dane z systemu MZK!");
         } else {
-            this.status("Tryb offline / Brak połączenia", "#ff4757");
+            this.status("Tryb offline / Brak danych", "#ff4757");
         }
     },
 

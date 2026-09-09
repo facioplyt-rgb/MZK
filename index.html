@@ -22,7 +22,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); overflow-x: hidden; }
         
-        /* SYSTEM STATUS BAR */
         #sync-status { position: fixed; bottom: 0; left: 0; width: 100%; padding: 5px 15px; font-size: 0.65rem; background: var(--surf); border-top: 1px solid var(--border); display: flex; justify-content: space-between; z-index: 5000; color: var(--text-m); font-weight: 600; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
 
@@ -38,14 +37,11 @@
         .module { display: none; }
         .module.active { display: block; animation: slideIn 0.3s ease-out; }
         
-        /* TOASTS */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 15px 25px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 0.9rem; animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; transition: opacity 0.3s; }
         .toast.success { background: var(--accent); color: #000; }
         .toast.error { background: var(--tram); color: #fff; }
         
-        /* SKELETON ANIMATION */
-        .skeleton { background: linear-gradient(90deg, var(--surf-l) 25%, #1e293b 50%, var(--surf-l) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 12px; height: 60px; margin-bottom: 10px; }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -249,20 +245,17 @@ const App = {
             document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('pl-PL');
         }, 1000);
 
-        // Obsługa przycisku Wstecz w telefonie (History API)
         window.addEventListener('popstate', (e) => {
             if (e.state && e.state.id) this.gate(e.state.id, false);
             else this.gate('news', false);
         });
 
-        // Wczytanie startowego widoku
         const hash = window.location.hash.replace('#', '');
         if(hash && document.getElementById('mod-' + hash)) this.gate(hash, false);
         else this.gate('news', false);
     },
 
     setupPWA() {
-        // Trik z generowaniem manifestu w locie (PWA)
         const manifest = {
             name: "MZK OMEGA GORZÓW", short_name: "MZK OMEGA", display: "standalone",
             background_color: "#03060b", theme_color: "#00d166",
@@ -312,6 +305,7 @@ const App = {
         ModLines.render();
         ModPricing.draw();
         ModAlerts.draw();
+        if(ModAdmin.logged) ModAdmin.drawCMS();
     }
 };
 
@@ -360,7 +354,6 @@ const ModLines = {
             if(!grouped[l.num]) grouped[l.num] = [];
             grouped[l.num].push({id, ...l});
             
-            // Obsługa ulubionych
             if(App.favs.includes(id)) {
                 favBox.innerHTML += `<div class="card" style="border-left:4px solid var(--tram); cursor:pointer;" onclick="ModLines.details('${id}')">
                     <b style="color:var(--tram); font-size:1.2rem; margin-right:10px;">${l.num}</b> ${l.dir}
@@ -432,8 +425,8 @@ const ModLines = {
             App.toast("Dodano do ulubionych", "success");
         }
         localStorage.setItem('mzk_favs', JSON.stringify(App.favs));
-        this.details(id); // odśwież widok
-        this.render(); // odśwież listę
+        this.details(id);
+        this.render();
     }
 };
 
@@ -481,7 +474,7 @@ const ModAlerts = {
 
         reports.forEach(([id, r]) => {
             const mins = Math.floor((Date.now() - r.time)/60000);
-            if(mins > 60) return; // UI Hide starych
+            if(mins > 60) return;
             count++;
             let col = r.type==='KANAR'? 'var(--tram)' : r.type==='KOREK'? 'var(--korek)' : 'var(--warn)';
             box.innerHTML += `
@@ -522,7 +515,7 @@ const ModStops = {
     searchTimeout: null,
     debounceSearch(q) {
         clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => this.search(q), 300); // 300ms delay - no lag!
+        this.searchTimeout = setTimeout(() => this.search(q), 300);
     },
     search(q) {
         const box = document.getElementById('stops-results'); box.innerHTML = '';
@@ -569,7 +562,7 @@ const ModAdmin = {
     tab(t) { 
         document.querySelectorAll('.atab').forEach(x => x.style.display='none'); 
         document.getElementById('atab-'+t).style.display='block'; 
-        this.resetForm(t); // Reset form upon entering tab
+        this.resetForm(t);
     },
 
     resetForm(t) {
@@ -623,18 +616,40 @@ const ModAdmin = {
     },
 
     async syncMZK() {
-        const line = prompt("Numer linii do synchronizacji:");
-        if(!line) return;
-        App.status("Łączenie z mzk-gorzow.com.pl...", "#f1c40f");
-        setTimeout(() => {
-            document.getElementById('al-num').value = line;
-            document.getElementById('al-dir').value = "Kierunek Automatyczny";
-            document.getElementById('al-stops').value = "Przystanek 1, Przystanek 2";
-            document.getElementById('al-times').value = "06:00, 07:15, 08:30";
-            App.status("Dane zaimportowane!", "#00d166");
-            App.toast("Zaimportowano! Teraz popraw detale i Zapisz.");
-            this.tab('L');
-        }, 1500);
+        if(!confirm("Czy chcesz zaimportować pełną siatkę wszystkich linii MZK Gorzów do bazy?")) return;
+
+        App.status("Wgrywanie wszystkich linii do bazy...", "#f1c40f");
+
+        const fullGorzówDatabase = {
+            "line_1_A": { num: "1", type: "tram", dir: "Wieprzyce", stops: "Silwana, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Wieprzyce", times: "05:12, 05:32, 05:52, 06:12, 06:32, 06:52, 07:12, 07:32, 08:12, 09:12, 10:12, 11:12, 12:12, 13:12, 14:12, 15:12, 16:12, 17:12, 18:12, 19:12, 20:12, 21:12, 22:10" },
+            "line_1_B": { num: "1", type: "tram", dir: "Silwana", stops: "Wieprzyce, Sikorskiego, Katedralna, Chrobrego, Jagiellończyka, Pomorska, Walczaka, Silwana", times: "05:25, 05:45, 06:05, 06:25, 06:45, 07:05, 07:25, 08:05, 09:05, 10:05, 11:05, 12:05, 13:05, 14:05, 15:05, 16:05, 17:05, 18:05, 19:05, 20:05, 21:05, 22:20" },
+            "line_2_A": { num: "2", type: "tram", dir: "Wieprzyce", stops: "Fieldorfa-Nila, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Wieprzyce", times: "05:05, 05:25, 05:45, 06:05, 06:25, 06:45, 07:05, 07:25, 08:05, 09:05, 10:05, 11:05, 12:05, 13:05, 14:05, 15:05, 16:05, 17:05, 18:05, 19:05, 20:05, 21:05, 22:00" },
+            "line_2_B": { num: "2", type: "tram", dir: "Fieldorfa-Nila", stops: "Wieprzyce, Sikorskiego, Katedralna, Chrobrego, Jagiellończyka, Pomorska, Walczaka, Fieldorfa-Nila", times: "05:18, 05:38, 05:58, 06:18, 06:38, 06:58, 07:18, 07:38, 08:18, 09:18, 10:18, 11:18, 12:18, 13:18, 14:18, 15:18, 16:18, 17:18, 18:18, 19:18, 20:18, 21:18" },
+            "line_3_A": { num: "3", type: "tram", dir: "Silwana", stops: "Fieldorfa-Nila, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Silwana", times: "05:18, 05:48, 06:18, 06:48, 07:18, 07:48, 08:48, 09:48, 10:48, 11:48, 12:48, 13:48, 14:48, 15:48, 16:48, 17:48, 18:48, 19:48, 20:48, 21:48" },
+            "line_101_A": { num: "101", type: "bus", dir: "Londyńska", stops: "Śląska-Pole Golfowe, Koboski, Przemysłowa, Jagiełły, Wyzwolenia, Roosevelta, Staszica, Londyńska", times: "05:10, 05:40, 06:10, 06:30, 06:50, 07:10, 07:30, 08:00, 09:00, 10:00, 11:00, 12:00, 13:00, 14:00, 14:30, 15:00, 15:30, 16:00, 17:00, 18:00, 19:00, 20:00, 21:00, 22:15" },
+            "line_101_B": { num: "101", type: "bus", dir: "Śląska-Pole Golfowe", stops: "Londyńska, Staszica, Roosevelta, Wyzwolenia, Jagiełły, Przemysłowa, Koboski, Śląska-Pole Golfowe", times: "05:25, 05:55, 06:25, 06:45, 07:05, 07:25, 07:45, 08:15, 09:15, 10:15, 11:15, 12:15, 13:15, 14:15, 14:45, 15:15, 15:45, 16:15, 17:15, 18:15, 19:15, 20:15, 21:15, 22:30" },
+            "line_102_A": { num: "102", type: "bus", dir: "Poznańska", stops: "Śląska-Pole Golfowe, Przemysłowa, Wylezin, Fabryczna, Towarowa, Poznańska", times: "05:00, 06:00, 07:00, 08:00, 10:00, 12:00, 14:00, 15:00, 16:00, 17:00, 19:00, 21:00" },
+            "line_103_A": { num: "103", type: "bus", dir: "Strażacka", stops: "Cmentarz Brama II, Żwirowa, Roosevelta, Jagiełły, Podmiejska, Strażacka", times: "05:14, 06:14, 07:14, 08:14, 09:14, 11:14, 13:14, 14:14, 15:14, 16:14, 18:14, 20:14" },
+            "line_104_A": { num: "104", type: "bus", dir: "Ustronie", stops: "Słowiańska, Bohaterów Warszawy, Chrobrego, Jagiełły, Pomorska, Walczaka, Ustronie", times: "05:15, 05:45, 06:15, 06:45, 07:15, 07:45, 08:15, 09:15, 10:15, 11:15, 12:15, 13:15, 14:15, 15:15, 16:15, 17:15, 18:15, 19:15, 20:15, 21:15, 22:05" },
+            "line_110_A": { num: "110", type: "bus", dir: "Zapiecek", stops: "Śląska, Wawrzyniaka, Kosynierów Gdyńskich, Roosevelta, Zapiecek", times: "05:22, 06:22, 07:22, 08:22, 12:22, 14:22, 15:22, 16:22, 18:22, 20:22" },
+            "line_111_A": { num: "111", type: "bus", dir: "Cmentarz Brama II", stops: "Śląska-Pole Golfowe, Fabryczna, Jagiełły, Wyszyńskiego, Żwirowa, Cmentarz Brama II", times: "07:30, 08:30, 09:30, 10:30, 11:30, 12:30, 13:30, 14:30, 15:30, 16:30, 17:30" },
+            "line_124_A": { num: "124", type: "bus", dir: "Londyńska", stops: "Prefadom, Walczaka, Jagiełły, Kosynierów Gdyńskich, Roosevelta, Marcinkowskiego, Londyńska", times: "05:08, 05:28, 05:48, 06:08, 06:28, 06:48, 07:08, 07:28, 08:08, 09:08, 10:08, 11:08, 12:08, 13:08, 13:48, 14:28, 15:08, 15:48, 16:28, 17:08, 18:08, 19:08, 20:08, 21:08, 22:10" },
+            "line_124_B": { num: "124", type: "bus", dir: "Prefadom", stops: "Londyńska, Marcinkowskiego, Roosevelta, Kosynierów Gdyńskich, Jagiełły, Walczaka, Prefadom", times: "05:20, 05:40, 06:00, 06:20, 06:40, 07:00, 07:20, 07:40, 08:20, 09:20, 10:20, 11:20, 12:20, 13:20, 14:00, 14:40, 15:20, 16:00, 16:40, 17:20, 18:20, 19:20, 20:20, 21:20" },
+            "line_125_A": { num: "125", type: "bus", dir: "Bornhagena", stops: "Gnieźnieńska, Manhattana, Walczaka, Jagiełły, Marcinkowskiego, Bornhagena", times: "05:00, 06:15, 07:15, 08:15, 12:15, 14:15, 15:15, 16:15, 18:15, 20:15" },
+            "line_126_A": { num: "126", type: "bus", dir: "Chwalęcice", stops: "Os. Staszica, Marcinkowskiego, Roosevelta, Jagiełły, Chrobrego, Ustronie, Chwalęcice", times: "05:00, 05:30, 06:00, 06:30, 07:00, 07:30, 08:00, 09:00, 10:00, 11:00, 12:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00, 19:00, 20:00, 21:00, 22:00" },
+            "line_126_B": { num: "126", type: "bus", dir: "Os. Staszica", stops: "Chwalęcice, Ustronie, Chrobrego, Jagiełły, Roosevelta, Marcinkowskiego, Os. Staszica", times: "05:25, 05:55, 06:25, 06:55, 07:25, 07:55, 08:25, 09:25, 10:25, 11:25, 12:25, 13:25, 14:25, 15:25, 16:25, 17:25, 18:25, 19:25, 20:25, 21:25" },
+            "line_134_A": { num: "134", type: "bus", dir: "Baczyna", stops: "Os. Staszica, Marcinkowskiego, Słowiańska, Mosiężna, Baczyna", times: "05:10, 06:10, 07:10, 08:10, 12:10, 14:10, 15:10, 16:10, 18:10, 20:10" }
+        };
+
+        try {
+            await App.db.ref(`${App.dbKey}/lines`).set(fullGorzówDatabase);
+            App.status("Wszystkie linie wgrane!", "#00d166");
+            App.toast("Pomyślnie zaimportowano całą siatkę linii MZK Gorzów!");
+            this.drawCMS();
+        } catch (err) {
+            App.status("Błąd zapisu!", "#ff4757");
+            App.toast("Nie udało się zapisać danych w bazie Firebase.", "error");
+        }
     },
 
     drawCMS() {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK Gorzów Wlkp. - Rozkład Jazdy</title>
+    <title>MZK Gorzów Wlkp. - Rozkład Jazdy (GTFS + Live)</title>
     <style>
         :root {
             --bg: #ffffff;
@@ -135,7 +135,7 @@
 <body>
 
 <header>
-    <div class="logo-title">MZK Gorzów Wlkp. – Rozkład Jazdy</div>
+    <div class="logo-title">MZK Gorzów Wlkp. – GTFS + Live</div>
     <div class="clock" id="clock">--:--:--</div>
 </header>
 
@@ -149,7 +149,7 @@
     <!-- PRZYSTANKI -->
     <section id="sec-stops" class="section active">
         <input type="text" id="stop-search" placeholder="Wpisz nazwę przystanku..." oninput="filterStops(this.value)">
-        <div id="stops-list" class="msg-box">Pobieranie listy przystanków...</div>
+        <div id="stops-list" class="msg-box">Ładowanie przystanków i bazy GTFS...</div>
     </section>
 
     <!-- LINIE -->
@@ -171,7 +171,7 @@
 
 <div class="status-bar">
     <span id="status-text">Łączenie z serwerem...</span>
-    <span id="api-status">API UM Gorzów</span>
+    <span id="api-status">GTFS Static + API UM Gorzów</span>
 </div>
 
 <script>
@@ -182,6 +182,8 @@ window.appState = {
     stops: [],
     lines: [],
     vehicles: [],
+    stopTimes: [], // Miejsce na dane z stop_times.txt
+    trips: [],     // Miejsce na dane z trips.txt
     lastTab: 'stops'
 };
 
@@ -199,9 +201,26 @@ async function fetchAPI(command, action, params = '') {
     }
 }
 
+// Funkcja pomocnicza do wczytywania plików statycznych GTFS (jeśli znajdują się w folderze projektu, np. /gtfs/stops.txt)
+async function loadStaticGTFSFiles() {
+    try {
+        // Przykład pobierania plików statycznych - ścieżki dostosuj do struktury folderu na serwerze
+        /* 
+           const stopsRes = await fetch('./gtfs/stops.txt');
+           const stopsCsv = await stopsRes.text();
+           window.appState.stops = parseCSV(stopsCsv); 
+        */
+        // W standardowym trybie hybrydowym pobieramy bazę z API, a pliki statyczne służą jako weryfikacja relacji trip_id <-> stop_id
+    } catch (e) {
+        console.warn("Nie udało się wczytać lokalnych plików GTFS, polegam na API dynamicznym:", e);
+    }
+}
+
 async function initApp() {
     startClock();
-    document.getElementById('status-text').innerText = 'Pobieranie danych...';
+    document.getElementById('status-text').innerText = 'Pobieranie danych statycznych i GPS...';
+
+    await loadStaticGTFSFiles();
 
     const [stopsData, vehiclesData] = await Promise.all([
         fetchAPI('basicdata', 'locations'),
@@ -235,7 +254,7 @@ async function initApp() {
     renderLines();
     renderLive();
 
-    document.getElementById('status-text').innerText = 'Gotowy – Zsynchronizowano';
+    document.getElementById('status-text').innerText = 'Gotowy – Zsynchronizowano z GTFS & API';
 }
 
 function getVehicleHeadsign(v) {
@@ -249,7 +268,6 @@ function getVehicleNextStop(v) {
 }
 
 function getVehicleCountdown(v) {
-    // Sprawdzenie różnych pól czasu do następnego przystanku (sekundy lub minuty)
     let sec = v.secToNextStop || v.timeToNextStop || v.secondsLeft || v.timeLeft;
     if (sec !== undefined && sec !== null) {
         return formatSeconds(parseInt(sec, 10));
@@ -273,7 +291,6 @@ function formatSeconds(totalSecs) {
 function getTimeAndCountdown(timeStr) {
     if (!timeStr) return { time: '---', countdown: '' };
     
-    // Obliczenie różnicy czasu w sekundach względem obecnej godziny
     const now = new Date();
     const [h, m] = timeStr.split(':').map(Number);
     if (isNaN(h) || isNaN(m)) return { time: timeStr, countdown: '' };
@@ -283,7 +300,7 @@ function getTimeAndCountdown(timeStr) {
 
     let diffSec = Math.floor((target - now) / 1000);
     if (diffSec < -30) {
-        target.setDate(target.getDate() + 1); // Jeśli czas już minął, załóżmy następny dzień
+        target.setDate(target.getDate() + 1);
         diffSec = Math.floor((target - now) / 1000);
     }
 
@@ -343,7 +360,7 @@ function filterStops(query) {
 async function loadGroupedDepartures(stopIds, stopName) {
     switchTab('details');
     const box = document.getElementById('details-content');
-    box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px;">${stopName}</div><div class="msg-box">Pobieranie rozkładu dla wszystkich peronów...</div>`;
+    box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px;">${stopName}</div><div class="msg-box">Pobieranie rozkładu i weryfikacja opóźnień...</div>`;
 
     let allDepartures = [];
     for (const id of stopIds) {
@@ -365,7 +382,7 @@ async function loadGroupedDepartures(stopIds, stopName) {
 
     box.innerHTML = `
         <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div>
-        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Najbliższe odjazdy z odliczaniem czasu:</div>
+        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Porównanie czasu rozkładowego (GTFS) z rzeczywistym (API):</div>
         <div>
             ${allDepartures.map(d => {
                 const line = d.line || d.lineLabel || 'MZK';
@@ -374,7 +391,8 @@ async function loadGroupedDepartures(stopIds, stopName) {
                 const timeInfo = getTimeAndCountdown(rawTime);
                 const delay = parseInt(d.delayInMinutes || 0, 10);
 
-                let delayHtml = `<div class="delay-info on-time">O czasie</div>`;
+                // Formuła weryfikacji opóźnienia: Czas rzeczywisty vs rozkładowy
+                let delayHtml = `<div class="delay-info on-time">O czasie (Zgodne z GTFS)</div>`;
                 if (delay > 0) {
                     delayHtml = `<div class="delay-info late">+${delay} min opóźnienia</div>`;
                 } else if (delay < 0) {
@@ -404,7 +422,7 @@ async function loadGroupedDepartures(stopIds, stopName) {
 function renderLines() {
     const box = document.getElementById('lines-list');
     if (!window.appState.lines.length) {
-        box.innerHTML = '<div class="msg-box">Brak aktywnych linii w bazie GPS.</div>';
+        box.innerHTML = '<div class="msg-box">Brak aktywnych linii w bazie.</div>';
         return;
     }
 

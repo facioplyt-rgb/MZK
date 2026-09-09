@@ -201,10 +201,8 @@ async function initApp() {
     startClock();
     document.getElementById('status-text').innerText = 'Pobieranie danych...';
 
-    // Poprawiona akcja dla linii to 'lines' (zamiast 'l')
-    const [stopsData, linesData, vehiclesData] = await Promise.all([
+    const [stopsData, vehiclesData] = await Promise.all([
         fetchAPI('basicdata', 'locations'),
-        fetchAPI('planner', 'lines'),
         fetchAPI('planner', 'v')
     ]);
 
@@ -220,19 +218,23 @@ async function initApp() {
     });
 
     window.appState.stops = Array.from(groupedMap.values());
-    
-    // Obsługa linii (zabezpieczenie przed różnymi formatami zwracanymi przez tablice)
-    let rawLines = Array.isArray(linesData) ? linesData : (linesData?.lines || linesData?.data || []);
-    window.appState.lines = rawLines;
+    window.appState.vehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || vehiclesData?.data || []);
 
-    let rawVehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || vehiclesData?.data || []);
-    window.appState.vehicles = rawVehicles;
+    // Automatyczne wyciąganie unikalnych linii z aktywnych pojazdów
+    const linesMap = new Map();
+    window.appState.vehicles.forEach(v => {
+        const lineNum = v.lineLabel || v.line || v.lineId;
+        if (lineNum && !linesMap.has(lineNum)) {
+            linesMap.set(lineNum, { id: lineNum, name: `Linia ${lineNum}` });
+        }
+    });
+    window.appState.lines = Array.from(linesMap.values()).sort((a, b) => String(a.id).localeCompare(String(b.id), undefined, {numeric: true}));
 
     renderStops();
     renderLines();
     renderLive();
 
-    document.getElementById('status-text').innerText = 'Gotowy – Wszystko zsynchronizowano';
+    document.getElementById('status-text').innerText = 'Gotowy – Zsynchronizowano';
 }
 
 function startClock() {
@@ -311,7 +313,7 @@ async function loadGroupedDepartures(stopIds, stopName) {
         <div>
             ${allDepartures.map(d => {
                 const line = d.line || d.lineLabel || 'MZK';
-                const headsign = d.headsign || d.direction || 'Kierunek miejski';
+                const headsign = d.headsign || d.direction || d.destination || d.to || 'Kierunek miejski';
                 const time = d.time || d.actualTime || '---';
                 const delay = parseInt(d.delayInMinutes || 0, 10);
 
@@ -342,18 +344,16 @@ async function loadGroupedDepartures(stopIds, stopName) {
 function renderLines() {
     const box = document.getElementById('lines-list');
     if (!window.appState.lines.length) {
-        box.innerHTML = '<div class="msg-box">Brak danych o liniach.</div>';
+        box.innerHTML = '<div class="msg-box">Brak aktywnych linii w bazie GPS.</div>';
         return;
     }
 
     box.innerHTML = window.appState.lines.map(l => {
-        const id = l.id || l.name || l.lineLabel;
-        const name = l.name || l.longName || `Linia ${id}`;
         return `
-            <div class="row-item" onclick="loadLineRoute('${id}', '${name}')">
+            <div class="row-item" onclick="loadLineRoute('${l.id}', '${l.name}')">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="badge">${id}</span>
-                    <strong>${name}</strong>
+                    <span class="badge">${l.id}</span>
+                    <strong>${l.name}</strong>
                 </div>
                 <div style="font-size: 0.75rem; color: #555;">pojazdy &rarr;</div>
             </div>
@@ -371,12 +371,13 @@ function loadLineRoute(lineId, lineName) {
         <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Aktualna lokalizacja pojazdów na linii:</div>
         <div>
             ${activeVehicles.length ? activeVehicles.map(v => {
+                const headsign = v.headsign || v.direction || v.destination || v.to || 'Trasa miejska';
                 const delay = parseInt(v.delayInMinutes || 0, 10);
                 return `
                     <div class="dep-row">
                         <div>
                             <strong>Pojazd #${v.id || 'N/A'}</strong>
-                            <div style="font-size: 0.75rem; color: #555;">Kierunek: ${v.headsign || '---'}</div>
+                            <div style="font-size: 0.75rem; color: #555;">Kierunek: ${headsign}</div>
                         </div>
                         <div class="time-box">
                             ${delay > 0 ? `<div class="delay-info late">+${delay} min opóźnienia</div>` : `<div class="delay-info on-time">O czasie</div>`}
@@ -397,6 +398,7 @@ function renderLive() {
 
     box.innerHTML = window.appState.vehicles.map(v => {
         const line = v.lineLabel || v.line || '?';
+        const headsign = v.headsign || v.direction || v.destination || v.to || 'Trasa miejska';
         const delay = parseInt(v.delayInMinutes || 0, 10);
 
         return `
@@ -404,7 +406,7 @@ function renderLive() {
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span class="badge">${line}</span>
                     <div>
-                        <strong>Kierunek: ${v.headsign || 'Trasa miejska'}</strong>
+                        <strong>Kierunek: ${headsign}</strong>
                         <div style="font-size: 0.7rem; color: #555;">Pojazd #${v.id}</div>
                     </div>
                 </div>

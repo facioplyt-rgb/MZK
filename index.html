@@ -3,141 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK Gorzów</title>
+    <title>MZK Gorzów Wlkp. - Rozkład Jazdy</title>
     <style>
         :root {
             --bg: #ffffff;
-            --text: #111111;
-            --text-muted: #666666;
-            --border: #cccccc;
-            --border-light: #eeeeee;
-            --hover: #f5f5f5;
+            --text: #000000;
+            --gray-light: #f4f4f4;
+            --gray-border: #b0b0b0;
+            --gray-dark: #333333;
+            --danger: #cc0000;
+            --success: #006600;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
-        body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.4; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, Arial, sans-serif; }
+        body { background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.35; }
 
         header {
-            border-bottom: 2px solid var(--text);
-            padding: 12px 16px;
+            background: var(--gray-dark);
+            color: #fff;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--bg);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            border-bottom: 3px solid #000;
         }
 
-        .logo { font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .clock { font-size: 0.9rem; color: var(--text-muted); font-weight: bold; }
+        .logo-title { font-weight: bold; font-size: 1rem; text-transform: uppercase; }
+        .clock { font-size: 0.9rem; font-weight: bold; }
 
         nav {
             display: flex;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg);
-            position: sticky;
-            top: 45px;
-            z-index: 90;
+            background: var(--gray-light);
+            border-bottom: 1px solid var(--gray-border);
         }
 
         .nav-btn {
             flex: 1;
             background: none;
             border: none;
-            padding: 10px;
+            border-right: 1px solid var(--gray-border);
+            padding: 10px 5px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
             text-align: center;
-            color: var(--text-muted);
-            border-bottom: 2px solid transparent;
+            color: var(--gray-dark);
         }
+        .nav-btn:last-child { border-right: none; }
+        .nav-btn.active { background: #fff; color: #000; border-bottom: 2px solid #000; }
 
-        .nav-btn.active { color: var(--text); border-bottom-color: var(--text); background: var(--hover); }
-
-        .container { max-width: 800px; margin: 0 auto; padding: 12px; }
+        .container { max-width: 750px; margin: 0 auto; padding: 10px; }
         .section { display: none; }
         .section.active { display: block; }
 
         input[type="text"] {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border: 1px solid var(--gray-border);
             border-radius: 0;
-            font-size: 0.95rem;
-            margin-bottom: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
             outline: none;
         }
-        input[type="text"]:focus { border-color: var(--text); }
+        input[type="text"]:focus { border-color: #000; }
 
-        .list-item {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border-light);
+        .row-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
         }
-        .list-item:hover { background: var(--hover); }
+        .row-item:hover { background: var(--gray-light); }
 
         .badge {
             display: inline-block;
-            border: 1px solid var(--text);
-            padding: 2px 6px;
+            border: 1px solid #000;
+            padding: 2px 5px;
             font-weight: bold;
-            font-size: 0.8rem;
-            min-width: 32px;
+            font-size: 0.75rem;
+            min-width: 30px;
             text-align: center;
             background: #fff;
             color: #000;
         }
 
         .back-btn {
-            background: none;
-            border: 1px solid var(--text);
-            padding: 6px 12px;
+            background: var(--gray-light);
+            border: 1px solid var(--gray-border);
+            padding: 5px 10px;
             cursor: pointer;
             font-weight: bold;
-            margin-bottom: 12px;
-            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
         }
-        .back-btn:hover { background: var(--text); color: #fff; }
+        .back-btn:hover { background: #e0e0e0; }
 
-        .departure-row {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border-light);
+        .dep-row {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .time-box { text-align: right; }
-        .time-main { font-weight: bold; font-size: 1.05rem; }
-        .delay-info { font-size: 0.75rem; font-weight: bold; margin-top: 2px; }
-        .delay-info.late { color: #d32f2f; }
-        .delay-info.on-time { color: #2e7d32; }
+        .time-main { font-weight: bold; font-size: 1rem; }
+        .delay-info { font-size: 0.7rem; font-weight: bold; }
+        .delay-info.late { color: var(--danger); }
+        .delay-info.on-time { color: var(--success); }
 
         .status-bar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            background: var(--bg);
-            border-top: 1px solid var(--border);
-            padding: 6px 12px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
+            background: var(--gray-light);
+            border-top: 1px solid var(--gray-border);
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            color: var(--gray-dark);
             display: flex;
             justify-content: space-between;
             z-index: 100;
         }
         
-        .loading { text-align: center; padding: 20px; color: var(--text-muted); font-style: italic; }
+        .msg-box { text-align: center; padding: 20px; color: #555; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">MZK Gorzów Wlkp.</div>
+    <div class="logo-title">MZK Gorzów Wlkp. – Rozkład Jazdy</div>
     <div class="clock" id="clock">--:--:--</div>
 </header>
 
@@ -147,56 +143,55 @@
     <button class="nav-btn" onclick="switchTab('live')">GPS Na Żywo</button>
 </nav>
 
-<div class="container" style="padding-bottom: 50px;">
+<div class="container" style="padding-bottom: 40px;">
     <!-- PRZYSTANKI -->
     <section id="sec-stops" class="section active">
-        <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="filterStops(this.value)">
-        <div id="stops-list" class="loading">Ładowanie przystanków...</div>
+        <input type="text" id="stop-search" placeholder="Wpisz nazwę przystanku..." oninput="filterStops(this.value)">
+        <div id="stops-list" class="msg-box">Pobieranie listy przystanków...</div>
     </section>
 
     <!-- LINIE -->
     <section id="sec-lines" class="section">
-        <div id="lines-list" class="loading">Ładowanie linii...</div>
+        <div id="lines-list" class="msg-box">Pobieranie listy linii...</div>
     </section>
 
-    <!-- GPS NA ŻYWO -->
+    <!-- POJAZDY GPS -->
     <section id="sec-live" class="section">
-        <div id="live-list" class="loading">Ładowanie pozycji pojazdów...</div>
+        <div id="live-list" class="msg-box">Pobieranie pozycji pojazdów...</div>
     </section>
 
-    <!-- SZCZEGÓŁY / ODJAZDY Z PRZYSTANKU -->
+    <!-- SZCZEGÓŁY ODJAZDÓW -->
     <section id="sec-details" class="section">
-        <button class="back-btn" onclick="switchTab(lastTab)">&larr; Wróć</button>
+        <button class="back-btn" onclick="switchTab(window.lastTab || 'stops')">&larr; Powrót</button>
         <div id="details-content"></div>
     </section>
 </div>
 
 <div class="status-bar">
-    <span id="status-text">Inicjalizacja systemu...</span>
-    <span>API UM Gorzów</span>
+    <span id="status-text">Łączenie z serwerem miejskim...</span>
+    <span id="api-status">API UM Gorzów</span>
 </div>
 
 <script>
-// Używamy darmowego, publicznego proxy CORS, które nie blokuje zapytań
-const PROXY = "https://corsproxy.io/?"; 
-// Ewentualna alternatywa, gdyby corsproxy nie działało: "https://api.allorigins.win/raw?url="
-
+const PROXY = "https://corsproxy.io/?";
 const API_URL = "https://komunikacja.um.gorzow.pl/vm/main?command=planner";
 const TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
 
-let cache = { stops: [], lines: [], vehicles: [] };
-let lastTab = 'stops';
+// Globalny stan aplikacji zamknięty w jednym obiekcie unikającym konfliktów nazw
+window.appState = {
+    stops: [],
+    lines: [],
+    vehicles: [],
+    lastTab: 'stops'
+};
 
 async function fetchAPI(action, params = '') {
     const targetUrl = `${API_URL}&action=${action}&token=${TOKEN}${params}`;
     try {
-        // Doklejamy adres URL bezpośrednio do proxy
         const res = await fetch(PROXY + encodeURIComponent(targetUrl));
         if (!res.ok) return null;
-        
         const text = await res.text();
         if (text.trim().startsWith('<') || text.includes('Cloudflare') || text.includes('Access Denied')) {
-            console.error("Serwer zwrócił stronę HTML/błąd zamiast JSON:", text.substring(0, 100));
             return null;
         }
         return JSON.parse(text);
@@ -206,25 +201,9 @@ async function fetchAPI(action, params = '') {
     }
 }
 
-
-let cache = { stops: [], lines: [], vehicles: [] };
-let lastTab = 'stops';
-
-async function fetchAPI(action, params = '') {
-    const targetUrl = `${API_URL}&action=${action}&token=${TOKEN}${params}`;
-    try {
-        const res = await fetch(`${PROXY}/?url=${encodeURIComponent(targetUrl)}`);
-        if (!res.ok) return null;
-        return await res.json();
-    } catch (e) {
-        console.error("Błąd API:", e);
-        return null;
-    }
-}
-
-async function init() {
+async function initApp() {
     startClock();
-    document.getElementById('status-text').innerText = 'Pobieranie danych z MZK...';
+    document.getElementById('status-text').innerText = 'Pobieranie danych z systemu...';
 
     const [stopsData, linesData, vehiclesData] = await Promise.all([
         fetchAPI('p'),
@@ -232,15 +211,15 @@ async function init() {
         fetchAPI('v')
     ]);
 
-    cache.stops = stopsData?.stops || stopsData || [];
-    cache.lines = linesData?.lines || linesData || [];
-    cache.vehicles = vehiclesData?.vehicles || vehiclesData || [];
+    window.appState.stops = Array.isArray(stopsData) ? stopsData : (stopsData?.stops || []);
+    window.appState.lines = Array.isArray(linesData) ? linesData : (linesData?.lines || []);
+    window.appState.vehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || []);
 
     renderStops();
     renderLines();
     renderLive();
 
-    document.getElementById('status-text').innerText = 'Dane zsynchronizované';
+    document.getElementById('status-text').innerText = 'Gotowy';
 }
 
 function startClock() {
@@ -250,11 +229,13 @@ function startClock() {
 }
 
 function switchTab(tab) {
-    if (tab !== 'details') lastTab = tab;
+    if (tab !== 'details') window.appState.lastTab = tab;
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
-    document.getElementById(`sec-${tab}`).classList.add('active');
+    const targetSec = document.getElementById(`sec-${tab}`);
+    if (targetSec) targetSec.classList.add('active');
+
     if (tab !== 'details') {
         const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(tab));
         if (btn) btn.classList.add('active');
@@ -267,18 +248,23 @@ function renderStops() {
 
 function filterStops(query) {
     const box = document.getElementById('stops-list');
-    const filtered = cache.stops
+    if (!window.appState.stops.length) {
+        box.innerHTML = '<div class="msg-box">Brak danych przystanków. Sprawdź połączenie z siecią.</div>';
+        return;
+    }
+
+    const filtered = window.appState.stops
         .filter(s => (s.name || s.title || '').toLowerCase().includes(query.toLowerCase()));
 
     if (!filtered.length) {
-        box.innerHTML = '<div class="loading">Brak przystanków spełniających kryteria.</div>';
+        box.innerHTML = '<div class="msg-box">Nie znaleziono przystanku.</div>';
         return;
     }
 
     box.innerHTML = filtered.map(s => `
-        <div class="list-item" onclick="loadStopDepartures('${s.id}', '${s.name || s.title}')">
+        <div class="row-item" onclick="loadStopDepartures('${s.id}', '${s.name || s.title}')">
             <div><strong>${s.name || s.title}</strong></div>
-            <div style="font-size: 0.8rem; color: var(--text-muted);">Wybierz &rarr;</div>
+            <div style="font-size: 0.75rem; color: #555;">odjazdy &rarr;</div>
         </div>
     `).join('');
 }
@@ -286,19 +272,19 @@ function filterStops(query) {
 async function loadStopDepartures(stopId, stopName) {
     switchTab('details');
     const box = document.getElementById('details-content');
-    box.innerHTML = `<h2>${stopName}</h2><div class="loading">Pobieranie odjazdów na żywo...</div>`;
+    box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px;">${stopName}</div><div class="msg-box">Pobieranie rozkładu jazdy na żywo...</div>`;
 
     const data = await fetchAPI('b', `&stopId=${stopId}`);
-    const departures = data?.departures || data || [];
+    const departures = Array.isArray(data) ? data : (data?.departures || []);
 
     if (!departures.length) {
-        box.innerHTML = `<h2>${stopName}</h2><div class="loading">Brak aktualnych odjazdów dla tego przystanku.</div>`;
+        box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div><div class="msg-box">Brak najbliższych odjazdów dla tego przystanku.</div>`;
         return;
     }
 
     box.innerHTML = `
-        <h2 style="margin-bottom: 4px; font-size: 1.1rem;">${stopName}</h2>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Najbliższe odjazdy i opóźnienia</p>
+        <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div>
+        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Najbliższe odjazdy uwzględniające opóźnienia GPS:</div>
         <div>
             ${departures.map(d => {
                 const line = d.line || d.lineLabel || 'MZK';
@@ -310,16 +296,14 @@ async function loadStopDepartures(stopId, stopName) {
                 if (delay > 0) {
                     delayHtml = `<div class="delay-info late">+${delay} min opóźnienia</div>`;
                 } else if (delay < 0) {
-                    delayHtml = `<div class="delay-info on-time">${delay} min przed czasem</div>`;
+                    delayHtml = `<div class="delay-info on-time">${Math.abs(delay)} min przed czasem</div>`;
                 }
 
                 return `
-                    <div class="departure-row">
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="dep-row">
+                        <div style="display: flex; align-items: center; gap: 8px;">
                             <span class="badge">${line}</span>
-                            <div>
-                                <div style="font-weight: bold;">${headsign}</div>
-                            </div>
+                            <div><strong>${headsign}</strong></div>
                         </div>
                         <div class="time-box">
                             <div class="time-main">${time}</div>
@@ -334,21 +318,21 @@ async function loadStopDepartures(stopId, stopName) {
 
 function renderLines() {
     const box = document.getElementById('lines-list');
-    if (!cache.lines.length) {
-        box.innerHTML = '<div class="loading">Brak danych o liniach.</div>';
+    if (!window.appState.lines.length) {
+        box.innerHTML = '<div class="msg-box">Brak danych o liniach.</div>';
         return;
     }
 
-    box.innerHTML = cache.lines.map(l => {
+    box.innerHTML = window.appState.lines.map(l => {
         const id = l.id || l.name;
         const name = l.name || `Linia ${id}`;
         return `
-            <div class="list-item" onclick="loadLineRoute('${id}', '${name}')">
-                <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="row-item" onclick="loadLineRoute('${id}', '${name}')">
+                <div style="display: flex; align-items: center; gap: 8px;">
                     <span class="badge">${id}</span>
                     <strong>${name}</strong>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted);">Pojazdy &rarr;</div>
+                <div style="font-size: 0.75rem; color: #555;">pojazdy &rarr;</div>
             </div>
         `;
     }).join('');
@@ -358,48 +342,48 @@ function loadLineRoute(lineId, lineName) {
     switchTab('details');
     const box = document.getElementById('details-content');
     
-    const activeVehicles = cache.vehicles.filter(v => (v.lineLabel || v.line) === lineId);
+    const activeVehicles = window.appState.vehicles.filter(v => (v.lineLabel || v.line) === lineId);
 
     box.innerHTML = `
-        <h2 style="margin-bottom: 4px; font-size: 1.1rem;">${lineName}</h2>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Aktywne pojazdy na tej linii</p>
+        <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${lineName}</div>
+        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Aktualna lokalizacja pojazdów na linii:</div>
         <div>
             ${activeVehicles.length ? activeVehicles.map(v => {
                 const delay = parseInt(v.delayInMinutes || 0, 10);
                 return `
-                    <div class="departure-row">
+                    <div class="dep-row">
                         <div>
                             <strong>Pojazd #${v.id || 'N/A'}</strong>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">Kierunek: ${v.headsign || '---'}</div>
+                            <div style="font-size: 0.75rem; color: #555;">Kierunek: ${v.headsign || '---'}</div>
                         </div>
                         <div class="time-box">
                             ${delay > 0 ? `<div class="delay-info late">+${delay} min opóźnienia</div>` : `<div class="delay-info on-time">O czasie</div>`}
                         </div>
                     </div>
                 `;
-            }).join('') : '<div class="loading">Brak pojazdów w ruchu dla tej linii.</div>'}
+            }).join('') : '<div class="msg-box">Brak aktywnych pojazdów na tej linii w bazie GPS.</div>'}
         </div>
     `;
 }
 
 function renderLive() {
     const box = document.getElementById('live-list');
-    if (!cache.vehicles.length) {
-        box.innerHTML = '<div class="loading">Brak danych GPS dla pojazdów.</div>';
+    if (!window.appState.vehicles.length) {
+        box.innerHTML = '<div class="msg-box">Brak danych GPS dla pojazdów.</div>';
         return;
     }
 
-    box.innerHTML = cache.vehicles.map(v => {
+    box.innerHTML = window.appState.vehicles.map(v => {
         const line = v.lineLabel || v.line || '?';
         const delay = parseInt(v.delayInMinutes || 0, 10);
 
         return `
-            <div class="departure-row">
-                <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="dep-row">
+                <div style="display: flex; align-items: center; gap: 8px;">
                     <span class="badge">${line}</span>
                     <div>
-                        <div style="font-weight: bold;">Kierunek: ${v.headsign || 'Trasa miejska'}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Pojazd #${v.id}</div>
+                        <strong>Kierunek: ${v.headsign || 'Trasa miejska'}</strong>
+                        <div style="font-size: 0.7rem; color: #555;">Pojazd #${v.id}</div>
                     </div>
                 </div>
                 <div class="time-box">
@@ -410,7 +394,8 @@ function renderLive() {
     }).join('');
 }
 
-init();
+// Uruchomienie aplikacji po załadowaniu DOM
+document.addEventListener('DOMContentLoaded', initApp);
 </script>
 </body>
 </html>

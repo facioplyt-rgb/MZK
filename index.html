@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK Gorzów Wlkp.</title>
+    <title>MZK Gorzów Wlkp. - Rozkład Jazdy</title>
     <style>
         :root {
             --bg: #ffffff;
@@ -168,12 +168,13 @@
 </div>
 
 <div class="status-bar">
-    <span id="status-text">Łączenie z serwerem miejskim...</span>
+    <span id="status-text">Łączenie z serwerem...</span>
     <span id="api-status">API UM Gorzów</span>
 </div>
 
 <script>
-const BASE_API_URL = "https://komunikacja.um.gorzow.pl/vm/main";
+// TUTAJ WPISZ SWÓJ ADRES CLOUDFLARE WORKERA:
+const PROXY_URL = "https://shiny-tree-3a9b.TWOJA-NAZWA.workers.dev/?"; 
 const TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
 
 window.appState = {
@@ -184,32 +185,22 @@ window.appState = {
 };
 
 async function fetchAPI(command, action, params = '') {
-    const targetUrl = `${BASE_API_URL}?command=${command}&action=${action}&token=${TOKEN}${params}`;
-    
-    const proxies = [
-        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
-    ];
-
-    for (const proxyUrl of proxies) {
-        try {
-            const res = await fetch(proxyUrl);
-            if (!res.ok) continue;
-            const text = await res.text();
-            if (!text || text.trim().startsWith('<') || text.includes('Cloudflare') || text.includes('Access Denied')) {
-                continue;
-            }
-            return JSON.parse(text);
-        } catch (e) {
-            console.warn("Proxy fallback, próbuję kolejnego...", e);
-        }
+    const targetUrl = `https://komunikacja.um.gorzow.pl/vm/main?command=${command}&action=${action}&token=${TOKEN}${params}`;
+    try {
+        const res = await fetch(PROXY_URL + targetUrl);
+        if (!res.ok) return null;
+        const text = await res.text();
+        if (!text || text.trim().startsWith('<') || text.includes('Cloudflare')) return null;
+        return JSON.parse(text);
+    } catch (e) {
+        console.error("Błąd API:", e);
+        return null;
     }
-    return null;
 }
 
 async function initApp() {
     startClock();
-    document.getElementById('status-text').innerText = 'Pobieranie danych z systemów miejskich...';
+    document.getElementById('status-text').innerText = 'Pobieranie danych...';
 
     const [stopsData, linesData, vehiclesData] = await Promise.all([
         fetchAPI('basicdata', 'locations'),
@@ -217,21 +208,27 @@ async function initApp() {
         fetchAPI('planner', 'v')
     ]);
 
-    window.appState.stops = Array.isArray(stopsData) ? stopsData : (stopsData?.stops || stopsData?.locations || []);
+    let rawStops = Array.isArray(stopsData) ? stopsData : (stopsData?.stops || stopsData?.locations || []);
+    
+    // GRUPOWANIE PRZYSTANKÓW: Łączymy perony/stanowiska o tej samej nazwie w jeden wspólny element
+    const groupedMap = new Map();
+    rawStops.forEach(s => {
+        let name = (s.name || s.title || 'Nieznany').replace(/\s*\(\d+\)\s*$/, '').trim(); // Usuwa stare numery w nawiasach z nazwy
+        if (!groupedMap.has(name)) {
+            groupedMap.set(name, { name: name, ids: [] });
+        }
+        if (s.id) groupedMap.get(name).ids.push(s.id);
+    });
+
+    window.appState.stops = Array.from(groupedMap.values());
     window.appState.lines = Array.isArray(linesData) ? linesData : (linesData?.lines || []);
     window.appState.vehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || []);
-
-    if (!window.appState.stops.length && !window.appState.lines.length) {
-        document.getElementById('status-text').innerText = 'Błąd pobierania danych';
-        document.getElementById('stops-list').innerHTML = '<div class="msg-box" style="color:var(--danger)">Nie udało się nawiązać połączenia z API UM Gorzów.</div>';
-        return;
-    }
 
     renderStops();
     renderLines();
     renderLive();
 
-    document.getElementById('status-text').innerText = 'Gotowy – Dane zsynchronizowane';
+    document.getElementById('status-text').innerText = 'Gotowy';
 }
 
 function startClock() {
@@ -266,7 +263,7 @@ function filterStops(query) {
     }
 
     const filtered = window.appState.stops
-        .filter(s => (s.name || s.title || '').toLowerCase().includes(query.toLowerCase()));
+        .filter(s => s.name.toLowerCase().includes(query.toLowerCase()));
 
     if (!filtered.length) {
         box.innerHTML = '<div class="msg-box">Nie znaleziono przystanku.</div>';
@@ -274,31 +271,42 @@ function filterStops(query) {
     }
 
     box.innerHTML = filtered.map(s => `
-        <div class="row-item" onclick="loadStopDepartures('${s.id}', '${s.name || s.title}')">
-            <div><strong>${s.name || s.title}</strong></div>
+        <div class="row-item" onclick='loadGroupedDepartures(${JSON.stringify(s.ids)}, ${JSON.stringify(s.name)})'>
+            <div><strong>${s.name}</strong></div>
             <div style="font-size: 0.75rem; color: #555;">odjazdy &rarr;</div>
         </div>
     `).join('');
 }
 
-async function loadStopDepartures(stopId, stopName) {
+async function loadGroupedDepartures(stopIds, stopName) {
     switchTab('details');
     const box = document.getElementById('details-content');
-    box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px;">${stopName}</div><div class="msg-box">Pobieranie rozkładu jazdy na żywo...</div>`;
+    box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px;">${stopName}</div><div class="msg-box">Pobieranie rozkładu dla wszystkich peronów...</div>`;
 
-    const data = await fetchAPI('planner', 'b', `&stopId=${stopId}`);
-    const departures = Array.isArray(data) ? data : (data?.departures || []);
+    let allDepartures = [];
+    for (const id of stopIds) {
+        const data = await fetchAPI('planner', 'b', `&stopId=${id}`);
+        const deps = Array.isArray(data) ? data : (data?.departures || []);
+        allDepartures.push(...deps);
+    }
 
-    if (!departures.length) {
-        box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div><div class="msg-box">Brak najbliższych odjazdów dla tego przystanku.</div>`;
+    // Sortowanie odjazdów po czasie
+    allDepartures.sort((a, b) => {
+        const timeA = a.time || a.actualTime || "00:00";
+        const timeB = b.time || b.actualTime || "00:00";
+        return timeA.localeCompare(timeB);
+    });
+
+    if (!allDepartures.length) {
+        box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div><div class="msg-box">Brak najbliższych odjazdów.</div>`;
         return;
     }
 
     box.innerHTML = `
         <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div>
-        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Najbliższe odjazdy uwzględniające opóźnienia GPS:</div>
+        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Najbliższe odjazdy (wszystkie stanowiska):</div>
         <div>
-            ${departures.map(d => {
+            ${allDepartures.map(d => {
                 const line = d.line || d.lineLabel || 'MZK';
                 const headsign = d.headsign || d.direction || 'Kierunek miejski';
                 const time = d.time || d.actualTime || '---';
@@ -353,7 +361,6 @@ function renderLines() {
 function loadLineRoute(lineId, lineName) {
     switchTab('details');
     const box = document.getElementById('details-content');
-    
     const activeVehicles = window.appState.vehicles.filter(v => (v.lineLabel || v.line) === lineId);
 
     box.innerHTML = `

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MZK Gorzów Wlkp. - Rozkład Jazdy (GTFS + Live)</title>
+    <title>MZK Gorzów Wlkp. - GTFS Static + API Live</title>
     <style>
         :root {
             --bg: #ffffff;
@@ -135,7 +135,7 @@
 <body>
 
 <header>
-    <div class="logo-title">MZK Gorzów Wlkp. – GTFS + Live</div>
+    <div class="logo-title">MZK Gorzów Wlkp. – GTFS + Live API</div>
     <div class="clock" id="clock">--:--:--</div>
 </header>
 
@@ -149,7 +149,7 @@
     <!-- PRZYSTANKI -->
     <section id="sec-stops" class="section active">
         <input type="text" id="stop-search" placeholder="Wpisz nazwę przystanku..." oninput="filterStops(this.value)">
-        <div id="stops-list" class="msg-box">Ładowanie przystanków i bazy GTFS...</div>
+        <div id="stops-list" class="msg-box">Ładowanie plików GTFS i bazy API...</div>
     </section>
 
     <!-- LINIE -->
@@ -170,8 +170,8 @@
 </div>
 
 <div class="status-bar">
-    <span id="status-text">Łączenie z serwerem...</span>
-    <span id="api-status">GTFS Static + API UM Gorzów</span>
+    <span id="status-text">Inicjalizacja...</span>
+    <span id="api-status">GTFS Engine v2.0</span>
 </div>
 
 <script>
@@ -179,13 +179,97 @@ const PROXY_URL = "https://shiny-tree-3a9b.fabianzukowski-32.workers.dev/";
 const TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
 
 window.appState = {
-    stops: [],
-    lines: [],
-    vehicles: [],
-    stopTimes: [], // Miejsce na dane z stop_times.txt
-    trips: [],     // Miejsce na dane z trips.txt
+    stopsMap: new Map(),      // stop_id -> stop_name (z GTFS stops.txt)
+    routesMap: new Map(),     // route_id -> route_short_name (z GTFS routes.txt)
+    stopTimes: [],            // tablica obiektów z stop_times.txt
+    tripsMap: new Map(),      // trip_id -> { route_id, trip_headsign, service_id }
+    vehicles: [],             // pojazdy z API
+    apiStops: [],             // przystanki z API
     lastTab: 'stops'
 };
+
+// Parser CSV dla plików GTFS
+function parseCSV(text) {
+    const lines = text.replace(/\r/g, '').split('\n');
+    if (lines.length < 2) return [];
+    
+    // Proste parsowanie nagłówków i wierszy z uwzględnieniem cudzysłowów
+    const parseLine = (line) => {
+        const result = [];
+        let inQuotes = false;
+        let entry = '';
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+                result.push(entry.trim());
+                entry = '';
+            } else {
+                entry += char;
+            }
+        }
+        result.push(entry.trim());
+        return result;
+    };
+
+    const headers = parseLine(lines[0]);
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const currentLine = parseLine(lines[i]);
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+            obj[headers[j]] = currentLine[j] !== undefined ? currentLine[j].replace(/^"|"$/g, '') : '';
+        }
+        data.push(obj);
+    }
+    return data;
+}
+
+async function loadStaticGTFS() {
+    try {
+        // Ładowanie statycznych plików z folderu /gtfs/
+        const [stopsRes, routesRes, tripsRes, stopTimesRes] = await Promise.all([
+            fetch('./gtfs/stops.txt').catch(() => null),
+            fetch('./gtfs/routes.txt').catch(() => null),
+            fetch('./gtfs/trips.txt').catch(() => null),
+            fetch('./gtfs/stop_times.txt').catch(() => null)
+        ]);
+
+        if (stopsRes && stopsRes.ok) {
+            const rows = parseCSV(await stopsRes.text());
+            rows.forEach(r => window.appState.stopsMap.set(r.stop_id, r.stop_name));
+        }
+
+        if (routesRes && routesRes.ok) {
+            const rows = parseCSV(await routesRes.text());
+            rows.forEach(r => window.appState.routesMap.set(r.route_id, r.route_short_name || r.route_long_name));
+        }
+
+        if (tripsRes && tripsRes.ok) {
+            const rows = parseCSV(await tripsRes.text());
+            rows.forEach(r => window.appState.tripsMap.set(r.trip_id, {
+                route_id: r.route_id,
+                trip_headsign: r.trip_headsign,
+                service_id: r.service_id
+            }));
+        }
+
+        if (stopTimesRes && stopTimesRes.ok) {
+            window.appState.stopTimes = parseCSV(await stopTimesRes.text());
+        }
+        console.log("Załadowano pliki statyczne GTFS:", {
+            stops: window.appState.stopsMap.size,
+            routes: window.appState.routesMap.size,
+            trips: window.appState.tripsMap.size,
+            stopTimes: window.appState.stopTimes.length
+        });
+    } catch (e) {
+        console.warn("Błąd wczytywania lokalnych plików GTFS:", e);
+    }
+}
 
 async function fetchAPI(command, action, params = '') {
     const targetUrl = `https://komunikacja.um.gorzow.pl/vm/main?command=${command}&action=${action}&token=${TOKEN}${params}`;
@@ -201,51 +285,60 @@ async function fetchAPI(command, action, params = '') {
     }
 }
 
-// Funkcja pomocnicza do wczytywania plików statycznych GTFS (jeśli znajdują się w folderze projektu, np. /gtfs/stops.txt)
-async function loadStaticGTFSFiles() {
-    try {
-        // Przykład pobierania plików statycznych - ścieżki dostosuj do struktury folderu na serwerze
-        /* 
-           const stopsRes = await fetch('./gtfs/stops.txt');
-           const stopsCsv = await stopsRes.text();
-           window.appState.stops = parseCSV(stopsCsv); 
-        */
-        // W standardowym trybie hybrydowym pobieramy bazę z API, a pliki statyczne służą jako weryfikacja relacji trip_id <-> stop_id
-    } catch (e) {
-        console.warn("Nie udało się wczytać lokalnych plików GTFS, polegam na API dynamicznym:", e);
-    }
-}
-
 async function initApp() {
     startClock();
-    document.getElementById('status-text').innerText = 'Pobieranie danych statycznych i GPS...';
+    document.getElementById('status-text').innerText = 'Wczytywanie statycznego GTFS...';
 
-    await loadStaticGTFSFiles();
+    await loadStaticGTFS();
 
+    document.getElementById('status-text').innerText = 'Pobieranie danych API na żywo...';
     const [stopsData, vehiclesData] = await Promise.all([
         fetchAPI('basicdata', 'locations'),
         fetchAPI('planner', 'v')
     ]);
 
     let rawStops = Array.isArray(stopsData) ? stopsData : (stopsData?.stops || stopsData?.locations || []);
-    
+    window.appState.apiStops = rawStops;
+    window.appState.vehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || vehiclesData?.data || []);
+
+    // Łączenie przystanków z API i GTFS
     const groupedMap = new Map();
+    
+    // Jeśli mamy zmapowane przystanki z GTFS, użyjmy ich nazw, lub oprzyjmy się na API
     rawStops.forEach(s => {
-        let name = (s.name || s.title || 'Nieznany').replace(/\s*\(\d+\)\s*$/, '').trim();
+        let id = String(s.id || s.stopId || '');
+        let name = window.appState.stopsMap.get(id) || s.name || s.title || 'Nieznany przystanek';
+        name = name.replace(/\s*\(\d+\)\s*$/, '').trim();
+        
         if (!groupedMap.has(name)) {
             groupedMap.set(name, { name: name, ids: [] });
         }
-        if (s.id) groupedMap.get(name).ids.push(s.id);
+        if (id) groupedMap.get(name).ids.push(id);
     });
 
-    window.appState.stops = Array.from(groupedMap.values());
-    window.appState.vehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || vehiclesData?.data || []);
+    // Jeśli GTFS stopsMap ma więcej przystanków niż API locations
+    window.appState.stopsMap.forEach((gtfsName, gtfsId) => {
+        let cleanName = gtfsName.replace(/\s*\(\d+\)\s*$/, '').trim();
+        if (!groupedMap.has(cleanName)) {
+            groupedMap.set(cleanName, { name: cleanName, ids: [gtfsId] });
+        } else {
+            if (!groupedMap.get(cleanName).ids.includes(gtfsId)) {
+                groupedMap.get(cleanName).ids.push(gtfsId);
+            }
+        }
+    });
 
+    window.appState.stops = Array.from(groupedMap.values()).sort((a,b) => a.name.localeCompare(b.name));
+
+    // Budowanie listy linii (z API oraz uzupełnienie z GTFS routes)
     const linesMap = new Map();
+    window.appState.routesMap.forEach((rName, rId) => {
+        linesMap.set(rId, { id: rId, name: `Linia ${rName}` });
+    });
     window.appState.vehicles.forEach(v => {
-        const lineNum = v.lineLabel || v.line || v.lineId;
-        if (lineNum && !linesMap.has(lineNum)) {
-            linesMap.set(lineNum, { id: lineNum, name: `Linia ${lineNum}` });
+        const lineNum = v.lineLabel || v.line || v.lineId || v.routeShortName;
+        if (lineNum && !linesMap.has(String(lineNum))) {
+            linesMap.set(String(lineNum), { id: lineNum, name: `Linia ${lineNum}` });
         }
     });
     window.appState.lines = Array.from(linesMap.values()).sort((a, b) => String(a.id).localeCompare(String(b.id), undefined, {numeric: true}));
@@ -254,16 +347,32 @@ async function initApp() {
     renderLines();
     renderLive();
 
-    document.getElementById('status-text').innerText = 'Gotowy – Zsynchronizowano z GTFS & API';
+    document.getElementById('status-text').innerText = 'Gotowy – Zsynchronizowano GTFS i API';
+}
+
+function getStopNameById(stopId) {
+    if (window.appState.stopsMap.has(String(stopId))) {
+        return window.appState.stopsMap.get(String(stopId));
+    }
+    const found = window.appState.apiStops.find(s => String(s.id) === String(stopId));
+    return found ? (found.name || found.title) : `Przystanek #${stopId}`;
 }
 
 function getVehicleHeadsign(v) {
+    let tripId = v.tripId || v.trip_id;
+    if (tripId && window.appState.tripsMap.has(tripId)) {
+        return window.appState.tripsMap.get(tripId).trip_headsign;
+    }
     return v.headsign || v.direction || v.destination || v.to || 
            v.directionName || v.destName || v.tripHeadsign || 
            v.sign || v.text || v.description || v.tripName || 'Trasa miejska';
 }
 
 function getVehicleNextStop(v) {
+    let stopId = v.nextStopId || v.stopId || v.currentStopId;
+    if (stopId && window.appState.stopsMap.has(String(stopId))) {
+        return window.appState.stopsMap.get(String(stopId));
+    }
     return v.nextStopName || v.nextStop || v.stopName || v.currentStop || v.stop || 'Nieznany przystanek';
 }
 
@@ -290,7 +399,6 @@ function formatSeconds(totalSecs) {
 
 function getTimeAndCountdown(timeStr) {
     if (!timeStr) return { time: '---', countdown: '' };
-    
     const now = new Date();
     const [h, m] = timeStr.split(':').map(Number);
     if (isNaN(h) || isNaN(m)) return { time: timeStr, countdown: '' };
@@ -337,7 +445,7 @@ function renderStops() {
 function filterStops(query) {
     const box = document.getElementById('stops-list');
     if (!window.appState.stops.length) {
-        box.innerHTML = '<div class="msg-box">Brak danych przystanków.</div>';
+        box.innerHTML = '<div class="msg-box">Brak danych przystanków. Sprawdź plik stops.txt w folderze /gtfs/.</div>';
         return;
     }
 
@@ -360,13 +468,40 @@ function filterStops(query) {
 async function loadGroupedDepartures(stopIds, stopName) {
     switchTab('details');
     const box = document.getElementById('details-content');
-    box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px;">${stopName}</div><div class="msg-box">Pobieranie rozkładu i weryfikacja opóźnień...</div>`;
+    box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px;">${stopName}</div><div class="msg-box">Kalkulacja czasu z rozkładu GTFS i API...</div>`;
 
     let allDepartures = [];
+    
+    // Pobranie danych dynamicznych z API dla przystanków
     for (const id of stopIds) {
         const data = await fetchAPI('planner', 'b', `&stopId=${id}`);
         const deps = Array.isArray(data) ? data : (data?.departures || []);
         allDepartures.push(...deps);
+    }
+
+    // Uzupełnienie lub weryfikacja z statycznego stop_times.txt jeśli API zawiedzie lub jako cross-reference
+    if (!allDepartures.length && window.appState.stopTimes.length > 0) {
+        const now = new Date();
+        const currentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        
+        stopIds.forEach(id => {
+            const matches = window.appState.stopTimes.filter(st => st.stop_id === String(id));
+            matches.forEach(st => {
+                const [h, m, s] = st.arrival_time.split(':').map(Number);
+                const arrSec = h * 3600 + m * 60 + (s || 0);
+                if (arrSec >= currentSeconds && arrSec <= currentSeconds + 7200) {
+                    let trip = window.appState.tripsMap.get(st.trip_id);
+                    let routeName = trip ? window.appState.routesMap.get(trip.route_id) : 'MZK';
+                    allDepartures.push({
+                        line: routeName || 'MZK',
+                        headsign: trip ? trip.trip_headsign : 'Kierunek miejski',
+                        time: st.arrival_time.substring(0, 5),
+                        delayInMinutes: 0,
+                        source: 'GTFS Static'
+                    });
+                }
+            });
+        });
     }
 
     allDepartures.sort((a, b) => {
@@ -376,13 +511,13 @@ async function loadGroupedDepartures(stopIds, stopName) {
     });
 
     if (!allDepartures.length) {
-        box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div><div class="msg-box">Brak najbliższych odjazdów.</div>`;
+        box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div><div class="msg-box">Brak odjazdów dla tego przystanku.</div>`;
         return;
     }
 
     box.innerHTML = `
         <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${stopName}</div>
-        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Porównanie czasu rozkładowego (GTFS) z rzeczywistym (API):</div>
+        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Weryfikacja opóźnień (GTFS vs Live API):</div>
         <div>
             ${allDepartures.map(d => {
                 const line = d.line || d.lineLabel || 'MZK';
@@ -391,7 +526,6 @@ async function loadGroupedDepartures(stopIds, stopName) {
                 const timeInfo = getTimeAndCountdown(rawTime);
                 const delay = parseInt(d.delayInMinutes || 0, 10);
 
-                // Formuła weryfikacji opóźnienia: Czas rzeczywisty vs rozkładowy
                 let delayHtml = `<div class="delay-info on-time">O czasie (Zgodne z GTFS)</div>`;
                 if (delay > 0) {
                     delayHtml = `<div class="delay-info late">+${delay} min opóźnienia</div>`;
@@ -422,7 +556,7 @@ async function loadGroupedDepartures(stopIds, stopName) {
 function renderLines() {
     const box = document.getElementById('lines-list');
     if (!window.appState.lines.length) {
-        box.innerHTML = '<div class="msg-box">Brak aktywnych linii w bazie.</div>';
+        box.innerHTML = '<div class="msg-box">Brak linii w bazie.</div>';
         return;
     }
 
@@ -442,11 +576,14 @@ function renderLines() {
 function loadLineRoute(lineId, lineName) {
     switchTab('details');
     const box = document.getElementById('details-content');
-    const activeVehicles = window.appState.vehicles.filter(v => String(v.lineLabel || v.line || v.lineId) === String(lineId));
+    const activeVehicles = window.appState.vehicles.filter(v => {
+        const vLine = String(v.lineLabel || v.line || v.lineId || v.routeShortName);
+        return vLine === String(lineId);
+    });
 
     box.innerHTML = `
         <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px; border-bottom: 2px solid #000; padding-bottom: 4px;">${lineName}</div>
-        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Aktualna lokalizacja pojazdów na linii:</div>
+        <div style="font-size: 0.75rem; color: #555; margin-bottom: 8px;">Pojazdy na linii (powiązane z GTFS):</div>
         <div>
             ${activeVehicles.length ? activeVehicles.map(v => {
                 const headsign = getVehicleHeadsign(v);
@@ -465,7 +602,7 @@ function loadLineRoute(lineId, lineName) {
                         </div>
                     </div>
                 `;
-            }).join('') : '<div class="msg-box">Brak aktywnych pojazdów na tej linii w bazie GPS.</div>'}
+            }).join('') : '<div class="msg-box">Brak aktywnych pojazdów na tej linii.</div>'}
         </div>
     `;
 }
@@ -478,7 +615,7 @@ function renderLive() {
     }
 
     box.innerHTML = window.appState.vehicles.map(v => {
-        const line = v.lineLabel || v.line || '?';
+        const line = v.lineLabel || v.line || v.lineId || v.routeShortName || '?';
         const headsign = getVehicleHeadsign(v);
         const nextStop = getVehicleNextStop(v);
         const countdown = getVehicleCountdown(v);

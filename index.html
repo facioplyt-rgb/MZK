@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#03060b">
-    <title>MZK Gorzów</title>
+    <title>MZK Gorzów - LIVE (UM + MZK)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
@@ -129,48 +128,43 @@ const CONFIG = {
     TOKEN: "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9"
 };
 
-// Zoptymalizowana funkcja z bezpośrenim połączeniem, przekazywaniem tokenu w URL i limitem czasu
-async function fetchSafeJSON(url, headers = {}) {
-    let targetUrl = url;
-    if (CONFIG.TOKEN && !targetUrl.includes('token=')) {
-        targetUrl += (targetUrl.includes('?') ? '&' : '?') + `token=${CONFIG.TOKEN}`;
-    }
+// Funkcja fetch pozbawiona nagłówków customowych - omija zapytania Preflight (OPTIONS)
+async function fetchSafeJSON(url) {
+    const token = CONFIG.TOKEN;
+    const separator = url.includes('?') ? '&' : '?';
+    const targetUrl = url.includes('token=') ? url : `${url}${separator}token=${token}`;
 
-    // 1. Próba bezpośredniego połączenia (najszybsza i bez strat nagłówków)
-    try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 3000);
-        const res = await fetch(targetUrl, { headers, signal: controller.signal });
-        clearTimeout(timer);
-        if (res.ok) {
-            const text = await res.text();
-            return JSON.parse(text);
-        }
-    } catch (e) {
-        // Ignorujemy błąd CORS/sieci i przechodzimy do proxy
-    }
-
-    // 2. Próba przez darmowe bramki proxy z automatycznym timeoutem (max 3.5s na próbowaną bramkę)
     const proxies = [
-        u => `https://thingproxy.freeboard.io/fetch/${u}`,
-        u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`
+        u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
     ];
 
     for (const proxyFn of proxies) {
+        const proxyUrl = proxyFn(targetUrl);
         try {
             const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 3500);
-            const res = await fetch(proxyFn(targetUrl), { signal: controller.signal });
-            clearTimeout(timer);
+            const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+            // Brak nagłówków 'headers' -> prosty GET, co zapobiega błędom CORS Preflight
+            const res = await fetch(proxyUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
 
             if (!res.ok) continue;
+
             const text = await res.text();
-            return JSON.parse(text);
+            
+            // Ignorowanie odpowiedzi będących błędami HTML zamiast czystego JSONa
+            if (!text || text.trim().startsWith('<')) continue;
+
+            const data = JSON.parse(text);
+            if (data) return data;
         } catch (e) {
-            // Przejdź do kolejnego proxy w przypadku powolnej odpowiedzi/błędu
+            console.warn(`Bramka proxy ${proxyUrl} nie odpowiedziała w czasie.`);
         }
     }
+
+    console.error("Wszystkie bramki proxy nie zdołały połączyć z:", targetUrl);
     return null;
 }
 
@@ -234,7 +228,7 @@ const App = {
             this.status("Połączono z API Gorzów", "#00d166");
             this.toast("Zaktualizowano dane z systemu MZK!");
         } else {
-            this.status("Tryb offline / Dane archiwalne", "#f1c40f");
+            this.status("Tryb offline / Brak połączenia", "#ff4757");
         }
     },
 
@@ -386,7 +380,7 @@ const ModStops = {
         
         let stops = App.cache.stops;
         if (!stops.length) {
-            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.6;">Ładowanie przystanków...</div>';
+            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.6;">Brak danych przystanków.</div>';
             return;
         }
 
@@ -412,7 +406,7 @@ const ModStops = {
             <div class="dep-item">
                 <div>
                     <span class="badge" style="background:var(--accent); color:#000;">${d.line || d.lineLabel || 'MZK'}</span>
-                    <b style="margin-left:8px;">${d.headsign || d.direction || 'Kierunek Miejscki'}</b>
+                    <b style="margin-left:8px;">${d.headsign || d.direction || 'Kierunek Miejski'}</b>
                 </div>
                 <div style="font-weight:900; color:var(--accent);">${d.time || d.actualTime || 'Za chwilę'}</div>
             </div>

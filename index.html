@@ -173,7 +173,6 @@
 </div>
 
 <script>
-// Twój Cloudflare Worker (czysty adres domeny bez ?url=)
 const PROXY_URL = "https://shiny-tree-3a9b.fabianzukowski-32.workers.dev/"; 
 const TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
 
@@ -187,13 +186,26 @@ window.appState = {
 async function fetchAPI(command, action, params = '') {
     const targetUrl = `https://komunikacja.um.gorzow.pl/vm/main?command=${command}&action=${action}&token=${TOKEN}${params}`;
     try {
-        const res = await fetch(PROXY_URL + "?url=" + encodeURIComponent(targetUrl));
-        if (!res.ok) return null;
+        const fullProxyUrl = PROXY_URL + "?url=" + encodeURIComponent(targetUrl);
+        console.log("Wysyłam zapytanie przez proxy:", fullProxyUrl);
+        
+        const res = await fetch(fullProxyUrl);
+        if (!res.ok) {
+            console.error("Błąd HTTP z proxy:", res.status);
+            return null;
+        }
+        
         const text = await res.text();
-        if (!text || text.trim().startsWith('<') || text.includes('Cloudflare')) return null;
+        console.log(`Odpowiedź dla [${command}/${action}]:`, text.substring(0, 150) + "...");
+
+        if (!text || text.trim().startsWith('<') || text.includes('Cloudflare')) {
+            console.warn("Otrzymano HTML lub błąd Cloudflare zamiast JSON!");
+            return null;
+        }
+        
         return JSON.parse(text);
     } catch (e) {
-        console.error("Błąd API:", e);
+        console.error("Wyjątek w fetchAPI:", e);
         return null;
     }
 }
@@ -208,27 +220,44 @@ async function initApp() {
         fetchAPI('planner', 'v')
     ]);
 
-    let rawStops = Array.isArray(stopsData) ? stopsData : (stopsData?.stops || stopsData?.locations || []);
+    console.log("Otrzymane surowe dane przystanków:", stopsData);
+
+    let rawStops = [];
+    if (Array.isArray(stopsData)) {
+        rawStops = stopsData;
+    } else if (stopsData && typeof stopsData === 'object') {
+        rawStops = stopsData.stops || stopsData.locations || stopsData.data || Object.values(stopsData)[0] || [];
+    }
     
-    // Grupowanie przystanków – bez duplikatów i brzydkich numerów w nawiasach dla człowieka
+    // Grupowanie przystanków – unikanie duplikatów i usuwanie ID w nawiasach
     const groupedMap = new Map();
-    rawStops.forEach(s => {
-        let name = (s.name || s.title || 'Nieznany').replace(/\s*\(\d+\)\s*$/, '').trim();
-        if (!groupedMap.has(name)) {
-            groupedMap.set(name, { name: name, ids: [] });
-        }
-        if (s.id) groupedMap.get(name).ids.push(s.id);
-    });
+    if (Array.isArray(rawStops)) {
+        rawStops.forEach(s => {
+            let name = (s.name || s.title || s.label || 'Nieznany').replace(/\s*\(\d+\)\s*$/, '').trim();
+            if (!groupedMap.has(name)) {
+                groupedMap.set(name, { name: name, ids: [] });
+            }
+            if (s.id !== undefined) groupedMap.get(name).ids.push(s.id);
+        });
+    }
 
     window.appState.stops = Array.from(groupedMap.values());
-    window.appState.lines = Array.isArray(linesData) ? linesData : (linesData?.lines || []);
-    window.appState.vehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || []);
+    window.appState.lines = Array.isArray(linesData) ? linesData : (linesData?.lines || linesData?.data || []);
+    window.appState.vehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || vehiclesData?.data || []);
 
-    renderStops();
+    console.prune?.(); // placeholder
+    console.log("Przetworzone przystanki:", window.appState.stops.length);
+
+    if (!window.appState.stops.length) {
+        document.getElementById('stops-list').innerHTML = '<div class="msg-box" style="color:var(--danger)">Brak przystanków. Sprawdź konsolę (F12), aby zobaczyć co zwróciło API.</div>';
+    } else {
+        renderStops();
+    }
+
     renderLines();
     renderLive();
 
-    document.getElementById('status-text').innerText = 'Gotowy – Dane zsynchronizowano';
+    document.getElementById('status-text').innerText = 'Gotowy – Zsynchronizowano';
 }
 
 function startClock() {
@@ -286,7 +315,7 @@ async function loadGroupedDepartures(stopIds, stopName) {
     let allDepartures = [];
     for (const id of stopIds) {
         const data = await fetchAPI('planner', 'b', `&stopId=${id}`);
-        const deps = Array.isArray(data) ? data : (data?.departures || []);
+        const deps = Array.isArray(data) ? data : (data?.departures || data?.data || []);
         allDepartures.push(...deps);
     }
 

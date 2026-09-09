@@ -2,504 +2,389 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#03060b">
-    <title>MZK Gorzów - LIVE (UM + MZK)</title>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MZK Gorzów - Rozkład Jazdy</title>
     <style>
-        :root { 
-            --accent: #00d166; --bg: #03060b; --surf: #0d121d; --surf-l: #161d2b; 
-            --text: #ffffff; --text-m: #94a3b8; --tram: #ff4757; --bus: #00a8ff; 
-            --warn: #f1c40f; --border: rgba(255,255,255,0.08); 
+        :root {
+            --bg: #ffffff;
+            --text: #111111;
+            --text-muted: #666666;
+            --border: #cccccc;
+            --border-light: #eeeeee;
+            --hover: #f5f5f5;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); overflow-x: hidden; padding-bottom: 30px; }
-        
-        #sync-status { position: fixed; bottom: 0; left: 0; width: 100%; padding: 8px 15px; font-size: 0.72rem; background: var(--surf); border-top: 1px solid var(--border); display: flex; justify-content: space-between; z-index: 5000; color: var(--text-m); font-weight: 600; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
-        header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(3,6,11,0.92); backdrop-filter: blur(12px); z-index: 2000; }
-        
-        .side-menu { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: var(--surf); z-index: 4000; transition: 0.3s ease; padding: 25px; border-right: 1px solid var(--border); }
-        .side-menu.open { left: 0; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 3000; display: none; backdrop-filter: blur(4px); }
-        .overlay.show { display: block; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+        body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.4; }
 
-        .container { max-width: 650px; margin: 0 auto; padding: 15px; }
-        .card { background: var(--surf); border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); position: relative; }
-        .module { display: none; }
-        .module.active { display: block; animation: fadeIn 0.2s ease-out; }
-        
-        #toast-container { position: fixed; top: 15px; right: 15px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-        .toast { padding: 12px 18px; border-radius: 10px; color: #fff; font-weight: 600; font-size: 0.85rem; animation: slideIn 0.25s forwards; box-shadow: 0 8px 20px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 10px; }
-        .toast.success { background: var(--accent); color: #000; }
-        .toast.error { background: var(--tram); color: #fff; }
-        
-        .delay-tag { font-size: 0.7rem; font-weight: 900; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; }
-        .delay-tag.on-time { background: rgba(0, 209, 102, 0.15); color: var(--accent); }
-        .delay-tag.delayed { background: rgba(255, 71, 87, 0.15); color: var(--tram); }
+        header {
+            border-bottom: 2px solid var(--text);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .logo { font-weight: bold; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .clock { font-size: 0.9rem; color: var(--text-muted); font-weight: bold; }
 
-        input, select { width: 100%; padding: 12px 14px; border-radius: 10px; background: var(--surf-l); border: 1px solid var(--border); color: #fff; margin-bottom: 12px; font-size: 0.95rem; outline: none; }
-        input:focus, select:focus { border-color: var(--accent); }
-        .btn { background: var(--accent); color: #000; padding: 13px; border: none; border-radius: 10px; width: 100%; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-sm { padding: 8px 12px; font-size: 0.78rem; width: auto; background: var(--surf-l); color: #fff; border: 1px solid var(--border); border-radius: 8px; }
+        nav {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
+            position: sticky;
+            top: 45px;
+            z-index: 90;
+        }
 
-        .nav-item { padding: 12px; display: flex; align-items: center; gap: 12px; font-weight: 600; cursor: pointer; border-radius: 10px; margin-bottom: 4px; }
-        .nav-item:hover { background: var(--surf-l); color: var(--accent); }
+        .nav-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-align: center;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-btn.active { color: var(--text); border-bottom-color: var(--text); background: var(--hover); }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 12px; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 0;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        input[type="text"]:focus { border-color: var(--text); }
+
+        .list-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .list-item:hover { background: var(--hover); }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid var(--text);
+            padding: 2px 6px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            min-width: 32px;
+            text-align: center;
+            background: #fff;
+            color: #000;
+        }
+
+        .back-btn {
+            background: none;
+            border: 1px solid var(--text);
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+        .back-btn:hover { background: var(--text); color: #fff; }
+
+        .departure-row {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time-box { text-align: right; }
+        .time-main { font-weight: bold; font-size: 1.05rem; }
+        .delay-info { font-size: 0.75rem; font-weight: bold; margin-top: 2px; }
+        .delay-info.late { color: #d32f2f; }
+        .delay-info.on-time { color: #2e7d32; }
+
+        .status-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+        }
         
-        .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; font-weight: 900; }
-        .dep-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--surf-l); border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--border); }
-        .news-card { border-left: 4px solid var(--warn); background: var(--surf); padding: 14px; border-radius: 12px; margin-bottom: 10px; }
+        .loading { text-align: center; padding: 20px; color: var(--text-muted); font-style: italic; }
     </style>
 </head>
 <body>
 
-<div id="toast-container"></div>
-
-<div id="sync-status">
-    <span><span id="status-dot" class="status-dot" style="background: #f1c40f;"></span> <span id="status-text">Inicjalizacja...</span></span>
-    <span>GORZÓW LIVE</span>
-</div>
-
-<div class="overlay" id="overlay" onclick="App.toggleMenu(false)"></div>
-
-<div class="side-menu" id="side-menu">
-    <h2 style="font-weight: 900; margin-bottom: 25px;">MZK <span style="color:var(--accent)">GORZÓW</span></h2>
-    <div class="nav-item" onclick="App.gate('vehicles')"><i class="fa-solid fa-bus"></i> Pojazdy Na Żywo</div>
-    <div class="nav-item" onclick="App.gate('lines')"><i class="fa-solid fa-route"></i> Linie i Trasy</div>
-    <div class="nav-item" onclick="App.gate('stops')"><i class="fa-solid fa-location-dot"></i> Wyszukiwarka Przystanków</div>
-    <div class="nav-item" onclick="App.gate('news')"><i class="fa-solid fa-newspaper"></i> Ogłoszenia MZK</div>
-    <div class="nav-item" onclick="App.gate('alerts')"><i class="fa-solid fa-bullhorn"></i> Zgłoszenia Pasażerów</div>
-</div>
-
 <header>
-    <div onclick="App.toggleMenu(true)" style="font-size: 1.3rem; cursor: pointer; color: var(--accent);"><i class="fa-solid fa-bars-staggered"></i></div>
-    <div style="font-weight: 900; letter-spacing: 0.5px; color: var(--accent);">MZK GORZÓW HQ</div>
-    <div id="live-clock" style="font-weight: 700; font-size: 0.8rem; background: var(--surf-l); padding: 4px 8px; border-radius: 6px;">00:00:00</div>
+    <div class="logo">MZK Gorzów Wlkp.</div>
+    <div class="clock" id="clock">--:--:--</div>
 </header>
 
-<div class="container">
-    <section id="mod-vehicles" class="module active">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h2 style="font-weight: 900; font-size: 1.2rem;">POJAZDY GPS LIVE</h2>
-            <button class="btn btn-sm" onclick="ModVehicles.load()"><i class="fa-solid fa-rotate"></i> Odśwież</button>
-        </div>
-        <div id="vehicles-list"></div>
+<nav>
+    <button class="nav-btn active" onclick="switchTab('stops')">Przystanki</button>
+    <button class="nav-btn" onclick="switchTab('lines')">Linie</button>
+    <button class="nav-btn" onclick="switchTab('live')">GPS Na Żywo</button>
+</nav>
+
+<div class="container" style="padding-bottom: 50px;">
+    <!-- PRZYSTANKI -->
+    <section id="sec-stops" class="section active">
+        <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="filterStops(this.value)">
+        <div id="stops-list" class="loading">Ładowanie przystanków...</div>
     </section>
 
-    <section id="mod-lines" class="module">
-        <h2 style="margin-bottom:12px; font-weight: 900; font-size: 1.2rem;">LINIE I ROZKŁADY</h2>
-        <div id="lines-list"></div>
+    <!-- LINIE -->
+    <section id="sec-lines" class="section">
+        <div id="lines-list" class="loading">Ładowanie linii...</div>
     </section>
 
-    <section id="mod-stops" class="module">
-        <h2 style="margin-bottom:12px; font-weight: 900; font-size: 1.2rem;">PRZYSTANKI</h2>
-        <input type="text" id="stop-search" placeholder="Szukaj przystanku..." oninput="ModStops.filter(this.value)">
-        <div id="stops-list"></div>
+    <!-- GPS NA ŻYWO -->
+    <section id="sec-live" class="section">
+        <div id="live-list" class="loading">Ładowanie pozycji pojazdów...</div>
     </section>
 
-    <section id="mod-news" class="module">
-        <h2 style="margin-bottom:12px; font-weight: 900; font-size: 1.2rem;">OFICJALNE KOMUNIKATY</h2>
-        <div id="news-list"></div>
+    <!-- SZCZEGÓŁY / ODJAZDY Z PRZYSTANKU -->
+    <section id="sec-details" class="section">
+        <button class="back-btn" onclick="switchTab(lastTab)">&larr; Wróć</button>
+        <div id="details-content"></div>
     </section>
+</div>
 
-    <section id="mod-alerts" class="module">
-        <h2 style="margin-bottom:12px; font-weight: 900; font-size: 1.2rem;">ZGŁOSZENIA PASAŻERÓW</h2>
-        <button class="btn" style="margin-bottom:12px;" onclick="ModAlerts.openForm()"><i class="fa-solid fa-plus"></i> Dodaj wpis</button>
-        <div id="alerts-list"></div>
-    </section>
-
-    <section id="mod-details" class="module"></section>
+<div class="status-bar">
+    <span id="status-text">Inicjalizacja systemu...</span>
+    <span>API UM Gorzów</span>
 </div>
 
 <script>
-const CONFIG = {
-    UM_API: "https://komunikacja.um.gorzow.pl/vm/main?command=planner",
-    MZK_NEWS: "https://mzk-gorzow.pl/index.php?option=com_content&view=category&id=2&format=json",
-    TOKEN: "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9"
-};
+const PROXY = "https://shiny-tree-3a9b.fabianzukowski-32.workers.dev";
+const API_URL = "https://komunikacja.um.gorzow.pl/vm/main?command=planner";
+const TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
 
-// Pobieranie danych przez Twój prywatny Worker w Cloudflare
-async function fetchSafeJSON(url) {
-    const token = CONFIG.TOKEN;
-    const separator = url.includes('?') ? '&' : '?';
-    const targetUrl = url.includes('token=') ? url : `${url}${separator}token=${token}`;
+let cache = { stops: [], lines: [], vehicles: [] };
+let lastTab = 'stops';
 
-    const MY_PROXY = "https://shiny-tree-3a9b.fabianzukowski-32.workers.dev";
-
+async function fetchAPI(action, params = '') {
+    const targetUrl = `${API_URL}&action=${action}&token=${TOKEN}${params}`;
     try {
-        const proxyUrl = `${MY_PROXY}/?url=${encodeURIComponent(targetUrl)}`;
-        const res = await fetch(proxyUrl);
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const text = await res.text();
-        if (!text || text.trim().startsWith('<')) throw new Error("Błędna odpowiedź (HTML zamiast JSON)");
-
-        return JSON.parse(text);
+        const res = await fetch(`${PROXY}/?url=${encodeURIComponent(targetUrl)}`);
+        if (!res.ok) return null;
+        return await res.json();
     } catch (e) {
-        console.error("Błąd pobierania danych przez Cloudflare Worker:", e);
+        console.error("Błąd API:", e);
         return null;
     }
 }
 
-const App = {
-    dbKey: 'mzk_gorzow_live_alerts',
-    cache: { vehicles: [], lines: [], stops: [], news: [] },
+async function init() {
+    startClock();
+    document.getElementById('status-text').innerText = 'Pobieranie danych z MZK...';
 
-    async init() {
-        this.startClock();
-        this.setupFirebase();
-        await this.loadAllAPIData();
-    },
+    const [stopsData, linesData, vehiclesData] = await Promise.all([
+        fetchAPI('p'),
+        fetchAPI('l'),
+        fetchAPI('v')
+    ]);
 
-    setupFirebase() {
-        try {
-            const firebaseConfig = {
-                apiKey: "AIzaSyDAp3b1eLuZdus48M5aE9N9TTzPhFRU4i0",
-                authDomain: "mzkfacio.firebaseapp.com",
-                databaseURL: "https://mzkfacio-default-rtdb.europe-west1.firebasedatabase.app",
-                projectId: "mzkfacio"
-            };
-            if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            this.db = firebase.database();
-            
-            this.db.ref(this.dbKey).on('value', snap => {
-                const val = snap.val() || {};
-                ModAlerts.render(val);
-                localStorage.setItem(this.dbKey, JSON.stringify(val));
-            }, () => this.fallbackLocalAlerts());
-        } catch (e) {
-            this.fallbackLocalAlerts();
-        }
-    },
+    cache.stops = stopsData?.stops || stopsData || [];
+    cache.lines = linesData?.lines || linesData || [];
+    cache.vehicles = vehiclesData?.vehicles || vehiclesData || [];
 
-    fallbackLocalAlerts() {
-        const localData = JSON.parse(localStorage.getItem(this.dbKey) || '{}');
-        ModAlerts.render(localData);
-    },
+    renderStops();
+    renderLines();
+    renderLive();
 
-    async loadAllAPIData() {
-        this.status("Pobieranie danych z API Gorzowa...", "#f1c40f");
+    document.getElementById('status-text').innerText = 'Dane zsynchronizované';
+}
 
-        const [vData, lData, pData, nData] = await Promise.all([
-            fetchSafeJSON(`${CONFIG.UM_API}&action=v`),
-            fetchSafeJSON(`${CONFIG.UM_API}&action=l`),
-            fetchSafeJSON(`${CONFIG.UM_API}&action=p`),
-            fetchSafeJSON(CONFIG.MZK_NEWS)
-        ]);
+function startClock() {
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString('pl-PL');
+    }, 1000);
+}
 
-        this.cache.vehicles = Array.isArray(vData) ? vData : (vData?.vehicles || []);
-        this.cache.lines = Array.isArray(lData) ? lData : (lData?.lines || []);
-        this.cache.stops = Array.isArray(pData) ? pData : (pData?.stops || []);
-        this.cache.news = Array.isArray(nData) ? nData : (nData?.items || []);
-
-        ModVehicles.render();
-        ModLines.render();
-        ModStops.render();
-        ModNews.render();
-
-        if(this.cache.vehicles.length || this.cache.stops.length) {
-            this.status("Połączono z API Gorzów", "#00d166");
-            this.toast("Zaktualizowano dane z systemu MZK!");
-        } else {
-            this.status("Tryb offline / Brak danych", "#ff4757");
-        }
-    },
-
-    startClock() {
-        setInterval(() => {
-            document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('pl-PL');
-        }, 1000);
-    },
-
-    status(txt, col) {
-        document.getElementById('status-text').innerText = txt;
-        document.getElementById('status-dot').style.background = col;
-    },
-
-    toast(msg, type = 'success') {
-        const container = document.getElementById('toast-container');
-        const el = document.createElement('div');
-        el.className = `toast ${type}`;
-        el.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check' : 'fa-triangle-exclamation'}"></i> ${msg}`;
-        container.appendChild(el);
-        setTimeout(() => { el.remove(); }, 3000);
-    },
-
-    toggleMenu(open) {
-        document.getElementById('side-menu').classList.toggle('open', open);
-        document.getElementById('overlay').classList.toggle('show', open);
-    },
-
-    gate(id) {
-        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-        const target = document.getElementById('mod-' + id) || document.getElementById('mod-vehicles');
-        target.classList.add('active');
-        this.toggleMenu(false);
-        window.scrollTo(0,0);
+function switchTab(tab) {
+    if (tab !== 'details') lastTab = tab;
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    
+    document.getElementById(`sec-${tab}`).classList.add('active');
+    if (tab !== 'details') {
+        const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.getAttribute('onclick').includes(tab));
+        if (btn) btn.classList.add('active');
     }
-};
+}
 
-const ModVehicles = {
-    async load() {
-        App.status("Odświeżanie pozycji GPS...", "#f1c40f");
-        const data = await fetchSafeJSON(`${CONFIG.UM_API}&action=v`);
-        if(data) {
-            App.cache.vehicles = Array.isArray(data) ? data : (data.vehicles || []);
-            this.render();
-            App.status("Połączono z API Gorzów", "#00d166");
-            App.toast("Pojazdy zaktualizowane");
-        } else {
-            App.toast("Nie udało się pobrać pozycji GPS", "error");
-        }
-    },
+function renderStops() {
+    filterStops('');
+}
 
-    render() {
-        const box = document.getElementById('vehicles-list');
-        box.innerHTML = '';
+function filterStops(query) {
+    const box = document.getElementById('stops-list');
+    const filtered = cache.stops
+        .filter(s => (s.name || s.title || '').toLowerCase().includes(query.toLowerCase()));
 
-        if (!App.cache.vehicles.length) {
-            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.6;">Brak pojazdów na trasie lub przerwa w transmisji GPS.</div>';
-            return;
-        }
+    if (!filtered.length) {
+        box.innerHTML = '<div class="loading">Brak przystanków spełniających kryteria.</div>';
+        return;
+    }
 
-        App.cache.vehicles.forEach(v => {
-            const isTram = v.linetype === "0" || v.type === "tram" || (v.lineLabel && v.lineLabel.length === 1);
-            const lineLabel = v.lineLabel || v.label || v.line || "N/A";
-            const delay = parseInt(v.delayInMinutes || 0, 10);
-            
-            const lat = v.lat ? parseFloat(v.lat).toFixed(3) : '---';
-            const lon = v.lon ? parseFloat(v.lon).toFixed(3) : '---';
+    box.innerHTML = filtered.map(s => `
+        <div class="list-item" onclick="loadStopDepartures('${s.id}', '${s.name || s.title}')">
+            <div><strong>${s.name || s.title}</strong></div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Wybierz &rarr;</div>
+        </div>
+    `).join('');
+}
 
-            let delayTag = delay > 0 
-                ? `<span class="delay-tag delayed">+${delay} min</span>`
-                : `<span class="delay-tag on-time">O czasie</span>`;
+async function loadStopDepartures(stopId, stopName) {
+    switchTab('details');
+    const box = document.getElementById('details-content');
+    box.innerHTML = `<h2>${stopName}</h2><div class="loading">Pobieranie odjazdów na żywo...</div>`;
 
-            box.innerHTML += `
-                <div class="card" style="border-left: 4px solid ${isTram ? 'var(--tram)' : 'var(--bus)'}">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <div>
-                            <span class="badge" style="background:${isTram ? 'var(--tram)' : 'var(--bus)'}; color:#fff;">${lineLabel}</span>
-                            <b style="margin-left:6px;">Pojazd #${v.id || 'LIVE'}</b>
+    const data = await fetchAPI('b', `&stopId=${stopId}`);
+    const departures = data?.departures || data || [];
+
+    if (!departures.length) {
+        box.innerHTML = `<h2>${stopName}</h2><div class="loading">Brak aktualnych odjazdów dla tego przystanku.</div>`;
+        return;
+    }
+
+    box.innerHTML = `
+        <h2 style="margin-bottom: 4px; font-size: 1.1rem;">${stopName}</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Najbliższe odjazdy i opóźnienia</p>
+        <div>
+            ${departures.map(d => {
+                const line = d.line || d.lineLabel || 'MZK';
+                const headsign = d.headsign || d.direction || 'Kierunek miejski';
+                const time = d.time || d.actualTime || '---';
+                const delay = parseInt(d.delayInMinutes || 0, 10);
+
+                let delayHtml = `<div class="delay-info on-time">O czasie</div>`;
+                if (delay > 0) {
+                    delayHtml = `<div class="delay-info late">+${delay} min opóźnienia</div>`;
+                } else if (delay < 0) {
+                    delayHtml = `<div class="delay-info on-time">${delay} min przed czasem</div>`;
+                }
+
+                return `
+                    <div class="departure-row">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="badge">${line}</span>
+                            <div>
+                                <div style="font-weight: bold;">${headsign}</div>
+                            </div>
                         </div>
-                        ${delayTag}
+                        <div class="time-box">
+                            <div class="time-main">${time}</div>
+                            ${delayHtml}
+                        </div>
                     </div>
-                    <div style="font-size:0.8rem; opacity:0.8; display:flex; justify-content:space-between;">
-                        <span><i class="fa-solid fa-compass"></i> ${v.headsign || 'Kierunek miejski'}</span>
-                        <span style="font-family:monospace; color:var(--accent);">${lat}, ${lon}</span>
-                    </div>
-                </div>`;
-        });
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function renderLines() {
+    const box = document.getElementById('lines-list');
+    if (!cache.lines.length) {
+        box.innerHTML = '<div class="loading">Brak danych o liniach.</div>';
+        return;
     }
-};
 
-const ModLines = {
-    render() {
-        const box = document.getElementById('lines-list');
-        box.innerHTML = '';
-
-        let lines = App.cache.lines;
-        if (!lines.length && App.cache.vehicles.length) {
-            const extracted = [...new Set(App.cache.vehicles.map(v => v.lineLabel || v.line))].filter(Boolean);
-            lines = extracted.map(id => ({ id, name: `Linia ${id}` }));
-        }
-
-        if (!lines.length) {
-            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.6;">Brak danych o liniach.</div>';
-            return;
-        }
-
-        lines.forEach(l => {
-            const lineId = l.id || l.name;
-            box.innerHTML += `
-                <div class="card" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="ModLines.showDetails('${lineId}')">
-                    <div>
-                        <span class="badge" style="background:var(--accent); color:#000; font-size:0.85rem; margin-right:8px;">${lineId}</span>
-                        <b>${l.name || 'Linia ' + lineId}</b>
-                    </div>
-                    <i class="fa-solid fa-chevron-right" style="opacity:0.4;"></i>
-                </div>`;
-        });
-    },
-
-    showDetails(lineId) {
-        App.gate('details');
-        const activeVehicles = App.cache.vehicles.filter(v => (v.lineLabel || v.line) === lineId);
-
-        let activeHtml = activeVehicles.map(v => `
-            <div class="dep-item">
-                <div><b>Pojazd #${v.id || 'LIVE'}</b> → ${v.headsign || 'W trasie'}</div>
-                <div style="color:var(--accent); font-weight:bold;">${v.delayInMinutes ? '+' + v.delayInMinutes + ' min' : 'O czasie'}</div>
-            </div>
-        `).join('') || '<p style="opacity:0.5; font-size:0.85rem; padding:10px;">Brak aktywnych pojazdów na tej linii.</p>';
-
-        document.getElementById('mod-details').innerHTML = `
-            <button class="btn btn-sm" onclick="App.gate('lines')" style="margin-bottom:12px;"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
-            <div class="card">
-                <h1 style="font-size:2rem; color:var(--accent); margin-bottom:5px;">Linia ${lineId}</h1>
-                <p style="opacity:0.6; margin-bottom:15px;">Monitorowane pojazdy na trasie:</p>
-                ${activeHtml}
-            </div>`;
-    }
-};
-
-const ModStops = {
-    render() {
-        this.filter('');
-    },
-
-    filter(query) {
-        const box = document.getElementById('stops-list');
-        box.innerHTML = '';
-        
-        let stops = App.cache.stops;
-        if (!stops.length) {
-            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.6;">Brak danych przystanków.</div>';
-            return;
-        }
-
-        const filtered = stops.filter(s => (s.name || s.title || '').toLowerCase().includes(query.toLowerCase())).slice(0, 25);
-
-        filtered.forEach(s => {
-            box.innerHTML += `
-                <div class="card" style="cursor:pointer;" onclick="ModStops.showDepartures('${s.id}', '${s.name || s.title}')">
-                    <i class="fa-solid fa-location-dot" style="color:var(--accent); margin-right:8px;"></i>
-                    <b>${s.name || s.title}</b>
-                </div>`;
-        });
-    },
-
-    async showDepartures(stopId, stopName) {
-        App.gate('details');
-        document.getElementById('mod-details').innerHTML = '<div class="card">Ładowanie odjazdów...</div>';
-
-        const deps = await fetchSafeJSON(`${CONFIG.UM_API}&action=b&stopId=${stopId}`);
-        const depList = Array.isArray(deps) ? deps : (deps?.departures || []);
-
-        let listHtml = depList.map(d => `
-            <div class="dep-item">
-                <div>
-                    <span class="badge" style="background:var(--accent); color:#000;">${d.line || d.lineLabel || 'MZK'}</span>
-                    <b style="margin-left:8px;">${d.headsign || d.direction || 'Kierunek Miejski'}</b>
+    box.innerHTML = cache.lines.map(l => {
+        const id = l.id || l.name;
+        const name = l.name || `Linia ${id}`;
+        return `
+            <div class="list-item" onclick="loadLineRoute('${id}', '${name}')">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="badge">${id}</span>
+                    <strong>${name}</strong>
                 </div>
-                <div style="font-weight:900; color:var(--accent);">${d.time || d.actualTime || 'Za chwilę'}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Pojazdy &rarr;</div>
             </div>
-        `).join('') || '<p style="opacity:0.5; padding:10px;">Brak zaplanowanych odjazdów w najbliższym czasie.</p>';
+        `;
+    }).join('');
+}
 
-        document.getElementById('mod-details').innerHTML = `
-            <button class="btn btn-sm" onclick="App.gate('stops')" style="margin-bottom:12px;"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
-            <div class="card">
-                <h2 style="color:var(--accent); margin-bottom:5px;">${stopName}</h2>
-                <p style="opacity:0.5; margin-bottom:15px; font-size:0.85rem;">Tablica odjazdów na żywo:</p>
-                ${listHtml}
-            </div>`;
-    }
-};
+function loadLineRoute(lineId, lineName) {
+    switchTab('details');
+    const box = document.getElementById('details-content');
+    
+    const activeVehicles = cache.vehicles.filter(v => (v.lineLabel || v.line) === lineId);
 
-const ModNews = {
-    render() {
-        const box = document.getElementById('news-list');
-        box.innerHTML = '';
-
-        if (!App.cache.news.length) {
-            box.innerHTML = `
-                <div class="news-card">
-                    <b>Komunikaty i Zmiany Rozkładów MZK Gorzów</b>
-                    <p style="font-size:0.85rem; opacity:0.8; margin-top:5px;">Bieżące informacje o objazdach oraz zmianach w kursowaniu tramwajów i autobusów są synchronizowane z oficjalnym serwisem MZK.</p>
-                </div>`;
-            return;
-        }
-
-        App.cache.news.forEach(n => {
-            box.innerHTML += `
-                <div class="news-card">
-                    <b>${n.title || 'Informacja MZK'}</b>
-                    <p style="font-size:0.85rem; opacity:0.8; margin-top:5px;">${n.introtext || n.description || ''}</p>
-                </div>`;
-        });
-    }
-};
-
-const ModAlerts = {
-    render(data) {
-        const box = document.getElementById('alerts-list');
-        box.innerHTML = '';
-        const items = Object.values(data || {}).reverse();
-
-        if(!items.length) {
-            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.5;">Brak opublikowanych zgłoszeń.</div>';
-            return;
-        }
-
-        items.forEach(a => {
-            box.innerHTML += `
-                <div class="card" style="border-left:4px solid var(--warn);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                        <b>${a.type} - Linia ${a.line}</b>
-                        <small style="opacity:0.5;">${new Date(a.time).toLocaleTimeString('pl-PL')}</small>
+    box.innerHTML = `
+        <h2 style="margin-bottom: 4px; font-size: 1.1rem;">${lineName}</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Aktywne pojazdy na tej linii</p>
+        <div>
+            ${activeVehicles.length ? activeVehicles.map(v => {
+                const delay = parseInt(v.delayInMinutes || 0, 10);
+                return `
+                    <div class="departure-row">
+                        <div>
+                            <strong>Pojazd #${v.id || 'N/A'}</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Kierunek: ${v.headsign || '---'}</div>
+                        </div>
+                        <div class="time-box">
+                            ${delay > 0 ? `<div class="delay-info late">+${delay} min opóźnienia</div>` : `<div class="delay-info on-time">O czasie</div>`}
+                        </div>
                     </div>
-                    <p style="font-size:0.85rem; opacity:0.8;">${a.desc}</p>
-                </div>`;
-        });
-    },
+                `;
+            }).join('') : '<div class="loading">Brak pojazdów w ruchu dla tej linii.</div>'}
+        </div>
+    `;
+}
 
-    openForm() {
-        document.getElementById('mod-details').innerHTML = `
-            <button class="btn btn-sm" onclick="App.gate('alerts')" style="margin-bottom:12px;"><i class="fa-solid fa-arrow-left"></i> ANULUJ</button>
-            <div class="card">
-                <h3 style="margin-bottom:12px;">NOWE ZGŁOSZENIE</h3>
-                <input id="a-line" placeholder="Numer linii (np. 1, 124)">
-                <select id="a-type">
-                    <option value="AWARIA">Awaria / Utrudnienie</option>
-                    <option value="KANAR">Kontrola biletów</option>
-                    <option value="OPÓŹNIENIE">Duże opóźnienie</option>
-                </select>
-                <input id="a-desc" placeholder="Opis sytuacji / lokalizacja...">
-                <button class="btn" onclick="ModAlerts.save()">WYŚLIJ ZGŁOSZENIE</button>
-            </div>`;
-        App.gate('details');
-    },
-
-    save() {
-        const line = document.getElementById('a-line').value.trim();
-        const type = document.getElementById('a-type').value;
-        const desc = document.getElementById('a-desc').value.trim();
-
-        if(!line || !desc) return App.toast("Wypełnij pole linii i opisu!", "error");
-
-        const newItem = { line, type, desc, time: Date.now() };
-
-        if(App.db) {
-            App.db.ref(App.dbKey).push(newItem).then(() => {
-                App.toast("Dodano zgłoszenie!");
-                App.gate('alerts');
-            }).catch(() => this.saveLocally(newItem));
-        } else {
-            this.saveLocally(newItem);
-        }
-    },
-
-    saveLocally(item) {
-        const local = JSON.parse(localStorage.getItem(App.dbKey) || '{}');
-        local[Date.now()] = item;
-        localStorage.setItem(App.dbKey, JSON.stringify(local));
-        this.render(local);
-        App.toast("Zapisano lokalnie!");
-        App.gate('alerts');
+function renderLive() {
+    const box = document.getElementById('live-list');
+    if (!cache.vehicles.length) {
+        box.innerHTML = '<div class="loading">Brak danych GPS dla pojazdów.</div>';
+        return;
     }
-};
 
-App.init();
+    box.innerHTML = cache.vehicles.map(v => {
+        const line = v.lineLabel || v.line || '?';
+        const delay = parseInt(v.delayInMinutes || 0, 10);
+
+        return `
+            <div class="departure-row">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="badge">${line}</span>
+                    <div>
+                        <div style="font-weight: bold;">Kierunek: ${v.headsign || 'Trasa miejska'}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Pojazd #${v.id}</div>
+                    </div>
+                </div>
+                <div class="time-box">
+                    ${delay > 0 ? `<div class="delay-info late">+${delay} min</div>` : `<div class="delay-info on-time">O czasie</div>`}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+init();
 </script>
 </body>
 </html>

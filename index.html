@@ -173,8 +173,8 @@
 </div>
 
 <script>
-// TUTAJ WPISZ SWÓJ ADRES CLOUDFLARE WORKERA:
-const PROXY_URL = "shiny-tree-3a9b.fabianzukowski-32.workers.dev"; 
+// Twój Cloudflare Worker (czysty adres domeny bez ?url=)
+const PROXY_URL = "https://shiny-tree-3a9b.fabianzukowski-32.workers.dev/"; 
 const TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
 
 window.appState = {
@@ -187,7 +187,7 @@ window.appState = {
 async function fetchAPI(command, action, params = '') {
     const targetUrl = `https://komunikacja.um.gorzow.pl/vm/main?command=${command}&action=${action}&token=${TOKEN}${params}`;
     try {
-        const res = await fetch(PROXY_URL + targetUrl);
+        const res = await fetch(PROXY_URL + "?url=" + encodeURIComponent(targetUrl));
         if (!res.ok) return null;
         const text = await res.text();
         if (!text || text.trim().startsWith('<') || text.includes('Cloudflare')) return null;
@@ -210,10 +210,10 @@ async function initApp() {
 
     let rawStops = Array.isArray(stopsData) ? stopsData : (stopsData?.stops || stopsData?.locations || []);
     
-    // GRUPOWANIE PRZYSTANKÓW: Łączymy perony/stanowiska o tej samej nazwie w jeden wspólny element
+    // Grupowanie przystanków – bez duplikatów i brzydkich numerów w nawiasach dla człowieka
     const groupedMap = new Map();
     rawStops.forEach(s => {
-        let name = (s.name || s.title || 'Nieznany').replace(/\s*\(\d+\)\s*$/, '').trim(); // Usuwa stare numery w nawiasach z nazwy
+        let name = (s.name || s.title || 'Nieznany').replace(/\s*\(\d+\)\s*$/, '').trim();
         if (!groupedMap.has(name)) {
             groupedMap.set(name, { name: name, ids: [] });
         }
@@ -228,7 +228,7 @@ async function initApp() {
     renderLines();
     renderLive();
 
-    document.getElementById('status-text').innerText = 'Gotowy';
+    document.getElementById('status-text').innerText = 'Gotowy – Dane zsynchronizowano';
 }
 
 function startClock() {
@@ -290,7 +290,6 @@ async function loadGroupedDepartures(stopIds, stopName) {
         allDepartures.push(...deps);
     }
 
-    // Sortowanie odjazdów po czasie
     allDepartures.sort((a, b) => {
         const timeA = a.time || a.actualTime || "00:00";
         const timeB = b.time || b.actualTime || "00:00";

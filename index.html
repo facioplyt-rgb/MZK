@@ -162,7 +162,7 @@
 
     <!-- SZCZEGÓŁY ODJAZDÓW -->
     <section id="sec-details" class="section">
-        <button class="back-btn" onclick="switchTab(window.lastTab || 'stops')">&larr; Powrót</button>
+        <button class="back-btn" onclick="switchTab(window.appState.lastTab || 'stops')">&larr; Powrót</button>
         <div id="details-content"></div>
     </section>
 </div>
@@ -173,11 +173,9 @@
 </div>
 
 <script>
-const PROXY = "https://corsproxy.io/?";
-const API_URL = "https://komunikacja.um.gorzow.pl/vm/main?command=planner";
+const BASE_API_URL = "https://komunikacja.um.gorzow.pl/vm/main";
 const TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
 
-// Globalny stan aplikacji zamknięty w jednym obiekcie unikającym konfliktów nazw
 window.appState = {
     stops: [],
     lines: [],
@@ -185,41 +183,55 @@ window.appState = {
     lastTab: 'stops'
 };
 
-async function fetchAPI(action, params = '') {
-    const targetUrl = `${API_URL}&action=${action}&token=${TOKEN}${params}`;
-    try {
-        const res = await fetch(PROXY + encodeURIComponent(targetUrl));
-        if (!res.ok) return null;
-        const text = await res.text();
-        if (text.trim().startsWith('<') || text.includes('Cloudflare') || text.includes('Access Denied')) {
-            return null;
+async function fetchAPI(command, action, params = '') {
+    const targetUrl = `${BASE_API_URL}?command=${command}&action=${action}&token=${TOKEN}${params}`;
+    
+    const proxies = [
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+    ];
+
+    for (const proxyUrl of proxies) {
+        try {
+            const res = await fetch(proxyUrl);
+            if (!res.ok) continue;
+            const text = await res.text();
+            if (!text || text.trim().startsWith('<') || text.includes('Cloudflare') || text.includes('Access Denied')) {
+                continue;
+            }
+            return JSON.parse(text);
+        } catch (e) {
+            console.warn("Proxy fallback, próbuję kolejnego...", e);
         }
-        return JSON.parse(text);
-    } catch (e) {
-        console.error("Błąd zapytania API:", e);
-        return null;
     }
+    return null;
 }
 
 async function initApp() {
     startClock();
-    document.getElementById('status-text').innerText = 'Pobieranie danych z systemu...';
+    document.getElementById('status-text').innerText = 'Pobieranie danych z systemów miejskich...';
 
     const [stopsData, linesData, vehiclesData] = await Promise.all([
-        fetchAPI('p'),
-        fetchAPI('l'),
-        fetchAPI('v')
+        fetchAPI('basicdata', 'locations'),
+        fetchAPI('planner', 'l'),
+        fetchAPI('planner', 'v')
     ]);
 
-    window.appState.stops = Array.isArray(stopsData) ? stopsData : (stopsData?.stops || []);
+    window.appState.stops = Array.isArray(stopsData) ? stopsData : (stopsData?.stops || stopsData?.locations || []);
     window.appState.lines = Array.isArray(linesData) ? linesData : (linesData?.lines || []);
     window.appState.vehicles = Array.isArray(vehiclesData) ? vehiclesData : (vehiclesData?.vehicles || []);
+
+    if (!window.appState.stops.length && !window.appState.lines.length) {
+        document.getElementById('status-text').innerText = 'Błąd pobierania danych';
+        document.getElementById('stops-list').innerHTML = '<div class="msg-box" style="color:var(--danger)">Nie udało się nawiązać połączenia z API UM Gorzów.</div>';
+        return;
+    }
 
     renderStops();
     renderLines();
     renderLive();
 
-    document.getElementById('status-text').innerText = 'Gotowy';
+    document.getElementById('status-text').innerText = 'Gotowy – Dane zsynchronizowane';
 }
 
 function startClock() {
@@ -249,7 +261,7 @@ function renderStops() {
 function filterStops(query) {
     const box = document.getElementById('stops-list');
     if (!window.appState.stops.length) {
-        box.innerHTML = '<div class="msg-box">Brak danych przystanków. Sprawdź połączenie z siecią.</div>';
+        box.innerHTML = '<div class="msg-box">Brak danych przystanków.</div>';
         return;
     }
 
@@ -274,7 +286,7 @@ async function loadStopDepartures(stopId, stopName) {
     const box = document.getElementById('details-content');
     box.innerHTML = `<div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 2px;">${stopName}</div><div class="msg-box">Pobieranie rozkładu jazdy na żywo...</div>`;
 
-    const data = await fetchAPI('b', `&stopId=${stopId}`);
+    const data = await fetchAPI('planner', 'b', `&stopId=${stopId}`);
     const departures = Array.isArray(data) ? data : (data?.departures || []);
 
     if (!departures.length) {
@@ -394,7 +406,6 @@ function renderLive() {
     }).join('');
 }
 
-// Uruchomienie aplikacji po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', initApp);
 </script>
 </body>

@@ -1,80 +1,67 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#03060b">
-    <title>MZK 67</title>
+    <title>MZK Gorzów - LIVE (UM + MZK API)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 
     <style>
         :root { 
             --accent: #00d166; --bg: #03060b; --surf: #0d121d; --surf-l: #161d2b; 
             --text: #ffffff; --text-m: #94a3b8; --tram: #ff4757; --bus: #00a8ff; 
-            --warn: #f1c40f; --korek: #e67e22; --border: rgba(255,255,255,0.06); 
+            --warn: #f1c40f; --border: rgba(255,255,255,0.06); 
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); overflow-x: hidden; }
         
-        /* SYSTEM STATUS BAR */
-        #sync-status { position: fixed; bottom: 0; left: 0; width: 100%; padding: 5px 15px; font-size: 0.65rem; background: var(--surf); border-top: 1px solid var(--border); display: flex; justify-content: space-between; z-index: 5000; color: var(--text-m); font-weight: 600; }
+        #sync-status { position: fixed; bottom: 0; left: 0; width: 100%; padding: 6px 15px; font-size: 0.7rem; background: var(--surf); border-top: 1px solid var(--border); display: flex; justify-content: space-between; z-index: 5000; color: var(--text-m); font-weight: 600; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
 
-        header { padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(3,6,11,0.95); backdrop-filter: blur(15px); z-index: 2000; }
+        header { padding: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(3,6,11,0.95); backdrop-filter: blur(15px); z-index: 2000; }
         
-        .side-menu { position: fixed; top: 0; left: -100%; width: 290px; height: 100%; background: var(--surf); z-index: 4000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px; border-right: 1px solid var(--border); }
+        .side-menu { position: fixed; top: 0; left: -100%; width: 280px; height: 100%; background: var(--surf); z-index: 4000; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px; border-right: 1px solid var(--border); }
         .side-menu.open { left: 0; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; display: none; backdrop-filter: blur(5px); }
         .overlay.show { display: block; }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 15px; padding-bottom: 120px; }
-        .card { background: var(--surf); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); position: relative; transition: 0.2s; }
+        .container { max-width: 600px; margin: 0 auto; padding: 15px; padding-bottom: 80px; }
+        .card { background: var(--surf); border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border); position: relative; }
         .module { display: none; }
-        .module.active { display: block; animation: slideIn 0.3s ease-out; }
+        .module.active { display: block; animation: fadeIn 0.25s ease-out; }
         
-        /* TOASTS */
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 15px 25px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 0.9rem; animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; transition: opacity 0.3s; }
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 12px 20px; border-radius: 10px; color: #fff; font-weight: 600; font-size: 0.85rem; animation: slideIn 0.3s forwards; box-shadow: 0 8px 20px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px; }
         .toast.success { background: var(--accent); color: #000; }
         .toast.error { background: var(--tram); color: #fff; }
         
-        /* DELAY BADGES */
         .delay-tag { font-size: 0.7rem; font-weight: 900; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; }
         .delay-tag.on-time { background: rgba(0, 209, 102, 0.15); color: var(--accent); }
         .delay-tag.delayed { background: rgba(255, 71, 87, 0.15); color: var(--tram); }
         .delay-tag.early { background: rgba(0, 168, 255, 0.15); color: var(--bus); }
 
-        .skeleton { background: linear-gradient(90deg, var(--surf-l) 25%, #1e293b 50%, var(--surf-l) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 12px; height: 60px; margin-bottom: 10px; }
+        .skeleton { background: linear-gradient(90deg, var(--surf-l) 25%, #1e293b 50%, var(--surf-l) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 12px; height: 50px; margin-bottom: 10px; }
         @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
-        input, select, textarea { width: 100%; padding: 15px; border-radius: 12px; background: var(--surf-l); border: 1px solid var(--border); color: #fff; margin-bottom: 12px; font-size: 1rem; outline: none; transition: border 0.2s; }
-        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-        .btn { background: var(--accent); color: #000; padding: 16px; border: none; border-radius: 14px; width: 100%; font-weight: 900; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn:active { transform: scale(0.96); }
-        .btn-sm { padding: 8px 12px; font-size: 0.7rem; width: auto; background: var(--surf-l); color: #fff; border: 1px solid var(--border); }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; background: var(--surf-l); border: 1px solid var(--border); color: #fff; margin-bottom: 12px; font-size: 0.95rem; outline: none; }
+        input:focus, select:focus { border-color: var(--accent); }
+        .btn { background: var(--accent); color: #000; padding: 14px; border: none; border-radius: 12px; width: 100%; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-sm { padding: 8px 12px; font-size: 0.75rem; width: auto; background: var(--surf-l); color: #fff; border: 1px solid var(--border); border-radius: 8px; }
 
-        .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 15px 0; }
-        .time-slot { background: var(--surf-l); padding: 8px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 0.85rem; border: 1px solid var(--border); color: var(--accent); }
-        .time-slot.past { opacity: 0.2; text-decoration: line-through; color: #fff; }
-
-        .nav-item { padding: 16px; display: flex; align-items: center; gap: 15px; font-weight: 600; cursor: pointer; border-radius: 15px; margin-bottom: 8px; transition: 0.2s; }
+        .nav-item { padding: 14px; display: flex; align-items: center; gap: 12px; font-weight: 600; cursor: pointer; border-radius: 12px; margin-bottom: 6px; }
         .nav-item:hover { background: var(--surf-l); color: var(--accent); }
-
-        .price-card { background: var(--surf-l); padding: 15px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
-        .v-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; font-size: 0.75rem; }
-        .badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 900; text-transform: uppercase; }
-        .countdown-box { background: var(--accent); color: #000; padding: 12px; border-radius: 15px; text-align: center; font-weight: 900; margin-bottom: 15px; font-size: 1.1rem; }
         
-        .edit-mode { border: 2px dashed var(--warn) !important; }
+        .badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 6px; font-weight: 900; }
+        .dep-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--surf-l); border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border); }
+        .news-card { border-left: 4px solid var(--warn); background: var(--surf); padding: 14px; border-radius: 12px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -82,272 +69,152 @@
 <div id="toast-container"></div>
 
 <div id="sync-status">
-    <span><span id="status-dot" class="status-dot" style="background: #f1c40f;"></span> <span id="status-text">Inicjalizacja...</span></span>
-    <span id="cloud-name">CLOUD: mzkfacio (LIVE API V2)</span>
+    <span><span id="status-dot" class="status-dot" style="background: #f1c40f;"></span> <span id="status-text">Łączenie z API UM & MZK...</span></span>
+    <span>HYBRID LIVE API</span>
 </div>
 
 <div class="overlay" id="overlay" onclick="App.toggleMenu(false)"></div>
 
 <div class="side-menu" id="side-menu">
-    <h2 style="font-weight: 900; margin-bottom: 40px; font-size: 2rem;">MZK <span style="color:var(--accent)">OMEGA</span></h2>
-    <div class="nav-item" onclick="App.gate('news')"><i class="fa-solid fa-newspaper"></i> Aktualności</div>
-    <div class="nav-item" onclick="App.gate('lines')"><i class="fa-solid fa-route"></i> Linie Jazdy</div>
+    <h2 style="font-weight: 900; margin-bottom: 30px;">MZK <span style="color:var(--accent)">GORZÓW</span></h2>
+    <div class="nav-item" onclick="App.gate('vehicles')"><i class="fa-solid fa-bus"></i> Pojazdy Live (UM)</div>
+    <div class="nav-item" onclick="App.gate('lines')"><i class="fa-solid fa-route"></i> Linie i Rozkłady</div>
     <div class="nav-item" onclick="App.gate('stops')"><i class="fa-solid fa-location-dot"></i> Przystanki</div>
-    <div class="nav-item" onclick="App.gate('alerts')"><i class="fa-solid fa-bullhorn"></i> Alerty Społeczności</div>
-    <div class="nav-item" onclick="App.gate('pricing')"><i class="fa-solid fa-money-bill-wave"></i> Cennik Biletów</div>
-    <div style="margin-top: 50px; border-top: 1px solid var(--border); padding-top: 20px;">
-        <div class="nav-item" onclick="App.gate('admin')"><i class="fa-solid fa-user-shield"></i> PANEL ADMINA</div>
-    </div>
+    <div class="nav-item" onclick="App.gate('news')"><i class="fa-solid fa-newspaper"></i> Komunikaty MZK</div>
+    <div class="nav-item" onclick="App.gate('alerts')"><i class="fa-solid fa-bullhorn"></i> Zgłoszenia</div>
 </div>
 
 <header>
-    <div onclick="App.toggleMenu(true)" style="font-size: 1.6rem; cursor: pointer; color: var(--accent);"><i class="fa-solid fa-bars-staggered"></i></div>
-    <div id="live-clock" style="font-weight: 900; letter-spacing: 1px; background: var(--surf-l); padding: 5px 15px; border-radius: 10px;">00:00:00</div>
+    <div onclick="App.toggleMenu(true)" style="font-size: 1.4rem; cursor: pointer; color: var(--accent);"><i class="fa-solid fa-bars-staggered"></i></div>
+    <div style="font-weight: 900; letter-spacing: 1px; color: var(--accent);">MZK GORZÓW LIVE</div>
+    <div id="live-clock" style="font-weight: 700; font-size: 0.85rem; background: var(--surf-l); padding: 4px 10px; border-radius: 8px;">00:00:00</div>
 </header>
 
 <div class="container">
-    <section id="mod-news" class="module active"><div id="news-list"></div></section>
-    
+    <!-- POJAZDY LIVE -->
+    <section id="mod-vehicles" class="module active">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="font-weight: 900;">POJAZDY NA ŻYWO</h2>
+            <button class="btn btn-sm" onclick="ModVehicles.load()"><i class="fa-solid fa-rotate"></i> Odśwież</button>
+        </div>
+        <div id="vehicles-list"></div>
+    </section>
+
+    <!-- LINIE -->
     <section id="mod-lines" class="module">
-        <div id="fav-section" style="display:none; margin-bottom: 30px;">
-            <h3 style="color:var(--tram); margin-bottom:15px;"><i class="fa-solid fa-heart"></i> MOJE LINIE</h3>
-            <div id="fav-list"></div>
-        </div>
-        
-        <div style="display:flex; justify-style:space-between; align-items:center; margin-bottom:20px;">
-            <h2 style="font-weight: 900;">SIECI ROZKŁADÓW</h2>
-            <button class="btn btn-sm" onclick="ModLines.fetchLiveAPI()" style="background:var(--accent); color:#000; font-weight:900;"><i class="fa-solid fa-satellite-dish"></i> POJAZDY NA ŻYWO (LIVE API)</button>
-        </div>
-
-        <div id="live-vehicles-box" style="display:none; margin-bottom:25px;">
-            <h3 style="color:var(--accent); margin-bottom:10px;"><i class="fa-solid fa-bus"></i> AKTYWNE POJAZDY & OPÓŹNIENIA</h3>
-            <div id="live-vehicles-list"></div>
-        </div>
-
+        <h2 style="margin-bottom:15px; font-weight: 900;">LINIE I TRASY</h2>
         <div id="lines-list"></div>
     </section>
 
+    <!-- PRZYSTANKI -->
     <section id="mod-stops" class="module">
-        <h2 style="margin-bottom:15px;">WYSZUKIWARKA PRZYSTANKÓW</h2>
-        <input type="text" id="stop-search" placeholder="Gdzie jedziemy? (min. 2 znaki)" oninput="ModStops.debounceSearch(this.value)">
-        <div id="stops-results"></div>
+        <h2 style="margin-bottom:15px; font-weight: 900;">SZUKAJ PRZYSTANKU</h2>
+        <input type="text" id="stop-search" placeholder="Wpisz nazwę przystanku..." oninput="ModStops.filter(this.value)">
+        <div id="stops-list"></div>
     </section>
 
+    <!-- KOMUNIKATY MZK -->
+    <section id="mod-news" class="module">
+        <h2 style="margin-bottom:15px; font-weight: 900;">OSTATNIE KOMUNIKATY MZK</h2>
+        <div id="news-list"></div>
+    </section>
+
+    <!-- ALERTY (FIREBASE) -->
     <section id="mod-alerts" class="module">
-        <h2 style="margin-bottom:15px;">CENTRUM ALERTÓW</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
-            <button class="btn" style="background:var(--tram)" onclick="ModAlerts.openForm('KANAR')"><i class="fa-solid fa-user-secret"></i> KANAR</button>
-            <button class="btn" style="background:var(--warn)" onclick="ModAlerts.openForm('AWARIA')"><i class="fa-solid fa-car-burst"></i> AWARIA</button>
-            <button class="btn" style="background:var(--korek)" onclick="ModAlerts.openForm('KOREK')"><i class="fa-solid fa-traffic-light"></i> KOREK</button>
-            <button class="btn" style="background:var(--bus)" onclick="ModAlerts.openForm('REMONT')"><i class="fa-solid fa-trowel-bricks"></i> REMONT</button>
-        </div>
+        <h2 style="margin-bottom:15px; font-weight: 900;">ZGŁOSZENIA PASAŻERÓW</h2>
+        <button class="btn" style="margin-bottom:15px;" onclick="ModAlerts.openForm()"><i class="fa-solid fa-plus"></i> Dodaj zgłoszenie</button>
         <div id="alerts-list"></div>
     </section>
 
-    <section id="mod-pricing" class="module">
-        <div id="price-list-container"></div>
-    </section>
-
+    <!-- WIDOK SZCZEGÓŁOWY -->
     <section id="mod-details" class="module"></section>
-
-    <section id="mod-admin" class="module">
-        <div id="admin-auth" class="card">
-            <h3 style="margin-bottom:20px; text-align:center;">Autoryzacja Systemowa</h3>
-            <input type="email" id="admin-email" placeholder="Email administratora...">
-            <input type="password" id="admin-pass" placeholder="Hasło...">
-            <button class="btn" onclick="ModAdmin.login()"><i class="fa-solid fa-lock-open"></i> ZALOGUJ</button>
-        </div>
-        
-        <div id="admin-cms" style="display:none;">
-            <div style="display:flex; gap:8px; margin-bottom:20px; overflow-x:auto; padding-bottom:10px;">
-                <button class="btn btn-sm" onclick="ModAdmin.tab('L')">LINIE</button>
-                <button class="btn btn-sm" onclick="ModAdmin.tab('N')">NEWSY</button>
-                <button class="btn btn-sm" onclick="ModAdmin.tab('P')">CENY</button>
-                <button class="btn btn-sm" onclick="ModAdmin.tab('A')" style="background:#ff4757">ALERTY</button>
-                <button class="btn btn-sm" onclick="App.seedDefaultData()" style="background:#e67e22">RESET / SEED BAZY</button>
-            </div>
-            
-            <div id="atab-L" class="atab">
-                <div class="card" id="form-L" style="border-top: 5px solid var(--accent);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h4 id="title-L">Dodaj nową linię</h4>
-                        <button class="btn-sm" id="cancel-L" style="display:none; background:var(--tram)" onclick="ModAdmin.resetForm('L')">ANULUJ EDYCJĘ</button>
-                    </div>
-                    <input id="al-id" type="hidden">
-                    <input id="al-num" placeholder="Numer linii (np. 124)">
-                    <input id="al-dir" placeholder="Kierunek (np. Os. Staszica)">
-                    <textarea id="al-stops" placeholder="Przystanki (po przecinku)"></textarea>
-                    <textarea id="al-times" placeholder="Godziny (po przecinku, np. 06:15, 07:20)"></textarea>
-                    <select id="al-type"><option value="bus">Autobus</option><option value="tram">Tramwaj</option></select>
-                    <button class="btn" id="btn-L" onclick="ModAdmin.save('lines')">ZAPISZ LINIĘ</button>
-                </div>
-                <div id="admin-lines-list"></div>
-            </div>
-
-            <div id="atab-N" class="atab" style="display:none;">
-                <div class="card" id="form-N" style="border-top: 5px solid var(--accent);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h4 id="title-N">Dodaj news</h4>
-                        <button class="btn-sm" id="cancel-N" style="display:none; background:var(--tram)" onclick="ModAdmin.resetForm('N')">ANULUJ EDYCJĘ</button>
-                    </div>
-                    <input id="an-id" type="hidden">
-                    <input id="an-t" placeholder="Tytuł newsa">
-                    <input id="an-cat" placeholder="Kategoria (np. INFO, AWARIA)">
-                    <textarea id="an-c" placeholder="Treść..." style="height:150px;"></textarea>
-                    <button class="btn" id="btn-N" onclick="ModAdmin.save('news')">PUBLIKUJ NEWS</button>
-                </div>
-                <div id="admin-news-list"></div>
-            </div>
-
-            <div id="atab-P" class="atab" style="display:none;">
-                <div class="card" id="form-P" style="border-top: 5px solid var(--accent);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h4 id="title-P">Dodaj bilet</h4>
-                        <button class="btn-sm" id="cancel-P" style="display:none; background:var(--tram)" onclick="ModAdmin.resetForm('P')">ANULUJ EDYCJĘ</button>
-                    </div>
-                    <input id="ap-id" type="hidden">
-                    <input id="ap-n" placeholder="Nazwa biletu (np. Jednorazowy Normalny)">
-                    <input id="ap-p" placeholder="Cena (np. 3.00 zł)">
-                    <button class="btn" id="btn-P" onclick="ModAdmin.save('prices')">ZAPISZ BILET</button>
-                </div>
-                <div id="admin-prices-list"></div>
-            </div>
-
-            <div id="atab-A" class="atab" style="display:none;">
-                <h4 style="margin-bottom:10px;">Ostatnie zgłoszenia (aktywne max 60 min):</h4>
-                <div id="admin-alerts-list"></div>
-            </div>
-        </div>
-    </section>
 </div>
 
 <script>
-// LIVE API CREDENTIALS
-const LIVE_API_TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
+const CONFIG = {
+    UM_API: "https://komunikacja.um.gorzow.pl/vm/main?command=planner",
+    MZK_NEWS_API: "https://mzk-gorzow.pl/index.php?option=com_content&view=category&id=2&format=json",
+    TOKEN: "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9"
+};
+
+async function fetchProxy(url, headers = {}) {
+    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+    try {
+        const res = await fetch(proxyUrl, { headers });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.json();
+    } catch (err) {
+        const backupProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const res2 = await fetch(backupProxy, { headers });
+        return await res2.json();
+    }
+}
 
 const App = {
-    dbKey: 'mzk', 
-    data: { news: {}, lines: {}, prices: {}, reports: {} },
-    favs: JSON.parse(localStorage.getItem('mzk_favs')) || [],
-    liveDataCache: {},
-    
-    init() {
-        this.status("Inicjalizacja SDK...", "#f1c40f");
-        this.setupPWA();
-        
+    dbKey: 'mzk_live_alerts',
+    cache: { vehicles: [], lines: [], stops: [], news: [] },
+
+    async init() {
+        this.startClock();
+        this.setupFirebase();
+        await this.loadAllAPIData();
+    },
+
+    setupFirebase() {
         const firebaseConfig = {
             apiKey: "AIzaSyDAp3b1eLuZdus48M5aE9N9TTzPhFRU4i0",
             authDomain: "mzkfacio.firebaseapp.com",
             databaseURL: "https://mzkfacio-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "mzkfacio",
-            storageBucket: "mzkfacio.firebasestorage.app",
-            messagingSenderId: "34171682379",
-            appId: "1:34171682379:web:dbf01d56ace53536d597ce",
-            measurementId: "G-BQTF7HZTFR"
+            projectId: "mzkfacio"
         };
-
-        firebase.initializeApp(firebaseConfig);
+        if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         this.db = firebase.database();
-        this.auth = firebase.auth();
-
+        
         this.db.ref(this.dbKey).on('value', snap => {
-            const val = snap.val();
-            if (!val || !val.lines || Object.keys(val.lines).length === 0) {
-                this.seedDefaultData();
-                return;
-            }
-            this.data = val;
-            this.renderAll();
-            this.status("Połączono: mzkfacio", "#00d166");
+            ModAlerts.render(snap.val() || {});
         });
+    },
 
-        this.auth.onAuthStateChanged(user => {
-            if(user) {
-                ModAdmin.logged = true;
-                document.getElementById('admin-auth').style.display = 'none';
-                document.getElementById('admin-cms').style.display = 'block';
-                ModAdmin.drawCMS();
-            }
-        });
+    async loadAllAPIData() {
+        this.status("Pobieranie danych z obu API (UM + MZK)...", "#f1c40f");
+        
+        try {
+            const headers = { "Authorization": `Bearer ${CONFIG.TOKEN}` };
+            const [vehicles, lines, stops, news] = await Promise.all([
+                fetchProxy(`${CONFIG.UM_API}&action=v`, headers).catch(() => []),
+                fetchProxy(`${CONFIG.UM_API}&action=l`, headers).catch(() => []),
+                fetchProxy(`${CONFIG.UM_API}&action=p`, headers).catch(() => []),
+                fetchProxy(CONFIG.MZK_NEWS_API).catch(() => [])
+            ]);
 
+            this.cache.vehicles = Array.isArray(vehicles) ? vehicles : [];
+            this.cache.lines = Array.isArray(lines) ? lines : [];
+            this.cache.stops = Array.isArray(stops) ? stops : [];
+            this.cache.news = Array.isArray(news) ? news : [];
+
+            ModVehicles.render();
+            ModLines.render();
+            ModStops.render();
+            ModNews.render();
+
+            this.status("Połączono z API UM & MZK", "#00d166");
+            this.toast("Zaktualizowano dane z obu źródeł!");
+        } catch (err) {
+            console.error(err);
+            this.status("Błąd pobierania danych", "#ff4757");
+            this.toast("Błąd aktualizacji z API", "error");
+        }
+    },
+
+    startClock() {
         setInterval(() => {
             document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('pl-PL');
         }, 1000);
-
-        window.addEventListener('popstate', (e) => {
-            if (e.state && e.state.id) this.gate(e.state.id, false);
-            else this.gate('news', false);
-        });
-
-        const hash = window.location.hash.replace('#', '');
-        if(hash && document.getElementById('mod-' + hash)) this.gate(hash, false);
-        else this.gate('news', false);
     },
 
-    seedDefaultData() {
-        this.status("Zasypywanie bazy rozkładami...", "#f1c40f");
-        const defaultData = {
-            lines: {
-                "line_1": {
-                    num: "1",
-                    dir: "Silwana ➔ Wieprzyce",
-                    type: "tram",
-                    stops: "Silwana, Walczaka, Fieldorfa-Nila, Pomorska, Katedralna, Dworcowa, Rolnika, Wieprzyce",
-                    times: "05:15, 05:45, 06:15, 06:45, 07:15, 07:45, 08:15, 09:00, 10:00, 11:00, 12:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00, 19:30, 21:00, 22:15"
-                },
-                "line_2": {
-                    num: "2",
-                    dir: "Wieprzyce ➔ Fieldorfa-Nila",
-                    type: "tram",
-                    stops: "Wieprzyce, Rolnika, Dworzec, Sikorskiego, Katedralna, Jagiełły, Fieldorfa-Nila",
-                    times: "05:20, 06:20, 07:20, 08:20, 09:20, 10:20, 11:20, 12:20, 13:20, 14:20, 15:20, 16:20, 17:20, 18:20, 19:20, 20:20, 21:20"
-                },
-                "line_101": {
-                    num: "101",
-                    dir: "Śląska ➔ Londyńska",
-                    type: "bus",
-                    stops: "Śląska, Towarowa, Dworcowa, Sikorskiego, Londyńska",
-                    times: "05:30, 06:00, 06:30, 07:00, 07:30, 08:00, 09:00, 10:00, 11:00, 12:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00, 19:00, 20:00, 21:00, 22:00"
-                },
-                "line_124": {
-                    num: "124",
-                    dir: "Bora-Komorowskiego ➔ Ustronie",
-                    type: "bus",
-                    stops: "Bora-Komorowskiego, Walczaka, Piłsudskiego, Dworcowa, Ustronie",
-                    times: "05:10, 05:40, 06:10, 06:40, 07:10, 07:40, 08:10, 09:10, 10:10, 11:10, 12:10, 13:10, 14:10, 15:10, 16:10, 17:10, 18:10, 19:10, 20:10, 21:10, 22:10"
-                }
-            },
-            news: {
-                "news_1": {
-                    title: "Wdrożenie Systemu OMEGA z obsługą Live API V2",
-                    category: "INFO",
-                    content: "System OMEGA został pomyślnie zintegrowany z API Live Transit V2. Dostępny jest podgląd opóźnień oraz statusów pojazdów w czasie rzeczywistym.",
-                    date: new Date().toLocaleDateString('pl-PL')
-                }
-            },
-            prices: {
-                "p_1": { name: "Bilet Jednorazowy Normalny (Strefa Miejska)", price: "3.00 zł" },
-                "p_2": { name: "Bilet Jednorazowy Ulgowy (Strefa Miejska)", price: "1.50 zł" },
-                "p_3": { name: "Bilet 24-godzinny Normalny", price: "12.00 zł" },
-                "p_4": { name: "Bilet 24-godzinny Ulgowy", price: "6.00 zł" }
-            },
-            reports: {}
-        };
-
-        this.db.ref(this.dbKey).set(defaultData).then(() => {
-            this.toast("Zasilono bazę danymi Gorzowa!");
-            this.status("Baza gotowa!", "#00d166");
-        });
-    },
-
-    setupPWA() {
-        const manifest = {
-            name: "MZK OMEGA GORZÓW", short_name: "MZK OMEGA", display: "standalone",
-            background_color: "#03060b", theme_color: "#00d166",
-            icons: [{src: "https://cdn-icons-png.flaticon.com/512/3448/3448339.png", sizes: "512x512", type: "image/png"}]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${URL.createObjectURL(manifestBlob)}">`);
+    status(txt, col) {
+        document.getElementById('status-text').innerText = txt;
+        document.getElementById('status-dot').style.background = col;
     },
 
     toast(msg, type = 'success') {
@@ -356,443 +223,263 @@ const App = {
         el.className = `toast ${type}`;
         el.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-check' : 'fa-triangle-exclamation'}"></i> ${msg}`;
         container.appendChild(el);
-        setTimeout(() => { 
-            el.style.opacity = '0'; 
-            setTimeout(() => el.remove(), 300); 
-        }, 3000);
-    },
-
-    status(txt, col) {
-        document.getElementById('status-text').innerText = txt;
-        document.getElementById('status-dot').style.background = col;
+        setTimeout(() => { el.remove(); }, 3000);
     },
 
     toggleMenu(open) {
-        const menu = document.getElementById('side-menu');
-        const overlay = document.getElementById('overlay');
-        menu.classList.toggle('open', open);
-        overlay.classList.toggle('show', open);
+        document.getElementById('side-menu').classList.toggle('open', open);
+        document.getElementById('overlay').classList.toggle('show', open);
     },
 
-    gate(id, pushHistory = true) {
+    gate(id) {
         document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-        const target = document.getElementById('mod-' + id) || document.getElementById('mod-news');
+        const target = document.getElementById('mod-' + id) || document.getElementById('mod-vehicles');
         target.classList.add('active');
         this.toggleMenu(false);
         window.scrollTo(0,0);
-        if(pushHistory && id !== 'details') {
-            history.pushState({ id }, '', '#' + id);
-        }
-    },
-
-    renderAll() {
-        ModNews.draw();
-        ModLines.render();
-        ModPricing.draw();
-        ModAlerts.draw();
     }
 };
 
-const ModNews = {
-    draw() {
-        const box = document.getElementById('news-list');
-        box.innerHTML = '<h2 style="margin-bottom:20px; font-weight:900;">AKTUALNOŚCI</h2>';
-        if(!Object.keys(App.data.news || {}).length) {
-            box.innerHTML += '<p style="opacity:0.5; text-align:center;">Brak nowych wiadomości.</p>';
-            return;
-        }
-        Object.entries(App.data.news).reverse().forEach(([id, n]) => {
-            box.innerHTML += `<div class="card" onclick="ModNews.details('${id}')" style="cursor:pointer; border-left: 4px solid var(--accent);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <span class="badge" style="background:rgba(0,209,102,0.1); color:var(--accent);">${n.category || 'INFO'}</span>
-                    <small style="opacity:0.4;">${n.date || ''}</small>
-                </div>
-                <h3 style="line-height:1.3;">${n.title}</h3>
-            </div>`;
-        });
-    },
-    details(id) {
-        const n = App.data.news[id];
-        if(!n) return;
-        document.getElementById('mod-details').innerHTML = `
-            <button class="btn btn-sm" onclick="App.gate('news')" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
-            <div class="card">
-                <span class="badge" style="background:rgba(0,209,102,0.1); color:var(--accent); margin-bottom:10px; display:inline-block;">${n.category || 'INFO'}</span>
-                <h1 style="margin-bottom:10px;">${n.title}</h1>
-                <small style="opacity:0.4;">Opublikowano: ${n.date}</small>
-                <p style="margin-top:20px; line-height:1.7; opacity:0.8; white-space:pre-wrap;">${n.content}</p>
-            </div>`;
-        App.gate('details');
-    }
-};
-
-const ModLines = {
-    async fetchLiveAPI() {
-        App.status("Pobieranie Live API V2...", "#f1c40f");
-        const box = document.getElementById('live-vehicles-box');
-        const list = document.getElementById('live-vehicles-list');
-        box.style.display = 'block';
-        list.innerHTML = '<div class="skeleton"></div>';
-
-        const targetUrl = `https://komunikacja.um.gorzow.pl/vm/main?command=planner&action=v`;
-        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(targetUrl);
-
+const ModVehicles = {
+    async load() {
+        App.status("Odświeżanie pojazdów...", "#f1c40f");
         try {
-            const res = await fetch(proxyUrl, {
-                headers: {
-                    "Authorization": `Bearer ${LIVE_API_TOKEN}`,
-                    "X-Api-Key": LIVE_API_TOKEN
-                }
-            });
-
-            let vehicles = await res.json();
-
-            // Przypisywanie wyliczonego opóźnienia, jeśli API zwraca stempel czasowy
-            if (Array.isArray(vehicles) && vehicles.length > 0) {
-                list.innerHTML = '';
-                vehicles.forEach(v => {
-                    const isTram = v.linetype === "0" || v.type === "tram";
-                    const lineLabel = v.lineLabel || v.label || v.line || "N/A";
-                    
-                    // Wyliczenie lub pobranie opóźnienia w minutach
-                    let delay = v.delayInMinutes !== undefined ? v.delayInMinutes : Math.floor(Math.random() * 5); // Fallback kalkulacji opóźnienia
-                    
-                    let delayBadge = '';
-                    if (delay > 0) {
-                        delayBadge = `<span class="delay-tag delayed"><i class="fa-solid fa-clock"></i> +${delay} min opóźnienia</span>`;
-                    } else if (delay < 0) {
-                        delayBadge = `<span class="delay-tag early"><i class="fa-solid fa-gauge-high"></i> ${delay} min przed czasem</span>`;
-                    } else {
-                        delayBadge = `<span class="delay-tag on-time"><i class="fa-solid fa-check"></i> Na czas</span>`;
-                    }
-
-                    App.liveDataCache[lineLabel] = delay;
-
-                    list.innerHTML += `
-                        <div class="card" style="background:var(--surf-l); border-left:4px solid ${isTram ? 'var(--tram)' : 'var(--bus)'}; margin-bottom:10px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <div>
-                                    <span class="badge" style="background:${isTram ? 'var(--tram)' : 'var(--bus)'}; color:#fff;">
-                                        ${isTram ? 'TRAM' : 'AUT'} ${lineLabel}
-                                    </span>
-                                    <b style="margin-left:8px;">Pojazd #${v.id || 'LIVE'}</b>
-                                </div>
-                                ${delayBadge}
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; opacity:0.7;">
-                                <span><i class="fa-solid fa-compass"></i> Kierunek: ${v.headsign || 'Trasa Miejscka'}</span>
-                                <span style="font-family:monospace; color:var(--accent);">GPS: ${v.lat ? parseFloat(v.lat).toFixed(3) : '52.73'}, ${v.lon ? parseFloat(v.lon).toFixed(3) : '15.23'}</span>
-                            </div>
-                        </div>`;
-                });
-                App.toast(`Pobrano dane Live API dla ${vehicles.length} pojazdów!`);
-                App.status("Live API V2 Połączone", "#00d166");
-            } else {
-                list.innerHTML = '<p style="opacity:0.5;">Brak pojazdów w trasie.</p>';
-            }
-        } catch (err) {
-            console.error(err);
-            list.innerHTML = '<p style="color:var(--tram); font-size:0.85rem;">Błąd autoryzacji Live API V2 lub połączenia sieciowego.</p>';
-            App.toast("Błąd autoryzacji tokena API!", "error");
+            const data = await fetchProxy(`${CONFIG.UM_API}&action=v`, { "Authorization": `Bearer ${CONFIG.TOKEN}` });
+            App.cache.vehicles = Array.isArray(data) ? data : [];
+            this.render();
+            App.status("Połączono z API UM & MZK", "#00d166");
+            App.toast("Pojazdy odświeżone!");
+        } catch(e) {
+            App.toast("Błąd odświeżania pojazdów", "error");
         }
     },
 
     render() {
-        const box = document.getElementById('lines-list');
-        const favBox = document.getElementById('fav-list');
-        const favSec = document.getElementById('fav-section');
-        box.innerHTML = ''; favBox.innerHTML = '';
-        
-        let grouped = {};
-        Object.entries(App.data.lines || {}).forEach(([id, l]) => {
-            if(!grouped[l.num]) grouped[l.num] = [];
-            grouped[l.num].push({id, ...l});
-            
-            if(App.favs.includes(id)) {
-                favBox.innerHTML += `<div class="card" style="border-left:4px solid var(--tram); cursor:pointer;" onclick="ModLines.details('${id}')">
-                    <b style="color:var(--tram); font-size:1.2rem; margin-right:10px;">${l.num}</b> ${l.dir}
-                </div>`;
-            }
-        });
-        
-        favSec.style.display = App.favs.length ? 'block' : 'none';
+        const box = document.getElementById('vehicles-list');
+        box.innerHTML = '';
 
-        if(Object.keys(grouped).length === 0) {
-            box.innerHTML = '<p style="opacity:0.5; text-align:center;">Brak rozkładów w bazie.</p>';
+        if (!App.cache.vehicles.length) {
+            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.6;">Brak aktywnych pojazdów na trasie.</div>';
             return;
         }
 
-        Object.keys(grouped).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(num => {
-            const vs = grouped[num];
-            box.innerHTML += `<div class="card" style="cursor:pointer;" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'block':'none'">
-                <b style="background:var(--accent); color:#000; padding:4px 10px; border-radius:8px; margin-right:15px;">${num}</b> <b>Linia ${num}</b>
-                <i class="fa-solid fa-chevron-down" style="float:right; opacity:0.3; margin-top:5px;"></i>
-            </div>
-            <div style="display:none; padding-left:20px; margin-bottom:15px;">
-                ${vs.map(v => `<div class="card" style="background:var(--surf-l)" onclick="ModLines.details('${v.id}')">${v.dir}</div>`).join('')}
-            </div>`;
-        });
-    },
+        App.cache.vehicles.forEach(v => {
+            const isTram = v.linetype === "0" || v.type === "tram";
+            const lineLabel = v.lineLabel || v.label || v.line || "N/A";
+            const delay = v.delayInMinutes || 0;
 
-    details(id) {
-        const l = App.data.lines[id];
-        if(!l) return;
-        const times = l.times ? l.times.split(',').map(t=>t.trim()).sort() : [];
-        const stops = l.stops ? l.stops.split(',').map(s=>s.trim()) : [];
-        const now = new Date();
-        const nowStr = now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
+            let delayBadge = delay > 0 
+                ? `<span class="delay-tag delayed"><i class="fa-solid fa-clock"></i> +${delay} min</span>`
+                : (delay < 0 ? `<span class="delay-tag early">${delay} min</span>` : `<span class="delay-tag on-time"><i class="fa-solid fa-check"></i> O czasie</span>`);
 
-        const nextDep = times.find(t => t > nowStr);
-        let countdownHtml = '';
-        
-        // Pobieranie ewentualnego opóźnienia zarejestrowanego przez Live API
-        const liveDelay = App.liveDataCache[l.num] || 0;
-
-        if(nextDep) {
-            const [h, m] = nextDep.split(':');
-            const depT = new Date(); depT.setHours(h, m, 0);
-            let diff = Math.floor((depT - now) / 60000);
-            
-            let delayNotice = liveDelay > 0 ? ` (w tym +${liveDelay} min opóźnienia)` : '';
-            countdownHtml = `<div class="countdown-box">NASTĘPNY ODJAZD ZA ${diff + liveDelay} MIN ${delayNotice}</div>`;
-        }
-
-        document.getElementById('mod-details').innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <button class="btn btn-sm" onclick="App.gate('lines')"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
-                <i class="fa-solid fa-heart" onclick="ModLines.toggleFav('${id}')" style="font-size:1.5rem; cursor:pointer; color:${App.favs.includes(id)?'#ff4757':'#334155'}"></i>
-            </div>
-            ${countdownHtml}
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <h1 style="font-size:3.5rem; font-weight:900; line-height:1;">${l.num}</h1>
-                    <i class="fa-solid ${l.type==='tram'?'fa-train-tram':'fa-bus'}" style="font-size:1.5rem; color:var(--text-m);"></i>
-                </div>
-                <h2 style="color:var(--accent); margin-bottom:20px;">${l.dir}</h2>
-                <div class="time-grid">${times.map(t => `<div class="time-slot ${t < nowStr ? 'past' : ''}">${t}</div>`).join('')}</div>
-                <h3 style="margin:20px 0 10px 0;">TRASA:</h3>
-                <div style="border-left:2px solid var(--accent); padding-left:15px;">
-                    ${stops.map(s => `<div style="margin-bottom:12px; font-weight:600;">${s}</div>`).join('')}
-                </div>
-            </div>`;
-        App.gate('details');
-    },
-
-    toggleFav(id) {
-        if(App.favs.includes(id)) {
-            App.favs = App.favs.filter(x => x!==id);
-            App.toast("Usunięto z ulubionych", "success");
-        } else {
-            App.favs.push(id);
-            App.toast("Dodano do ulubionych", "success");
-        }
-        localStorage.setItem('mzk_favs', JSON.stringify(App.favs));
-        this.details(id);
-        this.render();
-    }
-};
-
-const ModAlerts = {
-    openForm(type) {
-        const lines = [...new Set(Object.values(App.data.lines).map(l => l.num))].sort((a,b)=>a-b);
-        document.getElementById('mod-details').innerHTML = `
-            <button class="btn btn-sm" onclick="App.gate('alerts')"><i class="fa-solid fa-arrow-left"></i> COFNIJ</button>
-            <div class="card" style="margin-top:20px;">
-                <h3 style="margin-bottom:15px;">ZGŁOŚ: ${type}</h3>
-                <select id="rl" onchange="ModAlerts.dirs(this.value)"><option value="">Wybierz linię...</option>${lines.map(l=>`<option value="${l}">${l}</option>`)}</select>
-                <select id="rd"><option value="">Najpierw wybierz linię</option></select>
-                <input id="r-loc" placeholder="Gdzie dokładnie to jest? (ulica, przystanek)">
-                <button class="btn" onclick="ModAlerts.send('${type}')">WYŚLIJ ALERT DO BAZY</button>
-            </div>`;
-        App.gate('details');
-    },
-    dirs(n) { 
-        const opts = Object.values(App.data.lines).filter(l=>l.num===n).map(v=>`<option value="${v.dir}">${v.dir}</option>`).join('');
-        document.getElementById('rd').innerHTML = opts || '<option value="">Brak kierunków</option>';
-    },
-    send(t) {
-        const line = document.getElementById('rl').value;
-        const dir = document.getElementById('rd').value;
-        const loc = document.getElementById('r-loc').value;
-        
-        if(!line || !dir || !loc) return App.toast("Wypełnij wszystkie pola!", "error");
-
-        const d = { type:t, line, dir, location:loc, time:Date.now(), yes:0, no:0 };
-        App.db.ref(App.dbKey + '/reports').push(d).then(() => {
-            App.toast("Wysłano zgłoszenie!");
-            App.gate('alerts');
-        });
-    },
-    vote(id, v) { 
-        if(localStorage.getItem('v_'+id)) return App.toast("Już głosowałeś!", "error"); 
-        App.db.ref(`${App.dbKey}/reports/${id}/${v}`).transaction(c => (c||0)+1); 
-        localStorage.setItem('v_'+id,'1'); 
-        App.toast("Zapisano głos", "success");
-    },
-    draw() {
-        const box = document.getElementById('alerts-list'); box.innerHTML = '';
-        const reports = Object.entries(App.data.reports || {}).reverse();
-        let count = 0;
-
-        reports.forEach(([id, r]) => {
-            const mins = Math.floor((Date.now() - r.time)/60000);
-            if(mins > 60) return;
-            count++;
-            let col = r.type==='KANAR'? 'var(--tram)' : r.type==='KOREK'? 'var(--korek)' : 'var(--warn)';
             box.innerHTML += `
-                <div class="card" style="border-left: 5px solid ${col}">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <b style="color:${col}; font-size:1.1rem;">${r.type}</b> <small style="opacity:0.5;">${mins}m temu</small>
+                <div class="card" style="border-left: 4px solid ${isTram ? 'var(--tram)' : 'var(--bus)'}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div>
+                            <span class="badge" style="background:${isTram ? 'var(--tram)' : 'var(--bus)'}; color:#fff;">
+                                ${lineLabel}
+                            </span>
+                            <b style="margin-left:8px;">Pojazd #${v.id || 'LIVE'}</b>
+                        </div>
+                        ${delayBadge}
                     </div>
-                    <p style="margin:10px 0; font-weight:700;">Linia ${r.line} → ${r.dir}</p>
-                    <p style="font-size:0.8rem; opacity:0.7; margin-bottom:15px;"><i class="fa-solid fa-location-dot"></i> ${r.location}</p>
-                    <div style="display:flex; gap:10px;">
-                        <button class="v-btn" style="background:rgba(0,209,102,0.15); color:var(--accent)" onclick="ModAlerts.vote('${id}','yes')"><i class="fa-solid fa-thumbs-up"></i> TAK (${r.yes||0})</button>
-                        <button class="v-btn" style="background:rgba(255,71,87,0.15); color:var(--tram)" onclick="ModAlerts.vote('${id}','no')"><i class="fa-solid fa-thumbs-down"></i> NIE (${r.no||0})</button>
+                    <div style="font-size:0.8rem; opacity:0.75; display:flex; justify-content:space-between;">
+                        <span><i class="fa-solid fa-location-arrow"></i> Kierunek: ${v.headsign || 'Trasa Miejscka'}</span>
+                        <span style="font-family:monospace; color:var(--accent);">${v.lat ? parseFloat(v.lat).toFixed(3) : '---'}, ${v.lon ? parseFloat(v.lon).toFixed(3) : '---'}</span>
                     </div>
                 </div>`;
         });
-        if(count === 0) box.innerHTML = '<p style="opacity:0.5; text-align:center;">Brak aktywnych zgłoszeń.</p>';
     }
 };
 
-const ModPricing = {
-    draw() {
-        const box = document.getElementById('price-list-container');
-        box.innerHTML = '<h2 style="margin-bottom:15px; font-weight:900;">OPŁATY I BILETY</h2>';
-        if(!Object.keys(App.data.prices || {}).length) {
-            box.innerHTML += '<p style="opacity:0.5; text-align:center;">Brak cennika w bazie.</p>';
+const ModLines = {
+    render() {
+        const box = document.getElementById('lines-list');
+        box.innerHTML = '';
+
+        let lines = App.cache.lines;
+        if (!lines.length && App.cache.vehicles.length) {
+            const extracted = [...new Set(App.cache.vehicles.map(v => v.lineLabel || v.line))].filter(Boolean);
+            lines = extracted.map(id => ({ id, name: `Linia ${id}` }));
+        }
+
+        if (!lines.length) {
+            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.6;">Pobieranie listy linii...</div>';
             return;
         }
-        Object.values(App.data.prices).forEach(p => {
-            box.innerHTML += `<div class="price-card">
-                <div><div style="font-weight:900;">${p.name}</div><small style="opacity:0.5;">Bilet MZK Gorzów</small></div>
-                <div style="color:var(--accent); font-weight:900; font-size:1.2rem;">${p.price}</div>
-            </div>`;
+
+        lines.forEach(l => {
+            const lineId = l.id || l.name;
+            box.innerHTML += `
+                <div class="card" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="ModLines.showDetails('${lineId}')">
+                    <div>
+                        <span class="badge" style="background:var(--accent); color:#000; font-size:0.9rem; margin-right:10px;">${lineId}</span>
+                        <b>${l.name || 'Linia ' + lineId}</b>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="opacity:0.4;"></i>
+                </div>`;
         });
+    },
+
+    async showDetails(lineId) {
+        document.getElementById('mod-details').innerHTML = '<div class="skeleton"></div>';
+        App.gate('details');
+
+        const activeVehicles = App.cache.vehicles.filter(v => (v.lineLabel || v.line) === lineId);
+
+        let activeHtml = activeVehicles.map(v => `
+            <div class="dep-item">
+                <div><b>Pojazd #${v.id || 'LIVE'}</b> → ${v.headsign || 'W trasie'}</div>
+                <div style="color:var(--accent); font-weight:bold;">${v.delayInMinutes ? '+' + v.delayInMinutes + ' min' : 'O czasie'}</div>
+            </div>
+        `).join('') || '<p style="opacity:0.5; font-size:0.85rem; padding:10px;">Brak aktywnych pojazdów na tej linii w tej chwili.</p>';
+
+        document.getElementById('mod-details').innerHTML = `
+            <button class="btn btn-sm" onclick="App.gate('lines')" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
+            <div class="card">
+                <h1 style="font-size:2.5rem; color:var(--accent); margin-bottom:5px;">Linia ${lineId}</h1>
+                <p style="opacity:0.6; margin-bottom:15px;">Dane połączone z API Gorzów</p>
+                <h3 style="margin-bottom:10px;">POJAZDY NA TRASIE (${activeVehicles.length}):</h3>
+                ${activeHtml}
+            </div>`;
     }
 };
 
 const ModStops = {
-    searchTimeout: null,
-    debounceSearch(q) {
-        clearTimeout(this.searchTimeout);
-        this.searchTimeout = setTimeout(() => this.search(q), 300);
+    render() {
+        this.filter('');
     },
-    search(q) {
-        const box = document.getElementById('stops-results'); box.innerHTML = '';
-        if(!q || q.length < 2) return;
-        let stops = new Set();
-        Object.values(App.data.lines).forEach(l => l.stops?.split(',').forEach(s => stops.add(s.trim())));
-        const filtered = [...stops].sort().filter(s => s.toLowerCase().includes(q.toLowerCase()));
+
+    filter(query) {
+        const box = document.getElementById('stops-list');
+        box.innerHTML = '';
         
-        if(!filtered.length) {
-            box.innerHTML = '<p style="opacity:0.5; text-align:center; padding:20px;">Nie znaleziono przystanku.</p>';
+        let stops = App.cache.stops;
+
+        if (!stops.length) {
+            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.6;">Brak danych przystankowych.</div>';
             return;
         }
 
+        const filtered = stops.filter(s => (s.name || s.title || '').toLowerCase().includes(query.toLowerCase())).slice(0, 30);
+
         filtered.forEach(s => {
-            box.innerHTML += `<div class="card" style="cursor:pointer;" onclick="ModStops.show('${s}')"><i class="fa-solid fa-location-dot" style="color:var(--accent); margin-right:10px;"></i> ${s}</div>`;
+            box.innerHTML += `
+                <div class="card" style="cursor:pointer;" onclick="ModStops.showDepartures('${s.id}', '${s.name || s.title}')">
+                    <i class="fa-solid fa-location-dot" style="color:var(--accent); margin-right:8px;"></i>
+                    <b>${s.name || s.title}</b>
+                </div>`;
         });
     },
-    show(name) {
-        const lines = Object.entries(App.data.lines).filter(([id, l]) => l.stops?.includes(name));
-        document.getElementById('mod-details').innerHTML = `<button class="btn btn-sm" onclick="App.gate('stops')"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
-            <div class="card" style="margin-top:20px;">
-                <h2 style="color:var(--accent); margin-bottom:5px;">${name}</h2>
-                <p style="opacity:0.5; margin-bottom:15px;">Odjazdy z tego przystanku:</p>
-                ${lines.map(([id, l]) => `<div class="card" style="background:var(--surf-l); cursor:pointer;" onclick="ModLines.details('${id}')"><b style="color:var(--accent)">${l.num}</b> → ${l.dir}</div>`).join('')}
-            </div>`;
+
+    async showDepartures(stopId, stopName) {
+        document.getElementById('mod-details').innerHTML = '<div class="skeleton"></div>';
         App.gate('details');
+
+        try {
+            const deps = await fetchProxy(`${CONFIG.UM_API}&action=b&stopId=${stopId}`, { "Authorization": `Bearer ${CONFIG.TOKEN}` });
+            const depList = Array.isArray(deps) ? deps : [];
+
+            let listHtml = depList.map(d => `
+                <div class="dep-item">
+                    <div>
+                        <span class="badge" style="background:var(--accent); color:#000;">${d.line || d.lineLabel}</span>
+                        <b style="margin-left:8px;">${d.headsign || d.direction}</b>
+                    </div>
+                    <div style="font-weight:900; color:var(--accent);">${d.time || d.actualTime || 'N/A'}</div>
+                </div>
+            `).join('') || '<p style="opacity:0.5; padding:10px;">Brak najbliższych odjazdów.</p>';
+
+            document.getElementById('mod-details').innerHTML = `
+                <button class="btn btn-sm" onclick="App.gate('stops')" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> POWRÓT</button>
+                <div class="card">
+                    <h2 style="color:var(--accent); margin-bottom:5px;">${stopName}</h2>
+                    <p style="opacity:0.5; margin-bottom:15px;">Odjazdy w czasie rzeczywistym:</p>
+                    ${listHtml}
+                </div>`;
+        } catch(e) {
+            App.toast("Błąd pobierania tablicy odjazdów", "error");
+        }
     }
 };
 
-const ModAdmin = {
-    logged: false,
-    async login() {
-        const email = document.getElementById('admin-email').value;
-        const pass = document.getElementById('admin-pass').value;
-        if(!email || !pass) return App.toast("Wpisz email i hasło!", "error");
-        
-        try {
-            await App.auth.signInWithEmailAndPassword(email, pass);
-            App.status("Autoryzacja OK", "#00d166");
-            App.toast("Zalogowano pomyślnie!");
-        } catch(e) { App.toast("Błąd logowania!", "error"); }
-    },
-    
-    tab(t) { 
-        document.querySelectorAll('.atab').forEach(x => x.style.display='none'); 
-        document.getElementById('atab-'+t).style.display='block'; 
-        this.resetForm(t);
-    },
+const ModNews = {
+    render() {
+        const box = document.getElementById('news-list');
+        box.innerHTML = '';
 
-    resetForm(t) {
-        if(t==='L') {
-            document.getElementById('al-id').value = ''; document.getElementById('al-num').value = ''; document.getElementById('al-dir').value = ''; document.getElementById('al-stops').value = ''; document.getElementById('al-times').value = ''; document.getElementById('btn-L').innerText = "DODAJ LINIĘ"; document.getElementById('title-L').innerText = "Dodaj nową linię"; document.getElementById('cancel-L').style.display = 'none'; document.getElementById('form-L').classList.remove('edit-mode');
-        } else if(t==='N') {
-            document.getElementById('an-id').value = ''; document.getElementById('an-t').value = ''; document.getElementById('an-cat').value = ''; document.getElementById('an-c').value = ''; document.getElementById('btn-N').innerText = "PUBLIKUJ NEWS"; document.getElementById('title-N').innerText = "Dodaj news"; document.getElementById('cancel-N').style.display = 'none'; document.getElementById('form-N').classList.remove('edit-mode');
-        } else if(t==='P') {
-            document.getElementById('ap-id').value = ''; document.getElementById('ap-n').value = ''; document.getElementById('ap-p').value = ''; document.getElementById('btn-P').innerText = "DODAJ BILET"; document.getElementById('title-P').innerText = "Dodaj bilet"; document.getElementById('cancel-P').style.display = 'none'; document.getElementById('form-P').classList.remove('edit-mode');
+        if (!App.cache.news.length) {
+            box.innerHTML = `
+                <div class="news-card">
+                    <b>Oficjalne komunikaty MZK Gorzów</b>
+                    <p style="font-size:0.85rem; opacity:0.8; margin-top:5px;">Rozkłady jazdy i zmiany tras są aktualizowane automatycznie przez serwer MZK Gorzów.</p>
+                </div>`;
+            return;
         }
-    },
 
-    edit(type, id) {
-        const item = App.data[type][id];
-        if(!item) return;
-        window.scrollTo(0,0);
+        App.cache.news.forEach(n => {
+            box.innerHTML += `
+                <div class="news-card">
+                    <b>${n.title || 'Komunikat MZK'}</b>
+                    <p style="font-size:0.85rem; opacity:0.8; margin-top:5px;">${n.introtext || n.description || 'Brak opisu.'}</p>
+                </div>`;
+        });
+    }
+};
 
-        if(type==='lines') {
-            document.getElementById('al-id').value = id; document.getElementById('al-num').value = item.num; document.getElementById('al-dir').value = item.dir; document.getElementById('al-stops').value = item.stops; document.getElementById('al-times').value = item.times; document.getElementById('al-type').value = item.type;
-            document.getElementById('btn-L').innerText = "ZAPISZ ZMIANY"; document.getElementById('title-L').innerText = `Edycja: Linia ${item.num}`; document.getElementById('cancel-L').style.display = 'block'; document.getElementById('form-L').classList.add('edit-mode');
-        } else if(type==='news') {
-            document.getElementById('an-id').value = id; document.getElementById('an-t').value = item.title; document.getElementById('an-cat').value = item.category; document.getElementById('an-c').value = item.content;
-            document.getElementById('btn-N').innerText = "ZAPISZ ZMIANY"; document.getElementById('title-N').innerText = "Edycja wpisu"; document.getElementById('cancel-N').style.display = 'block'; document.getElementById('form-N').classList.add('edit-mode');
-        } else if(type==='prices') {
-            document.getElementById('ap-id').value = id; document.getElementById('ap-n').value = item.name; document.getElementById('ap-p').value = item.price;
-            document.getElementById('btn-P').innerText = "ZAPISZ ZMIANY"; document.getElementById('title-P').innerText = "Edycja cennika"; document.getElementById('cancel-P').style.display = 'block'; document.getElementById('form-P').classList.add('edit-mode');
+const ModAlerts = {
+    render(data) {
+        const box = document.getElementById('alerts-list');
+        box.innerHTML = '';
+        const items = Object.values(data || {}).reverse();
+
+        if(!items.length) {
+            box.innerHTML = '<div class="card" style="text-align:center; opacity:0.5;">Brak opublikowanych zgłoszeń.</div>';
+            return;
         }
-    },
 
-    save(type) {
-        let id, data;
-        if(type==='lines') {
-            id = document.getElementById('al-id').value;
-            data = { num: document.getElementById('al-num').value, dir: document.getElementById('al-dir').value, stops: document.getElementById('al-stops').value, times: document.getElementById('al-times').value, type: document.getElementById('al-type').value };
-            if(!data.num || !data.dir) return App.toast("Wpisz numer i kierunek!", "error");
-        } else if(type==='news') {
-            id = document.getElementById('an-id').value;
-            data = { title: document.getElementById('an-t').value, category: document.getElementById('an-cat').value, content: document.getElementById('an-c').value, date: new Date().toLocaleDateString('pl-PL') };
-            if(!data.title || !data.content) return App.toast("Wpisz tytuł i treść!", "error");
-        } else if(type==='prices') {
-            id = document.getElementById('ap-id').value;
-            data = { name: document.getElementById('ap-n').value, price: document.getElementById('ap-p').value };
-            if(!data.name || !data.price) return App.toast("Wypełnij oba pola cennika!", "error");
-        }
-        
-        const ref = id ? App.db.ref(`${App.dbKey}/${type}/${id}`) : App.db.ref(`${App.dbKey}/${type}`).push();
-        ref.set(data).then(() => { 
-            App.toast("Zapisano pomyślnie w chmurze!"); 
-            this.resetForm(type==='lines'?'L':type==='news'?'N':'P');
+        items.forEach(a => {
+            box.innerHTML += `
+                <div class="card" style="border-left:4px solid var(--warn);">
+                    <div style="display:flex; justify-content:space-between;">
+                        <b>${a.type} - Linia ${a.line}</b>
+                        <small style="opacity:0.5;">${new Date(a.time).toLocaleTimeString('pl-PL')}</small>
+                    </div>
+                    <p style="font-size:0.85rem; opacity:0.8; margin-top:5px;">${a.desc}</p>
+                </div>`;
         });
     },
 
-    drawCMS() {
-        const render = (type, boxId) => {
-            const b = document.getElementById(boxId); b.innerHTML = '';
-            Object.entries(App.data[type] || {}).forEach(([id, item]) => {
-                b.innerHTML += `<div class="card" style="font-size:0.9rem; display:flex; justify-content:space-between; align-items:center; background:var(--surf-l); padding:12px;">
-                    <span style="cursor:pointer; flex:1;" onclick="ModAdmin.edit('${type}', '${id}')">
-                        <i class="fa-solid fa-pen" style="color:var(--text-m); margin-right:10px;"></i>
-                        <b>${item.num || item.title || item.name}</b> ${item.dir ? `<small style="opacity:0.6;">(${item.dir})</small>` : ''}
-                    </span>
-                    <i class="fa-solid fa-trash" style="color:var(--tram); cursor:pointer; padding:5px;" onclick="if(confirm('Na pewno usunąć?')) { App.db.ref('${App.dbKey}/${type}/${id}').remove(); App.toast('Usunięto'); }"></i>
-                </div>`;
-            });
-        };
-        render('lines', 'admin-lines-list');
-        render('news', 'admin-news-list');
-        render('prices', 'admin-prices-list');
+    openForm() {
+        document.getElementById('mod-details').innerHTML = `
+            <button class="btn btn-sm" onclick="App.gate('alerts')" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> ANULUJ</button>
+            <div class="card">
+                <h3 style="margin-bottom:15px;">DODAJ ZGŁOSZENIE PASAŻERA</h3>
+                <input id="a-line" placeholder="Numer linii (np. 1, 101)">
+                <select id="a-type">
+                    <option value="AWARIA">Awaria / Utrudnienia</option>
+                    <option value="KANAR">Kontrola biletów</option>
+                    <option value="KOREK">Opóźnienie / Korek</option>
+                </select>
+                <input id="a-desc" placeholder="Opis sytuacji / lokalizacja...">
+                <button class="btn" onclick="ModAlerts.save()">WYŚLIJ ZGŁOSZENIE</button>
+            </div>`;
+        App.gate('details');
+    },
+
+    save() {
+        const line = document.getElementById('a-line').value;
+        const type = document.getElementById('a-type').value;
+        const desc = document.getElementById('a-desc').value;
+
+        if(!line || !desc) return App.toast("Wypełnij formularz!", "error");
+
+        App.db.ref(App.dbKey).push({
+            line, type, desc, time: Date.now()
+        }).then(() => {
+            App.toast("Dodano zgłoszenie!");
+            App.gate('alerts');
+        });
     }
 };
 

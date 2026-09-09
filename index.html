@@ -177,9 +177,35 @@
 </div>
 
 <script>
-const PROXY = "https://shiny-tree-3a9b.fabianzukowski-32.workers.dev";
+// Używamy darmowego, publicznego proxy CORS, które nie blokuje zapytań
+const PROXY = "https://corsproxy.io/?"; 
+// Ewentualna alternatywa, gdyby corsproxy nie działało: "https://api.allorigins.win/raw?url="
+
 const API_URL = "https://komunikacja.um.gorzow.pl/vm/main?command=planner";
 const TOKEN = "iwa_live_tlv2api_b065655533f6d1b185f5d916ea359a8cd6cf7c545b7c54ae1B9Wj9";
+
+let cache = { stops: [], lines: [], vehicles: [] };
+let lastTab = 'stops';
+
+async function fetchAPI(action, params = '') {
+    const targetUrl = `${API_URL}&action=${action}&token=${TOKEN}${params}`;
+    try {
+        // Doklejamy adres URL bezpośrednio do proxy
+        const res = await fetch(PROXY + encodeURIComponent(targetUrl));
+        if (!res.ok) return null;
+        
+        const text = await res.text();
+        if (text.trim().startsWith('<') || text.includes('Cloudflare') || text.includes('Access Denied')) {
+            console.error("Serwer zwrócił stronę HTML/błąd zamiast JSON:", text.substring(0, 100));
+            return null;
+        }
+        return JSON.parse(text);
+    } catch (e) {
+        console.error("Błąd zapytania API:", e);
+        return null;
+    }
+}
+
 
 let cache = { stops: [], lines: [], vehicles: [] };
 let lastTab = 'stops';

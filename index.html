@@ -1,149 +1,235 @@
-<script>
- const firebaseConfig = {
-    databaseURL: "https://mzkfacio-default-rtdb.europe-west1.firebasedatabase.app"
-};
-    // Baza zapasowa Gorzów MZK
-    const DEFAULT_GORZOW_LINES = {
-        "line_1_A": { num: "1", type: "tram", dir: "Wieprzyce", stops: "Silwana, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Wieprzyce", times: "05:12, 05:32, 05:52, 06:12, 06:32, 06:52, 07:12, 07:32, 08:12, 09:12, 10:12, 11:12, 12:12, 13:12, 14:12, 15:12, 16:12, 17:12, 18:12, 19:12, 20:12, 21:12, 22:10" },
-        "line_1_B": { num: "1", type: "tram", dir: "Silwana", stops: "Wieprzyce, Sikorskiego, Katedralna, Chrobrego, Jagiellończyka, Pomorska, Walczaka, Silwana", times: "05:25, 05:45, 06:05, 06:25, 06:45, 07:05, 07:25, 08:05, 09:05, 10:05, 11:05, 12:05, 13:05, 14:05, 15:05, 16:05, 17:05, 18:05, 19:05, 20:05, 21:05, 22:20" },
-        "line_2_A": { num: "2", type: "tram", dir: "Wieprzyce", stops: "Fieldorfa-Nila, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Wieprzyce", times: "05:05, 05:25, 05:45, 06:05, 06:25, 06:45, 07:05, 07:25, 08:05, 09:05, 10:05, 11:05, 12:05, 13:05, 14:05, 15:05, 16:05, 17:05, 18:05, 19:05, 20:05, 21:05, 22:00" },
-        "line_2_B": { num: "2", type: "tram", dir: "Fieldorfa-Nila", stops: "Wieprzyce, Sikorskiego, Katedralna, Chrobrego, Jagiellończyka, Pomorska, Walczaka, Fieldorfa-Nila", times: "05:18, 05:38, 05:58, 06:18, 06:38, 06:58, 07:18, 07:38, 08:18, 09:18, 10:18, 11:18, 12:18, 13:18, 14:18, 15:18, 16:18, 17:18, 18:18, 19:18, 20:18, 21:18" },
-        "line_3_A": { num: "3", type: "tram", dir: "Silwana", stops: "Fieldorfa-Nila, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Silwana", times: "05:18, 05:48, 06:18, 06:48, 07:18, 07:48, 08:48, 09:48, 10:48, 11:48, 12:48, 13:48, 14:48, 15:48, 16:48, 17:48, 18:48, 19:48, 20:48, 21:48" },
-        "line_101_A": { num: "101", type: "bus", dir: "Londyńska", stops: "Śląska-Pole Golfowe, Koboski, Przemysłowa, Jagiełły, Wyzwolenia, Roosevelta, Staszica, Londyńska", times: "05:10, 05:40, 06:10, 06:30, 06:50, 07:10, 07:30, 08:00, 09:00, 10:00, 11:00, 12:00, 13:00, 14:00, 14:30, 15:00, 15:30, 16:00, 17:00, 18:00, 19:00, 20:00, 21:00, 22:15" },
-        "line_101_B": { num: "101", type: "bus", dir: "Śląska-Pole Golfowe", stops: "Londyńska, Staszica, Roosevelta, Wyzwolenia, Jagiełły, Przemysłowa, Koboski, Śląska-Pole Golfowe", times: "05:25, 05:55, 06:25, 06:45, 07:05, 07:25, 07:45, 08:15, 09:15, 10:15, 11:15, 12:15, 13:15, 14:15, 14:45, 15:15, 15:45, 16:15, 17:15, 18:15, 19:15, 20:15, 21:15, 22:30" },
-        "line_102_A": { num: "102", type: "bus", dir: "Poznańska", stops: "Śląska-Pole Golfowe, Przemysłowa, Wylezin, Fabryczna, Towarowa, Poznańska", times: "05:00, 06:00, 07:00, 08:00, 10:00, 12:00, 14:00, 15:00, 16:00, 17:00, 19:00, 21:00" },
-        "line_103_A": { num: "103", type: "bus", dir: "Strażacka", stops: "Cmentarz Brama II, Żwirowa, Roosevelta, Jagiełły, Podmiejska, Strażacka", times: "05:14, 06:14, 07:14, 08:14, 09:14, 11:14, 13:14, 14:14, 15:14, 16:14, 18:14, 20:14" },
-        "line_104_A": { num: "104", type: "bus", dir: "Ustronie", stops: "Słowiańska, Bohaterów Warszawy, Chrobrego, Jagiełły, Pomorska, Walczaka, Ustronie", times: "05:15, 05:45, 06:15, 06:45, 07:15, 07:45, 08:15, 09:15, 10:15, 11:15, 12:15, 13:15, 14:15, 15:15, 16:15, 17:15, 18:15, 19:15, 20:15, 21:15, 22:05" },
-        "line_110_A": { num: "110", type: "bus", dir: "Zapiecek", stops: "Śląska, Wawrzyniaka, Kosynierów Gdyńskich, Roosevelta, Zapiecek", times: "05:22, 06:22, 07:22, 08:22, 12:22, 14:22, 15:22, 16:22, 18:22, 20:22" },
-        "line_111_A": { num: "111", type: "bus", dir: "Cmentarz Brama II", stops: "Śląska-Pole Golfowe, Fabryczna, Jagiełły, Wyszyńskiego, Żwirowa, Cmentarz Brama II", times: "07:30, 08:30, 09:30, 10:30, 11:30, 12:30, 13:30, 14:30, 15:30, 16:30, 17:30" },
-        "line_124_A": { num: "124", type: "bus", dir: "Londyńska", stops: "Prefadom, Walczaka, Jagiełły, Kosynierów Gdyńskich, Roosevelta, Marcinkowskiego, Londyńska", times: "05:08, 05:28, 05:48, 06:08, 06:28, 06:48, 07:08, 07:28, 08:08, 09:08, 10:08, 11:08, 12:08, 13:08, 13:48, 14:28, 15:08, 15:48, 16:28, 17:08, 18:08, 19:08, 20:08, 21:08, 22:10" },
-        "line_124_B": { num: "124", type: "bus", dir: "Prefadom", stops: "Londyńska, Marcinkowskiego, Roosevelta, Kosynierów Gdyńskich, Jagiełły, Walczaka, Prefadom", times: "05:20, 05:40, 06:00, 06:20, 06:40, 07:00, 07:20, 07:40, 08:20, 09:20, 10:20, 11:20, 12:20, 13:20, 14:00, 14:40, 15:20, 16:00, 16:40, 17:20, 18:20, 19:20, 20:20, 21:20" },
-        "line_125_A": { num: "125", type: "bus", dir: "Bornhagena", stops: "Gnieźnieńska, Manhattana, Walczaka, Jagiełły, Marcinkowskiego, Bornhagena", times: "05:00, 06:15, 07:15, 08:15, 12:15, 14:15, 15:15, 16:15, 18:15, 20:15" },
-        "line_126_A": { num: "126", type: "bus", dir: "Chwalęcice", stops: "Os. Staszica, Marcinkowskiego, Roosevelta, Jagiełły, Chrobrego, Ustronie, Chwalęcice", times: "05:00, 05:30, 06:00, 06:30, 07:00, 07:30, 08:00, 09:00, 10:00, 11:00, 12:00, 13:00, 14:00, 15:00, 16:00, 17:00, 18:00, 19:00, 20:00, 21:00, 22:00" },
-        "line_126_B": { num: "126", type: "bus", dir: "Os. Staszica", stops: "Chwalęcice, Ustronie, Chrobrego, Jagiełły, Roosevelta, Marcinkowskiego, Os. Staszica", times: "05:25, 05:55, 06:25, 06:55, 07:25, 07:55, 08:25, 09:25, 10:25, 11:25, 12:25, 13:25, 14:25, 15:25, 16:25, 17:25, 18:25, 19:25, 20:25, 21:25" },
-        "line_134_A": { num: "134", type: "bus", dir: "Baczyna", stops: "Os. Staszica, Marcinkowskiego, Słowiańska, Mosiężna, Baczyna", times: "05:10, 06:10, 07:10, 08:10, 12:10, 14:10, 15:10, 16:10, 18:10, 20:10" }
-    };
-
-    const App = {
-        db: null,
-        dbKey: "mzk",
-        state: { lines: {} },
-
-        init() {
-            // Natychmiastowe pokazanie danych bez czekania na sieć
-            this.state.lines = DEFAULT_GORZOW_LINES;
-            this.renderLines();
-            this.status("Łączenie z Firebase...", "#f1c40f");
-
-            try {
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                this.db = firebase.database();
-                this.listenData();
-            } catch (err) {
-                this.status("Tryb Offline (Lokalny)", "#ff9f43");
-            }
-        },
-
-        listenData() {
-            // Zabezpieczenie: Jeśli brak odpowiedzi z Firebase w 2.5s, przełącz na tryb lokalny
-            const offlineTimeout = setTimeout(() => {
-                this.status("Tryb Offline (Lokalny)", "#ff9f43");
-            }, 2500);
-
-            this.db.ref(`${this.dbKey}/lines`).on('value', (snapshot) => {
-                clearTimeout(offlineTimeout);
-                let data = snapshot.val();
-
-                if (data && Object.keys(data).length > 0) {
-                    this.state.lines = data;
-                    this.renderLines();
-                }
-                this.status("API Połączone", "#00d166");
-            }, (error) => {
-                clearTimeout(offlineTimeout);
-                this.status("Błąd Firebase (Lokalny)", "#ff4757");
-            });
-        },
-
-        renderLines() {
-            const container = document.getElementById('lines-list');
-            if(!container) return;
-            container.innerHTML = '';
-
-            Object.entries(this.state.lines).forEach(([id, line]) => {
-                const item = document.createElement('div');
-                item.className = 'line-item';
-                item.innerHTML = `
-                    <div class="line-header">
-                        <span class="badge ${line.type}">${line.type === 'tram' ? 'TRAM' : 'AUT'} ${line.num}</span>
-                        <span class="line-dir">➔ ${line.dir}</span>
-                    </div>
-                    <div class="line-stops"><b>Przystanki:</b> ${line.stops}</div>
-                    <div class="line-times"><b>Odjazdy:</b> ${line.times}</div>
-                `;
-                container.appendChild(item);
-            });
-        },
-
-        async saveLine() {
-            const num = document.getElementById('line-num').value.trim();
-            const dir = document.getElementById('line-dir').value.trim();
-            const stops = document.getElementById('line-stops').value.trim();
-            const times = document.getElementById('line-times').value.trim();
-            const type = document.getElementById('line-type').value;
-
-            if (!num || !dir) {
-                this.toast("Uzupełnij numer i kierunek!", "error");
-                return;
-            }
-
-            const lineId = `line_${num}_${Date.now()}`;
-            const newObj = { [lineId]: { num, dir, stops, times, type } };
-
-            try {
-                await this.db.ref(`${this.dbKey}/lines`).update(newObj);
-                this.toast("Pomyślnie dodano linię!");
-                document.getElementById('line-num').value = '';
-                document.getElementById('line-dir').value = '';
-                document.getElementById('line-stops').value = '';
-                document.getElementById('line-times').value = '';
-            } catch (err) {
-                this.toast("Błąd zapisu: " + err.message, "error");
-            }
-        },
-
-        forceSync() {
-            if(!this.db) {
-                this.toast("Brak połączenia z chmurą!", "error");
-                return;
-            }
-            this.db.ref(`${this.dbKey}/lines`).update(DEFAULT_GORZOW_LINES)
-                .then(() => this.toast("Przywrócono pełne dane!"))
-                .catch((err) => this.toast("Błąd: " + err.message, "error"));
-        },
-
-        switchTab(tabName) {
-            this.toast(`Zakładka: ${tabName.toUpperCase()}`);
-        },
-
-        toast(msg, type = "success") {
-            const box = document.getElementById('toast');
-            if(!box) return;
-            box.style.display = 'block';
-            box.style.background = type === "error" ? "#ff4757" : "#00d166";
-            box.innerText = msg;
-            setTimeout(() => box.style.display = 'none', 3000);
-        },
-
-        status(msg, color) {
-            const txt = document.getElementById('status-text');
-            const dot = document.getElementById('status-dot');
-            if(txt) txt.innerText = msg;
-            if(dot) dot.style.background = color;
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MZK Gorzów by Facio</title>
+    <!-- Firebase SDK (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --input-bg: #21262d;
+            --accent-green: #00d166;
+            --accent-red: #ff4757;
+            --text-color: #f0f6fc;
+            --text-secondary: #8b949e;
         }
-    };
 
-    document.addEventListener('DOMContentLoaded', () => App.init());
-</script>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 50px; }
+        
+        .header { background-color: #161b22; padding: 15px; text-align: center; font-weight: bold; font-size: 1.2rem; border-bottom: 1px solid #30363d; }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { background: var(--input-bg); color: var(--text-color); border: none; padding: 8px 14px; border-radius: 20px; font-weight: bold; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; white-space: nowrap; }
+        .tab-btn.active { background: var(--accent-red); }
+        .tab-btn.sync { background: var(--accent-green); color: #000; }
+
+        .toast { background: var(--accent-red); color: white; padding: 12px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; margin-bottom: 15px; display: none; }
+
+        .card { background: var(--card-bg); border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .card h3 { margin-bottom: 15px; font-size: 1rem; color: #fff; }
+        
+        .form-group { margin-bottom: 12px; }
+        input, select { width: 100%; background: var(--input-bg); border: 1px solid #30363d; color: #fff; padding: 12px; border-radius: 8px; font-size: 0.95rem; outline: none; }
+        input:focus { border-color: var(--accent-green); }
+
+        .btn-submit { width: 100%; background: var(--accent-green); color: #000; font-weight: bold; border: none; padding: 14px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+
+        .line-item { background: var(--card-bg); border: 1px solid #30363d; border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .line-header { display: flex; align-items: center; gap: 10px; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; color: #fff; }
+        .badge.tram { background: #e74c3c; }
+        .badge.bus { background: #2980b9; }
+        .line-dir { font-weight: bold; font-size: 1rem; }
+        .line-stops { font-size: 0.85rem; color: var(--text-secondary); }
+        .line-times { font-size: 0.8rem; color: var(--accent-green); font-family: monospace; word-break: break-all; }
+
+        .status-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #000; padding: 8px 15px; font-size: 0.75rem; color: var(--text-secondary); display: flex; justify-content: space-between; border-top: 1px solid #30363d; }
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; background: var(--accent-green); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span>MZK Gorzów Wielkopolski</span>
+    </div>
+
+    <div class="container">
+        <div id="toast" class="toast"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="App.switchTab('lines')">LINIE</button>
+            <button class="tab-btn" onclick="App.switchTab('news')">NEWSY</button>
+            <button class="tab-btn" onclick="App.switchTab('prices')">CENY</button>
+            <button class="tab-btn" onclick="App.switchTab('alerts')">ALERTY</button>
+            <button class="tab-btn sync" onclick="App.forceSync()">SYNC GORZÓW</button>
+        </div>
+
+        <div id="view-lines">
+            <div class="card">
+                <h3>Dodaj nową linię</h3>
+                <div class="form-group">
+                    <input type="text" id="line-num" placeholder="Numer linii (np. 124)">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="line-dir" placeholder="Kierunek (np. Os. Staszica)">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="line-stops" placeholder="Przystanki (po przecinku)">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="line-times" placeholder="Godziny (po przecinku, np. 06:15, 07:20)">
+                </div>
+                <div class="form-group">
+                    <select id="line-type">
+                        <option value="bus">Autobus</option>
+                        <option value="tram">Tramwaj</option>
+                    </select>
+                </div>
+                <button class="btn-submit" onclick="App.saveLine()">ZAPISZ LINIĘ</button>
+            </div>
+
+            <div id="lines-list"></div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div><span id="status-dot" class="status-dot"></span><span id="status-text">Inicjalizacja...</span></div>
+        <div>CLOUD: mzkfacio (EU)</div>
+    </div>
+
+    <script>
+        // Poprawny adres bazy w rejonie europe-west1
+        const firebaseConfig = {
+            databaseURL: "https://mzkfacio-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+
+        const DEFAULT_GORZOW_LINES = {
+            "line_1_A": { num: "1", type: "tram", dir: "Wieprzyce", stops: "Silwana, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Wieprzyce", times: "05:12, 05:32, 05:52, 06:12, 06:32, 06:52, 07:12, 07:32, 08:12, 09:12, 10:12, 11:12, 12:12, 13:12, 14:12, 15:12, 16:12, 17:12, 18:12, 19:12, 20:12, 21:12, 22:10" },
+            "line_1_B": { num: "1", type: "tram", dir: "Silwana", stops: "Wieprzyce, Sikorskiego, Katedralna, Chrobrego, Jagiellończyka, Pomorska, Walczaka, Silwana", times: "05:25, 05:45, 06:05, 06:25, 06:45, 07:05, 07:25, 08:05, 09:05, 10:05, 11:05, 12:05, 13:05, 14:05, 15:05, 16:05, 17:05, 18:05, 19:05, 20:05, 21:05, 22:20" },
+            "line_2_A": { num: "2", type: "tram", dir: "Wieprzyce", stops: "Fieldorfa-Nila, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Wieprzyce", times: "05:05, 05:25, 05:45, 06:05, 06:25, 06:45, 07:05, 07:25, 08:05, 09:05, 10:05, 11:05, 12:05, 13:05, 14:05, 15:05, 16:05, 17:05, 18:05, 19:05, 20:05, 21:05, 22:00" },
+            "line_2_B": { num: "2", type: "tram", dir: "Fieldorfa-Nila", stops: "Wieprzyce, Sikorskiego, Katedralna, Chrobrego, Jagiellończyka, Pomorska, Walczaka, Fieldorfa-Nila", times: "05:18, 05:38, 05:58, 06:18, 06:38, 06:58, 07:18, 07:38, 08:18, 09:18, 10:18, 11:18, 12:18, 13:18, 14:18, 15:18, 16:18, 17:18, 18:18, 19:18, 20:18, 21:18" },
+            "line_3_A": { num: "3", type: "tram", dir: "Silwana", stops: "Fieldorfa-Nila, Walczaka, Pomorska, Jagiellończyka, Chrobrego, Katedralna, Sikorskiego, Silwana", times: "05:18, 05:48, 06:18, 06:48, 07:18, 07:48, 08:48, 09:48, 10:48, 11:48, 12:48, 13:48, 14:48, 15:48, 16:48, 17:48, 18:48, 19:48, 20:48, 21:48" },
+            "line_101_A": { num: "101", type: "bus", dir: "Londyńska", stops: "Śląska-Pole Golfowe, Koboski, Przemysłowa, Jagiełły, Wyzwolenia, Roosevelta, Staszica, Londyńska", times: "05:10, 05:40, 06:10, 06:30, 06:50, 07:10, 07:30, 08:00, 09:00, 10:00, 11:00, 12:00, 13:00, 14:00, 14:30, 15:00, 15:30, 16:00, 17:00, 18:00, 19:00, 20:00, 21:00, 22:15" },
+            "line_104_A": { num: "104", type: "bus", dir: "Ustronie", stops: "Słowiańska, Bohaterów Warszawy, Chrobrego, Jagiełły, Pomorska, Walczaka, Ustronie", times: "05:15, 05:45, 06:15, 06:45, 07:15, 07:45, 08:15, 09:15, 10:15, 11:15, 12:15, 13:15, 14:15, 15:15, 16:15, 17:15, 18:15, 19:15, 20:15, 21:15, 22:05" },
+            "line_124_A": { num: "124", type: "bus", dir: "Londyńska", stops: "Prefadom, Walczaka, Jagiełły, Kosynierów Gdyńskich, Roosevelta, Marcinkowskiego, Londyńska", times: "05:08, 05:28, 05:48, 06:08, 06:28, 06:48, 07:08, 07:28, 08:08, 09:08, 10:08, 11:08, 12:08, 13:08, 13:48, 14:28, 15:08, 15:48, 16:28, 17:08, 18:08, 19:08, 20:08, 21:08, 22:10" }
+        };
+
+        const App = {
+            db: null,
+            dbKey: "mzk",
+            state: { lines: {} },
+
+            init() {
+                this.state.lines = DEFAULT_GORZOW_LINES;
+                this.renderLines();
+                this.status("Łączenie z bazą...", "#f1c40f");
+
+                try {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    this.db = firebase.database();
+                    this.listenData();
+                } catch (err) {
+                    this.status("Tryb Offline", "#ff9f43");
+                }
+            },
+
+            listenData() {
+                this.db.ref(`${this.dbKey}/lines`).on('value', (snapshot) => {
+                    let data = snapshot.val();
+                    if (data && Object.keys(data).length > 0) {
+                        this.state.lines = data;
+                        this.renderLines();
+                    }
+                    this.status("API Połączone", "#00d166");
+                }, (error) => {
+                    this.status("Błąd Danych", "#ff4757");
+                });
+            },
+
+            renderLines() {
+                const container = document.getElementById('lines-list');
+                if(!container) return;
+                container.innerHTML = '';
+
+                Object.entries(this.state.lines).forEach(([id, line]) => {
+                    const item = document.createElement('div');
+                    item.className = 'line-item';
+                    item.innerHTML = `
+                        <div class="line-header">
+                            <span class="badge ${line.type}">${line.type === 'tram' ? 'TRAM' : 'AUT'} ${line.num}</span>
+                            <span class="line-dir">➔ ${line.dir}</span>
+                        </div>
+                        <div class="line-stops"><b>Przystanki:</b> ${line.stops}</div>
+                        <div class="line-times"><b>Odjazdy:</b> ${line.times}</div>
+                    `;
+                    container.appendChild(item);
+                });
+            },
+
+            async saveLine() {
+                const num = document.getElementById('line-num').value.trim();
+                const dir = document.getElementById('line-dir').value.trim();
+                const stops = document.getElementById('line-stops').value.trim();
+                const times = document.getElementById('line-times').value.trim();
+                const type = document.getElementById('line-type').value;
+
+                if (!num || !dir) {
+                    this.toast("Uzupełnij numer i kierunek!", "error");
+                    return;
+                }
+
+                const lineId = `line_${num}_${Date.now()}`;
+                const newObj = { [lineId]: { num, dir, stops, times, type } };
+
+                try {
+                    await this.db.ref(`${this.dbKey}/lines`).update(newObj);
+                    this.toast("Pomyślnie dodano linię!");
+                    document.getElementById('line-num').value = '';
+                    document.getElementById('line-dir').value = '';
+                    document.getElementById('line-stops').value = '';
+                    document.getElementById('line-times').value = '';
+                } catch (err) {
+                    this.toast("Błąd zapisu: " + err.message, "error");
+                }
+            },
+
+            forceSync() {
+                if(!this.db) return;
+                this.db.ref(`${this.dbKey}/lines`).update(DEFAULT_GORZOW_LINES)
+                    .then(() => this.toast("Przywrócono rozkład!"))
+                    .catch((err) => this.toast("Błąd: " + err.message, "error"));
+            },
+
+            switchTab(tabName) {
+                this.toast(`Zakładka: ${tabName.toUpperCase()}`);
+            },
+
+            toast(msg, type = "success") {
+                const box = document.getElementById('toast');
+                if(!box) return;
+                box.style.display = 'block';
+                box.style.background = type === "error" ? "#ff4757" : "#00d166";
+                box.innerText = msg;
+                setTimeout(() => box.style.display = 'none', 3000);
+            },
+
+            status(msg, color) {
+                const txt = document.getElementById('status-text');
+                const dot = document.getElementById('status-dot');
+                if(txt) txt.innerText = msg;
+                if(dot) dot.style.background = color;
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
